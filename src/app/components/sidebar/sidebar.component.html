@@ -1,0 +1,198 @@
+<!-- Mobile Backdrop Overlay -->
+<div 
+  class="sidebar-backdrop" 
+  [class.active]="isOpenMobile" 
+  (click)="closeMobileDrawer.emit()"
+></div>
+
+<!-- Main Side Menu Container -->
+<aside 
+  class="sidebar" 
+  [class.collapsed]="isCollapsed()" 
+  [class.open-mobile]="isOpenMobile"
+>
+  
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    @if (!isCollapsed()) {
+      <div class="brand-info">
+        <div class="brand-logo">
+          <span class="material-symbols-outlined">headset_mic</span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">CallFlow <span class="accent">ERP</span></span>
+          <span class="brand-tag">Telecalling Workspace</span>
+        </div>
+      </div>
+      <button 
+        type="button" 
+        class="collapse-btn" 
+        (click)="toggleCollapse()" 
+        title="Collapse Sidebar"
+      >
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+    } @else {
+      <!-- Collapsed Single Centered Logo Button -->
+      <button 
+        type="button" 
+        class="collapsed-brand-btn" 
+        (click)="toggleCollapse()" 
+        title="Expand Sidebar"
+      >
+        <div class="brand-logo">
+          <span class="material-symbols-outlined">headset_mic</span>
+        </div>
+        <span class="expand-icon-badge material-symbols-outlined">chevron_right</span>
+      </button>
+    }
+  </div>
+
+  <!-- Search Filter Input (Expanded Only) -->
+  @if (!isCollapsed()) {
+    <div class="search-box">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search modules..." 
+        [ngModel]="searchQuery()" 
+        (ngModelChange)="searchQuery.set($event)"
+      />
+      @if (searchQuery()) {
+        <button type="button" class="clear-search" (click)="searchQuery.set('')">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Navigation Menu List -->
+  <nav class="sidebar-nav custom-scrollbar">
+    <ul class="menu-list">
+      @for (item of filteredMenuItems(); track item.id) {
+        <li class="menu-item-wrap" [class.has-sub]="item.submenus?.length">
+          
+          <button 
+            type="button" 
+            class="menu-link" 
+            [class.active]="activeMenuId() === item.id"
+            [class.expanded]="isMenuExpanded(item.id)"
+            (click)="selectMenu(item.id, !!item.submenus?.length)"
+          >
+            <!-- Active indicator glow pill -->
+            @if (activeMenuId() === item.id) {
+              <span class="active-indicator"></span>
+            }
+
+            <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+
+            @if (!isCollapsed()) {
+              <span class="menu-label">{{ item.label }}</span>
+              
+              @if (item.badge) {
+                <span class="menu-badge" [ngClass]="item.badgeClass || ''">{{ item.badge }}</span>
+              }
+
+              @if (item.submenus?.length) {
+                <span class="material-symbols-outlined submenu-arrow" [class.rotated]="isMenuExpanded(item.id)">
+                  expand_more
+                </span>
+              }
+            }
+          </button>
+
+          <!-- Fixed Custom Tooltip (Collapsed View) -->
+          @if (isCollapsed() && !item.submenus?.length) {
+            <div class="custom-tooltip shadow-lg">
+              {{ item.label }}
+            </div>
+          }
+
+          <!-- Accordion Submenu (Expanded Sidebar View) -->
+          @if (!isCollapsed() && item.submenus?.length && (isMenuExpanded(item.id) || searchQuery())) {
+            <ul class="submenu-list">
+              @for (sub of item.submenus; track sub.id) {
+                <li class="submenu-item">
+                  <button 
+                    type="button" 
+                    class="submenu-link" 
+                    [class.active]="activeMenuId() === sub.id"
+                    (click)="selectSubmenu(item.id, sub.id, $event)"
+                  >
+                    @if (sub.icon) {
+                      <span class="material-symbols-outlined sub-icon">{{ sub.icon }}</span>
+                    } @else {
+                      <span class="sub-dot"></span>
+                    }
+                    <span>{{ sub.label }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+
+          <!-- Floating Flyout Submenu (Collapsed Sidebar View) -->
+          @if (isCollapsed() && item.submenus?.length) {
+            <div class="flyout-menu shadow-lg">
+              <div class="flyout-header">
+                <span class="material-symbols-outlined">{{ item.icon }}</span>
+                <span>{{ item.label }}</span>
+              </div>
+              <ul class="flyout-list">
+                @for (sub of item.submenus; track sub.id) {
+                  <li>
+                    <button 
+                      type="button" 
+                      class="flyout-link" 
+                      [class.active]="activeMenuId() === sub.id"
+                      (click)="selectSubmenu(item.id, sub.id, $event)"
+                    >
+                      @if (sub.icon) {
+                        <span class="material-symbols-outlined fly-icon">{{ sub.icon }}</span>
+                      }
+                      <span>{{ sub.label }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+        </li>
+      } @empty {
+        <li class="empty-search">
+          <span class="material-symbols-outlined">search_off</span>
+          @if (!isCollapsed()) {
+            <span>No modules match "{{ searchQuery() }}"</span>
+          }
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <!-- User Profile Footer -->
+  <div class="sidebar-footer">
+    <div class="user-card" [class.collapsed-card]="isCollapsed()">
+      <img 
+        [src]="currentUser?.avatar" 
+        [alt]="currentUser?.name" 
+        class="user-avatar" 
+      />
+      @if (!isCollapsed()) {
+        <div class="user-info">
+          <span class="user-name">{{ currentUser?.name }}</span>
+          <span class="user-role-tag">{{ currentUser?.role }}</span>
+        </div>
+        <button 
+          type="button" 
+          class="logout-icon-btn" 
+          (click)="onLogout()" 
+          title="Sign Out"
+        >
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+      }
+    </div>
+  </div>
+
+</aside>

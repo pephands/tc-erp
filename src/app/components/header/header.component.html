@@ -1,0 +1,104 @@
+<header class="top-header" (click)="closeDropdowns()">
+  <div class="top-header-left">
+    <button type="button" class="mobile-menu-btn" (click)="toggleMobileMenu.emit()" title="Open Navigation Menu">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+
+    <div class="page-title-badge">
+      <span class="material-symbols-outlined page-title-icon">{{ pageIcon }}</span>
+    </div>
+
+    <div class="page-heading-group">
+      <div class="breadcrumb">
+        <span>CallFlow ERP</span>
+        @if (parentTitle) {
+          <span class="bc-separator">/</span>
+          <span>{{ parentTitle }}</span>
+        }
+        <span class="bc-separator">/</span>
+        <span class="bc-active">{{ pageTitle }}</span>
+      </div>
+      <h1 class="page-main-heading">{{ pageTitle }}</h1>
+    </div>
+  </div>
+
+  <!-- Right Header Actions -->
+  <div class="top-header-right">
+    <!-- Theme Switcher -->
+    <div class="theme-picker-wrapper">
+      <button 
+        type="button" 
+        class="theme-palette-btn" 
+        (click)="toggleThemePicker($event)"
+        [class.active]="isThemePickerOpen()"
+        title="Choose Color Theme"
+      >
+        <span class="material-symbols-outlined">palette</span>
+        <span class="theme-btn-label">{{ currentTheme().name }}</span>
+      </button>
+
+      @if (isThemePickerOpen()) {
+        <div class="theme-dropdown-menu shadow-lg" (click)="$event.stopPropagation()">
+          <div class="theme-header">
+            <span class="material-symbols-outlined">format_paint</span>
+            <span>Select Color Theme</span>
+          </div>
+          <div class="theme-list">
+            @for (t of availableThemes; track t.id) {
+              <button 
+                type="button" 
+                class="theme-option-btn" 
+                [class.selected]="currentTheme().id === t.id"
+                (click)="selectTheme(t.id)"
+              >
+                <span class="swatch-circle" [style.background]="t.previewGradient"></span>
+                <span class="theme-option-name">{{ t.name }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- User Profile Dropdown -->
+    <div class="user-dropdown-wrapper">
+      <button 
+        type="button" 
+        class="user-profile-trigger" 
+        (click)="toggleUserDropdown($event)"
+        [class.active]="isUserDropdownOpen()"
+      >
+        <img [src]="currentUser()?.avatar" [alt]="currentUser()?.name" class="trigger-avatar" />
+        <div class="trigger-info">
+          <span class="trigger-name">{{ currentUser()?.name }}</span>
+          <span class="role-badge" [ngClass]="roleBadgeClass">{{ userRole() }}</span>
+        </div>
+        <span class="material-symbols-outlined trigger-chevron" [class.rotated]="isUserDropdownOpen()">
+          expand_more
+        </span>
+      </button>
+
+      @if (isUserDropdownOpen()) {
+        <div class="user-dropdown-menu" (click)="$event.stopPropagation()">
+          <div class="dropdown-header">
+            <span class="dd-user-name">{{ currentUser()?.name }}</span>
+            <span class="dd-user-email">{{ currentUser()?.email }}</span>
+          </div>
+          <div class="dropdown-divider"></div>
+
+          <!-- Reset Password Option -->
+          <button type="button" class="dropdown-item" (click)="onResetPassword()">
+            <span class="material-symbols-outlined item-icon">lock_reset</span>
+            <span>Reset Password</span>
+          </button>
+
+          <!-- Logout Option -->
+          <button type="button" class="dropdown-item logout-item" (click)="onLogout()">
+            <span class="material-symbols-outlined item-icon">logout</span>
+            <span>Logout</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>

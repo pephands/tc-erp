@@ -1,0 +1,314 @@
+<main class="branches-container">
+
+  <!-- Header Action Bar (Add Branch & Search) -->
+  <div class="action-header-bar">
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search branches by name, short form, phone..." 
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+      />
+    </div>
+
+    <button type="button" class="btn-add-branch" (click)="openAddModal()">
+      <span class="material-symbols-outlined">add</span>
+      <span>Add Branch</span>
+    </button>
+  </div>
+
+  <!-- Data Table Card Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th>Branch ID</th>
+            <th>Branch Name</th>
+            <th>Branch Short Form</th>
+            <th>Branch Address</th>
+            <th>Phone number</th>
+            <th>Hide Branch</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (branch of paginatedBranches(); track branch.id) {
+            <tr>
+              <td class="col-id">{{ branch.id }}</td>
+              <td class="col-name">{{ branch.name }}</td>
+              <td class="col-short">{{ branch.shortForm }}</td>
+              <td class="col-address">{{ branch.address }}</td>
+              <td class="col-phone">{{ branch.phone }}</td>
+              <td class="col-hide">
+                <span class="hide-badge" [class.is-true]="branch.isHidden">
+                  {{ branch.isHidden ? 'True' : 'False' }}
+                </span>
+              </td>
+              <td class="col-actions">
+                <div class="action-btn-group">
+                  <button 
+                    type="button" 
+                    class="btn-edit" 
+                    (click)="openEditModal(branch)"
+                    title="Edit Branch"
+                  >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn-delete" 
+                    (click)="onDeleteBranch(branch.id)"
+                    title="Delete Branch"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="no-data">
+                <span class="material-symbols-outlined">domain_disabled</span>
+                <p>No branch records found.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing {{ paginatedBranches().length }} of {{ filteredBranches().length }} branches
+      </div>
+
+      <div class="pagination-controls">
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === 1"
+          (click)="prevPage()"
+        >
+          Prev
+        </button>
+
+        @for (p of pageNumbers(); track p) {
+          <button 
+            type="button" 
+            class="page-btn" 
+            [class.active]="currentPage() === p"
+            (click)="setPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Modal Popup Overlay for EDIT BRANCH MANAGEMENT -->
+@if (isEditModalOpen()) {
+  <div class="modal-backdrop" (click)="closeEditModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      
+      <!-- Modal Top Bar -->
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">groups</span>
+          <h2 class="modal-title">Edit Branch Management</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeEditModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Subheading -->
+      <div class="modal-body">
+        <h3 class="section-title">Edit Branch Details</h3>
+
+        <form (ngSubmit)="onUpdateBranch()" class="branch-form">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editName">Branch name</label>
+              <input 
+                type="text" 
+                id="editName" 
+                name="editName" 
+                [(ngModel)]="formName" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editShortForm">Branch short form</label>
+              <input 
+                type="text" 
+                id="editShortForm" 
+                name="editShortForm" 
+                [(ngModel)]="formShortForm" 
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPhone">Phone Number</label>
+              <input 
+                type="text" 
+                id="editPhone" 
+                name="editPhone" 
+                [(ngModel)]="formPhone" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editAddress">Branch Address</label>
+              <textarea 
+                id="editAddress" 
+                name="editAddress" 
+                rows="3" 
+                [(ngModel)]="formAddress"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                name="editIsHidden" 
+                [(ngModel)]="formIsHidden" 
+              />
+              <span>Hide</span>
+            </label>
+          </div>
+
+          <!-- Footer Action Buttons (Update & Reset) -->
+          <div class="modal-footer">
+            <button type="submit" class="btn-update">
+              Update
+            </button>
+            <button type="button" class="btn-reset" (click)="resetEditForm()">
+              Reset
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Modal Popup Overlay for ADD BRANCH -->
+@if (isAddModalOpen()) {
+  <div class="modal-backdrop" (click)="closeAddModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">add_business</span>
+          <h2 class="modal-title">Add New Branch</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeAddModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <h3 class="section-title">New Branch Details</h3>
+
+        <form (ngSubmit)="onAddBranch()" class="branch-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addName">Branch name</label>
+              <input 
+                type="text" 
+                id="addName" 
+                name="addName" 
+                [(ngModel)]="formName" 
+                placeholder="e.g. ADAMBAKKAM"
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="addShortForm">Branch short form</label>
+              <input 
+                type="text" 
+                id="addShortForm" 
+                name="addShortForm" 
+                [(ngModel)]="formShortForm" 
+                placeholder="e.g. ADM"
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addPhone">Phone Number</label>
+              <input 
+                type="text" 
+                id="addPhone" 
+                name="addPhone" 
+                [(ngModel)]="formPhone" 
+                placeholder="e.g. 9876543210"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="addAddress">Branch Address</label>
+              <textarea 
+                id="addAddress" 
+                name="addAddress" 
+                rows="3" 
+                [(ngModel)]="formAddress"
+                placeholder="Branch address details..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                name="addIsHidden" 
+                [(ngModel)]="formIsHidden" 
+              />
+              <span>Hide</span>
+            </label>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn-update">
+              Save Branch
+            </button>
+            <button type="button" class="btn-reset" (click)="closeAddModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+}

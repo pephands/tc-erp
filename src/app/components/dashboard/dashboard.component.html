@@ -1,0 +1,89 @@
+<main class="dashboard-container">
+  
+  <!-- Role Welcome Banner -->
+  <div class="welcome-card shadow-card">
+    <div class="welcome-card-body">
+      <div class="welcome-avatar-wrapper">
+        <img [src]="currentUser()?.avatar" [alt]="currentUser()?.name" class="welcome-avatar" />
+        <span class="status-indicator"></span>
+      </div>
+
+      <div class="welcome-text">
+        <div class="welcome-header">
+          <h2 class="user-greeting">Welcome back, {{ currentUser()?.name }}!</h2>
+          <span class="role-badge" [ngClass]="roleBadgeClass">{{ userRole() }}</span>
+        </div>
+        <p class="role-subtitle">
+          @switch (userRole()) {
+            @case ('ADMIN') { Full Administrative Access & Analytics Overview }
+            @case ('TL') { Team Performance & Operational Oversight }
+            @case ('TC') { Telecaller Queue & Call Operations }
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role-Based Dashboard Empty Content Placeholder -->
+  <div class="dashboard-role-section">
+    
+    @switch (userRole()) {
+      
+      @case ('ADMIN') {
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="icon-chip admin-chip">
+              <span class="material-symbols-outlined">admin_panel_settings</span>
+            </div>
+            <div>
+              <h3>Admin Dashboard Overview</h3>
+              <p>System metrics, manager performance, and operational reports will appear here.</p>
+            </div>
+          </div>
+          <div class="empty-placeholder-box">
+            <span class="material-symbols-outlined box-icon">analytics</span>
+            <p>Admin information dashboard is ready for module components.</p>
+          </div>
+        </div>
+      }
+
+      @case ('TL') {
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="icon-chip tl-chip">
+              <span class="material-symbols-outlined">supervisor_account</span>
+            </div>
+            <div>
+              <h3>Team Leader Overview</h3>
+              <p>Telecaller performance, base assignment, and approval logs will appear here.</p>
+            </div>
+          </div>
+          <div class="empty-placeholder-box">
+            <span class="material-symbols-outlined box-icon">groups</span>
+            <p>TL team oversight dashboard is ready for module components.</p>
+          </div>
+        </div>
+      }
+
+      @case ('TC') {
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="icon-chip tc-chip">
+              <span class="material-symbols-outlined">support_agent</span>
+            </div>
+            <div>
+              <h3>Telecaller Workspace</h3>
+              <p>Call task queues, daily call history, and receipt details will appear here.</p>
+            </div>
+          </div>
+          <div class="empty-placeholder-box">
+            <span class="material-symbols-outlined box-icon">call</span>
+            <p>Telecaller operational workspace is ready for module components.</p>
+          </div>
+        </div>
+      }
+    }
+
+  </div>
+
+</main>

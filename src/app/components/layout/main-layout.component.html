@@ -1,0 +1,29 @@
+<div class="layout-wrapper">
+  <!-- Unified Side Menu Navigation -->
+  <app-sidebar 
+    [currentUser]="currentUser()" 
+    [isOpenMobile]="isMobileDrawerOpen()"
+    (closeMobileDrawer)="closeMobileDrawer()"
+    (logout)="onLogout()"
+    (menuSelect)="onMenuSelect($event)"
+    (collapseChange)="isSidebarCollapsed.set($event)"
+  ></app-sidebar>
+
+  <!-- Main Application Content Area -->
+  <div class="main-content-area" [class.sidebar-is-collapsed]="isSidebarCollapsed()">
+    
+    <!-- Shared Top Header Bar -->
+    <app-header
+      [pageTitle]="pageTitle()"
+      [pageIcon]="pageIcon()"
+      [parentTitle]="parentTitle()"
+      (toggleMobileMenu)="toggleMobileDrawer()"
+    ></app-header>
+
+    <!-- Child View Router Outlet -->
+    <main class="page-body">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>

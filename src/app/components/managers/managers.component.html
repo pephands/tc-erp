@@ -1,0 +1,512 @@
+<main class="managers-container">
+
+  <!-- Header Action Bar (Add Manager, Upload Data & Search) -->
+  <div class="action-header-bar">
+    
+    <div class="action-btn-group-left">
+      <button type="button" class="btn-primary-action" (click)="openAddModal()">
+        <span class="material-symbols-outlined">person_add</span>
+        <span>Add New Manager</span>
+      </button>
+
+      <button type="button" class="btn-accent-action" (click)="openUploadModal()">
+        <span class="material-symbols-outlined">upload_file</span>
+        <span>Upload Manager Data</span>
+      </button>
+    </div>
+
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search managers by name, branch, email, mobile..." 
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+      />
+    </div>
+
+  </div>
+
+  <!-- Data Table Card Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="manager-table">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Full Name</th>
+            <th>Mobile</th>
+            <th>Gender</th>
+            <th>Email Id</th>
+            <th>Role</th>
+            <th>Branch</th>
+            <th>OTP Details</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (manager of paginatedManagers(); track manager.id) {
+            <tr>
+              <td class="col-id">{{ manager.id }}</td>
+              <td class="col-name">{{ manager.fullName }}</td>
+              <td class="col-mobile">{{ manager.mobile }}</td>
+              <td class="col-gender">{{ manager.gender }}</td>
+              <td class="col-email">{{ manager.email }}</td>
+              <td class="col-role">
+                <span class="role-pill">{{ manager.role }}</span>
+              </td>
+              <td class="col-branch">{{ manager.branch }}</td>
+              <td class="col-otp">{{ manager.otpDetails }}</td>
+              <td class="col-status">
+                <span class="status-badge" [class.is-active]="manager.status === 'Active'">
+                  {{ manager.status }}
+                </span>
+              </td>
+              <td class="col-actions">
+                <div class="action-btn-group">
+                  <button 
+                    type="button" 
+                    class="btn-edit" 
+                    (click)="openEditModal(manager)"
+                    title="Edit Manager"
+                  >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn-delete" 
+                    (click)="onDeleteManager(manager.id)"
+                    title="Delete Manager"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="10" class="no-data">
+                <span class="material-symbols-outlined">no_accounts</span>
+                <p>No manager records found.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls (1 2 3 Next) -->
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing {{ paginatedManagers().length }} of {{ filteredManagers().length }} managers
+      </div>
+
+      <div class="pagination-controls">
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === 1"
+          (click)="prevPage()"
+        >
+          Prev
+        </button>
+
+        @for (p of pageNumbers(); track p) {
+          <button 
+            type="button" 
+            class="page-btn" 
+            [class.active]="currentPage() === p"
+            (click)="setPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Modal Popup Overlay for ADD NEW MANAGER -->
+@if (isAddModalOpen()) {
+  <div class="modal-backdrop" (click)="closeAddModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">groups</span>
+          <h2 class="modal-title">Add new Manager</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeAddModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <h3 class="section-title">Enter Manager Details</h3>
+
+        <form (ngSubmit)="onAddManagerSubmit()" class="manager-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addFullName">Full name</label>
+              <input 
+                type="text" 
+                id="addFullName" 
+                name="addFullName" 
+                [(ngModel)]="formFullName" 
+                placeholder="e.g. KARTHICK"
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="addMobile">Mobile Number</label>
+              <input 
+                type="text" 
+                id="addMobile" 
+                name="addMobile" 
+                [(ngModel)]="formMobile" 
+                placeholder="e.g. 9876543210"
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addGender">Gender</label>
+              <select id="addGender" name="addGender" [(ngModel)]="formGender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="addBranch">Branches</label>
+              <select id="addBranch" name="addBranch" [(ngModel)]="formBranch">
+                <option value="" disabled>Select Branch</option>
+                @for (b of branches(); track b.id) {
+                  <option [value]="b.name">{{ b.name }} ({{ b.shortForm }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn-submit">
+              Submit
+            </button>
+            <button type="button" class="btn-reset" (click)="resetAddForm()">
+              Reset
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Modal Popup Overlay for UPDATE USER DETAILS (Exact Match to Screenshot) -->
+@if (isEditModalOpen()) {
+  <div class="modal-backdrop" (click)="closeEditModal()">
+    <div class="modal-card wide-modal-card" (click)="$event.stopPropagation()">
+      
+      <!-- Top Title Header -->
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">groups</span>
+          <h2 class="modal-title">Update User Details</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeEditModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body modal-scrollable">
+        <h3 class="section-title">Enter User Details</h3>
+
+        <form (ngSubmit)="onUpdateManagerSubmit()" class="manager-form">
+          
+          <!-- Row 1: Full name | Original name -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editFullName">Full name</label>
+              <input 
+                type="text" 
+                id="editFullName" 
+                name="editFullName" 
+                [(ngModel)]="formFullName" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editOriginalName">Original name</label>
+              <input 
+                type="text" 
+                id="editOriginalName" 
+                name="editOriginalName" 
+                [(ngModel)]="formOriginalName" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 2: Mobile Number | Official Number -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editMobile">Mobile Number</label>
+              <input 
+                type="text" 
+                id="editMobile" 
+                name="editMobile" 
+                [(ngModel)]="formMobile" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editOfficialNumber">Official Number</label>
+              <input 
+                type="text" 
+                id="editOfficialNumber" 
+                name="editOfficialNumber" 
+                [(ngModel)]="formOfficialNumber" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 3: Gender | Slab -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editGender">Gender</label>
+              <select id="editGender" name="editGender" [(ngModel)]="formGender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editSlab">Slab</label>
+              <input 
+                type="text" 
+                id="editSlab" 
+                name="editSlab" 
+                [(ngModel)]="formSlab" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 4: Role | Branches -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editRole">Role</label>
+              <select id="editRole" name="editRole" [(ngModel)]="formRole">
+                <option value="Team Lead">Team Lead</option>
+                <option value="Manager">Manager</option>
+                <option value="TeleCaller">TeleCaller</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editBranch">Branches</label>
+              <select id="editBranch" name="editBranch" [(ngModel)]="formBranch">
+                @for (b of branches(); track b.id) {
+                  <option [value]="b.name">{{ b.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 5: Salary | Date of Relieving -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editSalary">Salary</label>
+              <input 
+                type="text" 
+                id="editSalary" 
+                name="editSalary" 
+                [(ngModel)]="formSalary" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editDateOfRelieving">Date of Relieving</label>
+              <input 
+                type="text" 
+                id="editDateOfRelieving" 
+                name="editDateOfRelieving" 
+                [(ngModel)]="formDateOfRelieving" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 6: Date of Joining | Bank IFSC Code -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDateOfJoining">Date of Joining</label>
+              <input 
+                type="text" 
+                id="editDateOfJoining" 
+                name="editDateOfJoining" 
+                [(ngModel)]="formDateOfJoining" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editBankIfscCode">Bank IFSC Code</label>
+              <input 
+                type="text" 
+                id="editBankIfscCode" 
+                name="editBankIfscCode" 
+                [(ngModel)]="formBankIfscCode" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 7: Email Id | Bank Account Number -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editEmail">Email Id</label>
+              <input 
+                type="text" 
+                id="editEmail" 
+                name="editEmail" 
+                [(ngModel)]="formEmail" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editBankAccountNumber">Bank Account Number</label>
+              <input 
+                type="text" 
+                id="editBankAccountNumber" 
+                name="editBankAccountNumber" 
+                [(ngModel)]="formBankAccountNumber" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 8: Bank Holder Name -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBankHolderName">Bank Holder Name</label>
+              <input 
+                type="text" 
+                id="editBankHolderName" 
+                name="editBankHolderName" 
+                [(ngModel)]="formBankHolderName" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editStatus">Status</label>
+              <select id="editStatus" name="editStatus" [(ngModel)]="formStatus">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 9: Address (Textarea) -->
+          <div class="form-group full-width">
+            <label for="editAddress">Address</label>
+            <textarea 
+              id="editAddress" 
+              name="editAddress" 
+              rows="3" 
+              [(ngModel)]="formAddress"
+            ></textarea>
+          </div>
+
+          <!-- Row 10: Select Aadhar Image File Picker -->
+          <div class="form-group full-width upload-group">
+            <label>Select Aadhar Image</label>
+            <span class="file-hint">Allowed extensions (jpg,png,gif,pdf)</span>
+            <div class="file-input-wrapper">
+              <input 
+                type="file" 
+                accept=".jpg,.png,.gif,.pdf" 
+                (change)="onAadharFileSelected($event)" 
+              />
+            </div>
+          </div>
+
+          <!-- Action Buttons (Update & Reset - Matching Screenshot) -->
+          <div class="modal-footer">
+            <button type="submit" class="btn-update-navy">
+              Update
+            </button>
+            <button type="button" class="btn-reset" (click)="resetEditForm()">
+              Reset
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Modal Popup Overlay for UPLOAD MANAGER DATA -->
+@if (isUploadModalOpen()) {
+  <div class="modal-backdrop" (click)="closeUploadModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">upload_file</span>
+          <h2 class="modal-title">Upload Manager Data</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeUploadModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <h3 class="section-title">Select Excel File</h3>
+
+        <form (ngSubmit)="onUploadSubmit()" class="manager-form">
+          
+          <div class="upload-dropzone">
+            <span class="file-hint">Allowed extensions (.xls, .xlsx)</span>
+            
+            <div class="file-input-wrapper">
+              <input 
+                type="file" 
+                id="excelFile" 
+                accept=".xls,.xlsx"
+                (change)="onFileSelected($event)" 
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn-submit">
+              Submit
+            </button>
+            <button type="button" class="btn-reset" (click)="closeUploadModal()">
+              Reset
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+}

@@ -1,0 +1,111 @@
+<div class="login-wrapper">
+  <!-- Decorative background elements -->
+  <div class="bg-blur blur-1"></div>
+  <div class="bg-blur blur-2"></div>
+
+  <!-- Mobile Card Container -->
+  <div class="login-card">
+    
+    <!-- Header / Branding -->
+    <div class="app-brand">
+      <div class="brand-icon">
+        <span class="material-symbols-outlined">headset_mic</span>
+      </div>
+      <h1 class="brand-title">CallFlow <span class="accent-text">ERP</span></h1>
+      <p class="brand-subtitle">Telecalling & Lead Management Operations</p>
+    </div>
+
+    <!-- Quick Role Selector Section -->
+    <div class="quick-login-section">
+      <div class="section-title">
+        <span class="material-symbols-outlined">flash_on</span>
+        <span>Quick Demo Login</span>
+      </div>
+      
+      <div class="role-grid">
+        @for (acc of quickAccounts; track acc.key) {
+          <button type="button" class="role-card" (click)="onQuickLogin(acc.key)" [disabled]="isLoading()">
+            <div class="role-header">
+              <span class="role-badge" [ngClass]="acc.badgeClass">{{ acc.role }}</span>
+              <span class="material-symbols-outlined arrow-icon">arrow_forward</span>
+            </div>
+            <div class="role-label">{{ acc.label }}</div>
+            <div class="role-desc">{{ acc.desc }}</div>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="divider">
+      <span>OR LOGIN WITH CREDENTIALS</span>
+    </div>
+
+    <!-- Error Alert -->
+    @if (errorMessage()) {
+      <div class="alert alert-danger" role="alert">
+        <span class="material-symbols-outlined alert-icon">error</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Manual Login Form -->
+    <form (ngSubmit)="onLogin()" class="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">person</span>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            [(ngModel)]="username" 
+            placeholder="e.g. admin, tl_rajesh, tc_priya" 
+            autocomplete="username"
+            required 
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">lock</span>
+          <input 
+            [type]="showPassword() ? 'text' : 'password'" 
+            id="password" 
+            name="password" 
+            [(ngModel)]="password" 
+            placeholder="Enter your password" 
+            autocomplete="current-password"
+            required 
+          />
+          <button 
+            type="button" 
+            class="password-toggle" 
+            (click)="toggleShowPassword()" 
+            aria-label="Toggle password visibility"
+          >
+            <span class="material-symbols-outlined">
+              {{ showPassword() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          <span>Signing in...</span>
+        } @else {
+          <span class="material-symbols-outlined">login</span>
+          <span>Sign In to Dashboard</span>
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>TC-ERP v1.0.0 &bull; Secure Internal Telecalling Portal</p>
+    </div>
+
+  </div>
+</div>
