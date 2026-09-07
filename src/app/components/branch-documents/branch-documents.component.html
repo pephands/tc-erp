@@ -1,0 +1,236 @@
+<div class="page-container">
+
+  <!-- Main Content Body -->
+  <main class="content-body">
+
+    <!-- Top Toolbar Header Bar -->
+    <div class="top-toolbar">
+      <!-- Left Filter Controls (Select Branch + Submit) -->
+      <div class="left-filter-group">
+        <div class="branch-select-wrapper">
+          <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event)">
+            <option value="" disabled selected>Select Branch</option>
+            @for (b of branchesList; track b) {
+              <option [value]="b">{{ b }}</option>
+            }
+          </select>
+          <span class="material-symbols-outlined select-arrow">expand_more</span>
+        </div>
+
+        <button type="button" class="btn-filter-submit" (click)="onFilterSubmit()">
+          Submit
+        </button>
+      </div>
+
+      <!-- Right Action Button (Upload File) -->
+      <div class="right-action-group">
+        <button type="button" class="btn-upload-file" (click)="onUploadFile()">
+          <span class="material-symbols-outlined">upload</span>
+          <span>Upload File</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="table-card">
+
+      <!-- Table Header Bar (Search Input) -->
+      <div class="table-header-bar">
+        <div class="search-box">
+          <input 
+            type="text" 
+            placeholder="Document Nam..." 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+          />
+          <button type="button" class="search-btn" title="Search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Responsive Table Container -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Created Date</th>
+              <th>Document Name</th>
+              <th>Document File name</th>
+              <th>Branch name</th>
+              <th>Expiry Date</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of paginatedDocuments(); track item.id) {
+              <tr>
+                <td class="font-medium cell-id">{{ item.id }}</td>
+                <td class="text-muted">{{ item.createdDate }}</td>
+                <td class="font-semibold doc-name">{{ item.documentName }}</td>
+                <td class="file-name">{{ item.fileName }}</td>
+                <td class="branch-name">{{ item.branchName }}</td>
+                <td class="text-muted expiry-date">{{ item.expiryDate }}</td>
+                <td class="actions-cell">
+                  <div class="action-btn-trio">
+                    <button 
+                      type="button" 
+                      class="btn-action-icon btn-view" 
+                      (click)="onViewDocument(item)" 
+                      title="View Document"
+                    >
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-action-icon btn-edit" 
+                      (click)="onEditDocument(item)" 
+                      title="Edit Document"
+                    >
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-action-icon btn-delete" 
+                      (click)="onDeleteDocument(item)" 
+                      title="Delete Document"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state-cell">
+                  <span class="material-symbols-outlined empty-icon">folder_off</span>
+                  <p>No document records found</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer Bar -->
+      <div class="pagination-footer">
+        <div class="pagination-btn-group">
+          @for (page of pagesArray(); track page) {
+            <button 
+              type="button" 
+              class="page-btn" 
+              [class.active]="currentPage() === page"
+              (click)="setPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+          @if (totalPages() > 1) {
+            <button 
+              type="button" 
+              class="page-btn" 
+              [disabled]="currentPage() === totalPages()"
+              (click)="nextPage()"
+            >
+              Next
+            </button>
+            <button 
+              type="button" 
+              class="page-btn" 
+              [disabled]="currentPage() === totalPages()"
+              (click)="lastPage()"
+            >
+              Last
+            </button>
+          }
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==========================================
+       MODAL: UPLOAD BRANCH DOCUMENTS DETAILS
+       ========================================== -->
+  @if (isUploadModalOpen()) {
+    <div class="modal-backdrop" (click)="closeUploadModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <!-- Modal Top Title Header -->
+        <div class="modal-title-header">
+          <h2>Upload Branch Documents details</h2>
+          <button type="button" class="modal-close-btn" (click)="closeUploadModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Inner Box Card -->
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Select PDF File</h3>
+            <span class="subtext">Allowed extensions (PDF)</span>
+          </div>
+
+          <div class="box-content-area">
+            <!-- File Upload Row -->
+            <div class="file-upload-row">
+              <label class="btn-file-choose">
+                Choose file
+                <input type="file" accept=".pdf" (change)="onFileChange($event)" hidden />
+              </label>
+              <span class="file-chosen-name">{{ uploadFileName() }}</span>
+            </div>
+
+            <!-- Form Fields -->
+            <div class="form-group margin-top-sm">
+              <label>Document Name</label>
+              <input 
+                type="text" 
+                placeholder="Enter document name" 
+                [ngModel]="inputDocumentName()" 
+                (ngModelChange)="inputDocumentName.set($event)"
+              />
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Expiry Date</label>
+              <input 
+                type="date" 
+                placeholder="Select Date" 
+                [ngModel]="inputExpiryDate()" 
+                (ngModelChange)="inputExpiryDate.set($event)"
+              />
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Branch Name</label>
+              <div class="select-wrapper">
+                <select [ngModel]="inputBranchName()" (ngModelChange)="inputBranchName.set($event)">
+                  <option value="" disabled selected>Select Branch</option>
+                  @for (b of branchesList; track b) {
+                    @if (b !== 'All Branches') {
+                      <option [value]="b">{{ b }}</option>
+                    }
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Modal Action Buttons (Bottom Left) -->
+            <div class="modal-actions-footer">
+              <button type="button" class="btn-modal-submit" (click)="onSubmitDocument()">
+                Submit
+              </button>
+              <button type="button" class="btn-modal-reset" (click)="onResetForm()">
+                Reset
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

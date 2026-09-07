@@ -426,7 +426,7 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #1e3a8a;
+  accent-color: var(--primary);
 }
 
 .modal-footer {

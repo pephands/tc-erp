@@ -589,7 +589,7 @@
 }
 
 .btn-update-navy {
-  background: #1e3a8a;
+  background: #ea580c;
   color: white;
   border: none;
   border-radius: 6px;
@@ -600,7 +600,7 @@
 }
 
 .btn-update-navy:hover {
-  background: #1d4ed8;
+  background: #c2410c;
 }
 
 .btn-reset {

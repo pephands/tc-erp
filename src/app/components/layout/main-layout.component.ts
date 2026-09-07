@@ -53,6 +53,14 @@ export class MainLayoutComponent {
       this.pageTitle.set('Attendance Details');
       this.pageIcon.set('event_available');
       this.parentTitle.set('Attendance');
+    } else if (url.includes('/approve-assign')) {
+      this.pageTitle.set('Assign / Approve Task');
+      this.pageIcon.set('groups');
+      this.parentTitle.set('Task Management');
+    } else if (url.includes('/branch-documents')) {
+      this.pageTitle.set('Branch Document Details');
+      this.pageIcon.set('folder_shared');
+      this.parentTitle.set('Branch Details');
     } else {
       this.pageTitle.set('Dashboard');
       this.pageIcon.set('dashboard');

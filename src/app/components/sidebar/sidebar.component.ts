@@ -11,6 +11,7 @@ export interface SubMenuItem {
   label: string;
   icon?: string;
   allowedRoles?: UserRole[];
+  route?: string;
 }
 
 export interface MenuItem {
@@ -77,7 +78,7 @@ export class SidebarComponent implements OnInit {
     { id: 'managers', label: 'Managers', icon: 'manage_accounts', category: 'Team', allowedRoles: ['ADMIN'], route: '/managers' },
     { id: 'telecallers', label: 'TeleCallers', icon: 'support_agent', category: 'Team', allowedRoles: ['ADMIN', 'TL', 'TC'], route: '/telecallers' },
     { id: 'attendance', label: 'Attendance Details', icon: 'event_available', category: 'Operations', allowedRoles: ['ADMIN', 'TL', 'TC'], route: '/attendance' },
-    { id: 'approve_assign', label: 'Approve/Assign Base', icon: 'assignment_ind', category: 'Operations', allowedRoles: ['ADMIN', 'TL'] },
+    { id: 'approve_assign', label: 'Approve/Assign Base', icon: 'assignment_ind', category: 'Operations', allowedRoles: ['ADMIN', 'TL', 'TC'], route: '/approve-assign' },
     { 
       id: 'branch_details', 
       label: 'Branch Details', 
@@ -85,7 +86,7 @@ export class SidebarComponent implements OnInit {
       category: 'Core', 
       allowedRoles: ['ADMIN', 'TL'],
       submenus: [
-        { id: 'branch_documents', label: 'Branch Documents', icon: 'folder_shared', allowedRoles: ['ADMIN', 'TL'] },
+        { id: 'branch_documents', label: 'Branch Documents', icon: 'folder_shared', allowedRoles: ['ADMIN', 'TL', 'TC'], route: '/branch-documents' },
         { id: 'expense_details', label: 'Expense Details', icon: 'receipt', allowedRoles: ['ADMIN', 'TL'] },
         { id: 'expense_report', label: 'Expense Report', icon: 'summarize', allowedRoles: ['ADMIN', 'TL'] }
       ]
@@ -210,6 +211,8 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/managers')) return 'managers';
     if (url.includes('/telecallers')) return 'telecallers';
     if (url.includes('/attendance')) return 'attendance';
+    if (url.includes('/approve-assign')) return 'approve_assign';
+    if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/dashboard')) return 'dashboard';
     return 'dashboard';
   }
@@ -263,6 +266,9 @@ export class SidebarComponent implements OnInit {
     const parent = this.menuItems.find(m => m.id === parentMenuId);
     const sub = parent?.submenus?.find(s => s.id === subItemId);
     if (sub && parent) {
+      if (sub.route) {
+        this.router.navigateByUrl(sub.route);
+      }
       this.menuSelect.emit({
         id: sub.id,
         label: sub.label,

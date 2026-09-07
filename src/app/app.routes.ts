@@ -6,6 +6,8 @@ import { BranchesComponent } from './components/branches/branches.component';
 import { ManagersComponent } from './components/managers/managers.component';
 import { TelecallersComponent } from './components/telecallers/telecallers.component';
 import { AttendanceComponent } from './components/attendance/attendance.component';
+import { ApproveAssignComponent } from './components/approve-assign/approve-assign.component';
+import { BranchDocumentsComponent } from './components/branch-documents/branch-documents.component';
 import { authGuard, loginGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -38,6 +40,14 @@ export const routes: Routes = [
       {
         path: 'attendance',
         component: AttendanceComponent
+      },
+      {
+        path: 'approve-assign',
+        component: ApproveAssignComponent
+      },
+      {
+        path: 'branch-documents',
+        component: BranchDocumentsComponent
       },
       {
         path: '',
