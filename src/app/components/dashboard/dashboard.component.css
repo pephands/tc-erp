@@ -75,24 +75,24 @@
   font-weight: 700;
   padding: 0.15rem 0.6rem;
   border-radius: var(--radius-full);
+}
 
-  &.badge-admin {
-    background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
-    border: 1px solid rgba(99, 102, 241, 0.3);
-  }
+.role-badge.badge-admin {
+  background: var(--role-admin-bg);
+  color: var(--role-admin-color);
+  border: 1px solid var(--role-admin-border);
+}
 
-  &.badge-tl {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-  }
+.role-badge.badge-tl {
+  background: var(--role-tl-bg);
+  color: var(--role-tl-color);
+  border: 1px solid var(--role-tl-border);
+}
 
-  &.badge-tc {
-    background: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-  }
+.role-badge.badge-tc {
+  background: var(--role-tc-bg);
+  color: var(--role-tc-color);
+  border: 1px solid var(--role-tc-border);
 }
 
 .role-subtitle {
@@ -100,7 +100,373 @@
   color: var(--text-muted);
 }
 
-/* Dashboard Section Cards */
+/* ==========================================================================
+   ULTRA-MODERN ATTENDANCE CHECK-IN CARD SECTION
+   ========================================================================== */
+.attendance-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.attendance-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+  font-size: 0.835rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.attendance-chip {
+  background: rgba(234, 88, 12, 0.12);
+  color: var(--primary);
+  width: 48px;
+  height: 48px;
+}
+
+/* Live Digital Clock Badge */
+.live-clock-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.clock-icon {
+  font-size: 24px;
+  color: var(--primary);
+}
+
+.clock-text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.clock-time {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: 0.03em;
+}
+
+.clock-date {
+  font-size: 0.735rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Status Banners */
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  animation: slideInDown 0.25s ease-out;
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.banner-success {
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  color: #15803d;
+}
+
+.banner-danger {
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #dc2626;
+}
+
+.banner-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.banner-content strong {
+  display: block;
+  font-size: 0.935rem;
+}
+
+.banner-content p {
+  font-size: 0.825rem;
+  margin-top: 0.15rem;
+  opacity: 0.9;
+}
+
+/* 3-Column Attendance Summary Grid */
+.attendance-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.summary-tile {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.summary-tile:hover {
+  border-color: var(--border-focus);
+  transform: translateY(-2px);
+}
+
+.tile-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tile-icon {
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.tile-label {
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tile-body {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+}
+
+.tile-main-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+/* Status Pills */
+.status-pill {
+  font-size: 0.825rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+}
+
+.pill-idle {
+  background: #f5f5f4;
+  color: #57534e;
+  border: 1px solid #d6d3d1;
+}
+
+.pill-locating {
+  background: rgba(234, 88, 12, 0.15);
+  color: #ea580c;
+  border: 1px solid rgba(234, 88, 12, 0.3);
+}
+
+.pill-marked {
+  background: rgba(22, 163, 74, 0.15);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.pill-rejected {
+  background: rgba(220, 38, 38, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Prominent Call to Action (CTA) Section */
+.attendance-cta-wrapper {
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.btn-checkin-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--primary-gradient);
+  color: #ffffff;
+  border: none;
+  padding: 1.1rem 2rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-glow);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+.btn-checkin-cta:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -8px rgba(234, 88, 12, 0.4);
+}
+
+.btn-checkin-cta.loading {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.cta-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.cta-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.cta-primary-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.cta-secondary-text {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  font-weight: 500;
+  margin-top: 0.1rem;
+}
+
+.action-pair {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+}
+
+.checked-in-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #15803d;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.checked-in-badge .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.btn-checkout-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #292524;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-checkout-cta:hover {
+  background: #1c1917;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.checkout-tag {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.btn-retry-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-retry-cta:hover {
+  background: #b91c1c;
+}
+
+.btn-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   ROLE BASED SECTION
+   ========================================================================== */
 .section-card {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
@@ -138,21 +504,21 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
 
-  &.admin-chip {
-    background: rgba(99, 102, 241, 0.15);
-    color: var(--primary);
-  }
+.icon-chip.admin-chip {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+}
 
-  &.tl-chip {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-  }
+.icon-chip.tl-chip {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
 
-  &.tc-chip {
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
-  }
+.icon-chip.tc-chip {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
 }
 
 .empty-placeholder-box {
@@ -173,6 +539,12 @@
   color: var(--text-dim);
 }
 
+@media (max-width: 992px) {
+  .attendance-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem;
@@ -185,5 +557,10 @@
 
   .welcome-header {
     justify-content: center;
+  }
+
+  .action-pair {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

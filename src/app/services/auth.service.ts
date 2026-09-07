@@ -60,6 +60,7 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem('tc_erp_device_id');
     this.currentSession.set(null);
   }
 

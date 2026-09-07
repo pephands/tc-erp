@@ -24,7 +24,142 @@
     </div>
   </div>
 
-  <!-- Role-Based Dashboard Empty Content Placeholder -->
+  <!-- MODERN ATTENDANCE CHECK-IN SECTION -->
+  <div class="attendance-card shadow-card">
+    <div class="attendance-card-header">
+      <div class="header-left">
+        <div class="icon-chip attendance-chip">
+          <span class="material-symbols-outlined">how_to_reg</span>
+        </div>
+        <div>
+          <h3 class="card-title">Attendance Check-In</h3>
+          <p class="card-subtitle">Mark your daily shift attendance and view live status</p>
+        </div>
+      </div>
+
+      <!-- Live Digital Clock Badge -->
+      <div class="live-clock-badge">
+        <span class="material-symbols-outlined clock-icon">schedule</span>
+        <div class="clock-text-wrap">
+          <span class="clock-time">{{ currentTimeString() }}</span>
+          <span class="clock-date">{{ currentDateString() }}</span>
+        </div>
+      </div>
+    </div>
+
+    @if (statusState() === 'REJECTED') {
+      <div class="status-banner banner-danger">
+        <span class="material-symbols-outlined banner-icon">cancel</span>
+        <div class="banner-content">
+          <strong>Attendance Check-In Rejected</strong>
+          <p>{{ rejectionReason() || 'Verification failed. Please contact your manager.' }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Modern Shift & Status Details Cards (3-Column Layout) -->
+    <div class="attendance-summary-grid">
+      
+      <!-- Status Card -->
+      <div class="summary-tile">
+        <div class="tile-header">
+          <span class="material-symbols-outlined tile-icon">verified</span>
+          <span class="tile-label">Attendance Status</span>
+        </div>
+        <div class="tile-body">
+          <span 
+            class="status-pill"
+            [class.pill-idle]="statusState() === 'IDLE'"
+            [class.pill-locating]="statusState() === 'LOCATING' || statusState() === 'SUBMITTING'"
+            [class.pill-marked]="statusState() === 'MARKED'"
+            [class.pill-rejected]="statusState() === 'REJECTED'"
+          >
+            @switch (statusState()) {
+              @case ('IDLE') { Not Checked In }
+              @case ('LOCATING') { Verifying Device... }
+              @case ('SUBMITTING') { Checking In... }
+              @case ('MARKED') { Present & Marked }
+              @case ('REJECTED') { Rejected }
+            }
+          </span>
+        </div>
+      </div>
+
+      <!-- Check-In Time Card -->
+      <div class="summary-tile">
+        <div class="tile-header">
+          <span class="material-symbols-outlined tile-icon">login</span>
+          <span class="tile-label">Check-In Time</span>
+        </div>
+        <div class="tile-body">
+          <span class="tile-main-value">{{ checkInTime() || '-- : --' }}</span>
+        </div>
+      </div>
+
+      <!-- Check-Out Time Card -->
+      <div class="summary-tile">
+        <div class="tile-header">
+          <span class="material-symbols-outlined tile-icon">logout</span>
+          <span class="tile-label">Check-Out Time</span>
+        </div>
+        <div class="tile-body">
+          <span class="tile-main-value">{{ checkOutTime() || '-- : --' }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA Buttons Row -->
+    <div class="attendance-cta-wrapper">
+      @if (statusState() === 'IDLE') {
+        <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
+          <span class="material-symbols-outlined cta-icon">fingerprint</span>
+          <div class="cta-text-group">
+            <span class="cta-primary-text">Mark Attendance</span>
+            <span class="cta-secondary-text">Click to verify and check in for today's shift</span>
+          </div>
+        </button>
+      }
+
+      @if (statusState() === 'LOCATING' || statusState() === 'SUBMITTING') {
+        <button type="button" class="btn-checkin-cta loading" disabled>
+          <div class="btn-spinner"></div>
+          <div class="cta-text-group">
+            <span class="cta-primary-text">Verifying Credentials...</span>
+            <span class="cta-secondary-text">Authenticating background request</span>
+          </div>
+        </button>
+      }
+
+      @if (statusState() === 'MARKED') {
+        <div class="action-pair">
+          <div class="checked-in-badge">
+            <span class="material-symbols-outlined">task_alt</span>
+            <span>Checked In at {{ checkInTime() }}</span>
+          </div>
+          
+          @if (!checkOutTime()) {
+            <button type="button" class="btn-checkout-cta" (click)="onCheckOut()">
+              <span class="material-symbols-outlined">logout</span>
+              <span>Check Out</span>
+            </button>
+          } @else {
+            <span class="checkout-tag">Shift Completed (Checked out at {{ checkOutTime() }})</span>
+          }
+        </div>
+      }
+
+      @if (statusState() === 'REJECTED') {
+        <button type="button" class="btn-retry-cta" (click)="onRetry()">
+          <span class="material-symbols-outlined">refresh</span>
+          <span>Retry Attendance Check-In</span>
+        </button>
+      }
+    </div>
+
+  </div>
+
+  <!-- Role-Based Dashboard Section -->
   <div class="dashboard-role-section">
     
     @switch (userRole()) {

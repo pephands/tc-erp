@@ -9,6 +9,7 @@ import { AttendanceComponent } from './components/attendance/attendance.componen
 import { ApproveAssignComponent } from './components/approve-assign/approve-assign.component';
 import { BranchDocumentsComponent } from './components/branch-documents/branch-documents.component';
 import { authGuard, loginGuard } from './guards/auth.guard';
+import { deviceAuthGuard } from './guards/device-auth.guard';
 
 export const routes: Routes = [
   {
@@ -27,27 +28,33 @@ export const routes: Routes = [
       },
       {
         path: 'branches',
-        component: BranchesComponent
+        component: BranchesComponent,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: 'managers',
-        component: ManagersComponent
+        component: ManagersComponent,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: 'telecallers',
-        component: TelecallersComponent
+        component: TelecallersComponent,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: 'attendance',
-        component: AttendanceComponent
+        component: AttendanceComponent,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: 'approve-assign',
-        component: ApproveAssignComponent
+        component: ApproveAssignComponent,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: 'branch-documents',
-        component: BranchDocumentsComponent
+        component: BranchDocumentsComponent,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: '',

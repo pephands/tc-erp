@@ -1,0 +1,222 @@
+/* Warm Sand Light Theme Modal Styles */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(36, 29, 22, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 1.25rem;
+  animation: fadeInBackdrop 0.25s ease-out forwards;
+}
+
+@keyframes fadeInBackdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-card {
+  background: #FAF7F2;
+  border: 1px solid #E6DFD5;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(44, 36, 28, 0.22), 0 8px 16px rgba(44, 36, 28, 0.1);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  position: relative;
+  animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header */
+.modal-header {
+  padding: 1.75rem 1.75rem 0.5rem 1.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.badge-icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-pulse-ring {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(217, 119, 6, 0.15);
+  animation: pulseRing 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+}
+
+.icon-circle {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+  border: 1px solid #FDBA74;
+  color: #D97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #8C8275;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #EFE9E0;
+  color: #2C241C;
+}
+
+/* Body */
+.modal-body {
+  padding: 1rem 1.75rem 1.5rem 1.75rem;
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #2C241C;
+  margin: 0 0 0.6rem 0;
+  letter-spacing: -0.02em;
+}
+
+.modal-message {
+  font-size: 0.935rem;
+  line-height: 1.55;
+  color: #5C5247;
+  margin: 0 0 1.25rem 0;
+}
+
+.notice-banner {
+  background: #F4EFE6;
+  border-left: 4px solid #D97706;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.notice-icon {
+  color: #D97706;
+  display: flex;
+  align-items: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.notice-text {
+  font-size: 0.835rem;
+  color: #4A4035;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* Footer */
+.modal-footer {
+  padding: 1.25rem 1.75rem;
+  background: #F3EDE3;
+  border-top: 1px solid #E6DFD5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  border: 1px solid #D4C9BD;
+  color: #5C5247;
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #F7F3EC;
+  border-color: #C2B6A7;
+  color: #2C241C;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3D3227 0%, #2C241C 100%);
+  border: 1px solid #2C241C;
+  color: #FFFFFF;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(44, 36, 28, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4A3E31 0%, #352B22 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(44, 36, 28, 0.28);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}

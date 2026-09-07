@@ -1,0 +1,61 @@
+<div class="modal-backdrop" *ngIf="isOpen()" (click)="onClose()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    
+    <!-- Top Header & Icon -->
+    <div class="modal-header">
+      <div class="badge-icon-container">
+        <div class="icon-pulse-ring"></div>
+        <div class="icon-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2" ry="2"></rect>
+            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+            <circle cx="12" cy="16" r="1"></circle>
+          </svg>
+        </div>
+      </div>
+      
+      <button type="button" class="close-btn" (click)="onClose()" title="Close Popup">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="modal-body">
+      <h2 class="modal-title">{{ config().title }}</h2>
+      <p class="modal-message">
+        {{ config().message }}
+      </p>
+
+      <div class="notice-banner">
+        <div class="notice-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="notice-text">
+          Attendance check-in validates your registered IP address and location to generate an authorized session device ID.
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="onClose()">
+        Cancel
+      </button>
+      <button type="button" class="btn-primary" (click)="onGoToDashboard()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>Mark Attendance Now</span>
+      </button>
+    </div>
+
+  </div>
+</div>

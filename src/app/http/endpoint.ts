@@ -12,4 +12,9 @@ export class Endpoint {
   get login(): string {
     return this.baseUrl + 'accounts/login/';
   }
+
+  // Attendance Check-In
+  get attendanceCheckIn(): string {
+    return this.baseUrl + 'attendance/check-in/';
+  }
 }
