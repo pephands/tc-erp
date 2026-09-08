@@ -1,23 +1,32 @@
 <main class="dashboard-container">
-  
   <!-- Role Welcome Banner -->
   <div class="welcome-card shadow-card">
     <div class="welcome-card-body">
       <div class="welcome-avatar-wrapper">
-        <img [src]="currentUser()?.avatar" [alt]="currentUser()?.name" class="welcome-avatar" />
+        <img
+          [src]="currentUser()?.avatar || '/default-avatar.png'"
+          [alt]="currentUser()?.full_name"
+          class="welcome-avatar"
+        />
         <span class="status-indicator"></span>
       </div>
 
       <div class="welcome-text">
         <div class="welcome-header">
-          <h2 class="user-greeting">Welcome back, {{ currentUser()?.name }}!</h2>
-          <span class="role-badge" [ngClass]="roleBadgeClass">{{ userRole() }}</span>
+          <h2 class="user-greeting">Welcome back, {{ currentUser()?.full_name }}!</h2>
+          <span class="role-badge" [ngClass]="roleBadgeClass">{{ primaryRole }}</span>
         </div>
         <p class="role-subtitle">
-          @switch (userRole()) {
-            @case ('ADMIN') { Full Administrative Access & Analytics Overview }
-            @case ('TL') { Team Performance & Operational Oversight }
-            @case ('TC') { Telecaller Queue & Call Operations }
+          @switch (primaryRole) {
+            @case ('ADMIN') {
+              Full Administrative Access & Analytics Overview
+            }
+            @case ('TL') {
+              Team Performance & Operational Oversight
+            }
+            @case ('TC') {
+              Telecaller Queue & Call Operations
+            }
           }
         </p>
       </div>
@@ -57,9 +66,18 @@
       </div>
     }
 
+    @if (statusState() === 'COMPLETED') {
+      <div class="status-banner banner-success">
+        <span class="material-symbols-outlined banner-icon">task_alt</span>
+        <div class="banner-content">
+          <strong>Shift Completed</strong>
+          <p>You have successfully checked out for today. You can now log out.</p>
+        </div>
+      </div>
+    }
+
     <!-- Modern Shift & Status Details Cards (3-Column Layout) -->
     <div class="attendance-summary-grid">
-      
       <!-- Status Card -->
       <div class="summary-tile">
         <div class="tile-header">
@@ -67,7 +85,7 @@
           <span class="tile-label">Attendance Status</span>
         </div>
         <div class="tile-body">
-          <span 
+          <span
             class="status-pill"
             [class.pill-idle]="statusState() === 'IDLE'"
             [class.pill-locating]="statusState() === 'LOCATING' || statusState() === 'SUBMITTING'"
@@ -75,11 +93,24 @@
             [class.pill-rejected]="statusState() === 'REJECTED'"
           >
             @switch (statusState()) {
-              @case ('IDLE') { Not Checked In }
-              @case ('LOCATING') { Verifying Device... }
-              @case ('SUBMITTING') { Checking In... }
-              @case ('MARKED') { Present & Marked }
-              @case ('REJECTED') { Rejected }
+              @case ('IDLE') {
+                Not Checked In
+              }
+              @case ('LOCATING') {
+                Verifying Device...
+              }
+              @case ('SUBMITTING') {
+                Checking In...
+              }
+              @case ('MARKED') {
+                Present & Marked
+              }
+              @case ('COMPLETED') {
+                Shift Completed
+              }
+              @case ('REJECTED') {
+                Rejected
+              }
             }
           </span>
         </div>
@@ -106,7 +137,6 @@
           <span class="tile-main-value">{{ checkOutTime() || '-- : --' }}</span>
         </div>
       </div>
-
     </div>
 
     <!-- CTA Buttons Row -->
@@ -137,7 +167,7 @@
             <span class="material-symbols-outlined">task_alt</span>
             <span>Checked In at {{ checkInTime() }}</span>
           </div>
-          
+
           @if (!checkOutTime()) {
             <button type="button" class="btn-checkout-cta" (click)="onCheckOut()">
               <span class="material-symbols-outlined">logout</span>
@@ -156,14 +186,11 @@
         </button>
       }
     </div>
-
   </div>
 
   <!-- Role-Based Dashboard Section -->
   <div class="dashboard-role-section">
-    
-    @switch (userRole()) {
-      
+    @switch (primaryRole) {
       @case ('ADMIN') {
         <div class="section-card">
           <div class="section-card-header">
@@ -218,7 +245,5 @@
         </div>
       }
     }
-
   </div>
-
 </main>

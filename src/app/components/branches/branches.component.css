@@ -178,7 +178,25 @@
 }
 
 .btn-edit:hover {
-  background: #0077b6;
+  background: #0096c7;
+}
+
+.btn-restore {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-restore:hover {
+  background: #16a34a;
 }
 
 .btn-edit .material-symbols-outlined {

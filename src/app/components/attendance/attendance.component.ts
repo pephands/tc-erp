@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BranchService } from '../../services/branch.service';
+import { BranchListService } from '../../services/branch-list.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { AttendanceRecord } from '../../models/attendance.model';
 
@@ -13,7 +13,7 @@ import { AttendanceRecord } from '../../models/attendance.model';
   styleUrl: './attendance.component.css'
 })
 export class AttendanceComponent {
-  private branchService = inject(BranchService);
+  private branchService = inject(BranchListService);
   private attendanceService = inject(AttendanceService);
 
   // Filter selections
@@ -27,8 +27,19 @@ export class AttendanceComponent {
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
 
-  // Branch options from service
-  branches = computed(() => this.branchService.branches());
+  // Branch  // Master data for filters
+  branches = signal<any[]>([]);
+
+  constructor() {
+    this.branchService.getData().subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' || (Array.isArray(res) || res.data)) {
+            const data = Array.isArray(res) ? res : (res.data || []);
+            this.branches.set(data);
+        }
+      }
+    });
+  }
 
   // Attendance Records from service
   allAttendance = this.attendanceService.attendanceRecords;

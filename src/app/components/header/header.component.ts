@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
-import { UserRole } from '../../models/user.model';
+import { User } from '../../models/user.model';
+import { AttendanceCheckInService } from '../../services/attendance-checkin.service';
+import { DeviceAuthModalService } from '../../services/device-auth-modal.service';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +17,8 @@ import { UserRole } from '../../models/user.model';
 export class HeaderComponent {
   private authService = inject(AuthService);
   private themeService = inject(ThemeService);
+  private checkInService = inject(AttendanceCheckInService);
+  private modalService = inject(DeviceAuthModalService);
   private router = inject(Router);
 
   @Input() pageTitle = 'Dashboard';
@@ -24,7 +28,15 @@ export class HeaderComponent {
   @Output() toggleMobileMenu = new EventEmitter<void>();
 
   currentUser = this.authService.currentUser;
-  userRole = this.authService.userRole;
+  userRoles = this.authService.userRoles;
+
+  get primaryRole(): string {
+    const roles = this.userRoles();
+    if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('TL')) return 'TL';
+    if (roles.includes('TC')) return 'TC';
+    return '';
+  }
   availableThemes = this.themeService.availableThemes;
   currentTheme = this.themeService.currentTheme;
 
@@ -64,12 +76,20 @@ export class HeaderComponent {
 
   onLogout(): void {
     this.closeDropdowns();
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    if (this.checkInService.hasCheckedInToday()) {
+      this.modalService.show({
+        title: 'Checkout Required',
+        message: 'You are currently checked in for attendance. You must check out on the dashboard before logging out of the system.'
+      });
+      return;
+    }
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/login']);
+    });
   }
 
   get roleBadgeClass(): string {
-    const role = this.userRole();
+    const role = this.primaryRole;
     switch (role) {
       case 'ADMIN': return 'badge-admin';
       case 'TL': return 'badge-tl';

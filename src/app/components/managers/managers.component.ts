@@ -2,7 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ManagerService } from '../../services/manager.service';
-import { BranchService } from '../../services/branch.service';
+import { BranchListService } from '../../services/branch-list.service';
 import { Manager } from '../../models/manager.model';
 
 @Component({
@@ -14,7 +14,7 @@ import { Manager } from '../../models/manager.model';
 })
 export class ManagersComponent {
   private managerService = inject(ManagerService);
-  private branchService = inject(BranchService);
+  private branchService = inject(BranchListService);
 
   // Pagination & Filter state
   currentPage = signal<number>(1);
@@ -50,8 +50,19 @@ export class ManagersComponent {
   selectedExcelFile: File | null = null;
   selectedAadharFile: File | null = null;
 
-  // Branch list for dropdown selector
-  branches = computed(() => this.branchService.branches());
+  // Branch options
+  branches = signal<any[]>([]);
+
+  constructor() {
+    this.branchService.getData().subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' || (Array.isArray(res) || res.data)) {
+            const data = Array.isArray(res) ? res : (res.data || []);
+            this.branches.set(data);
+        }
+      }
+    });
+  }
 
   // Snapshot for Reset functionality
   private originalManagerSnapshot: Manager | null = null;

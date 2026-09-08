@@ -19,7 +19,6 @@ export abstract class BaseHttpService {
     let user: any = this.getUserFromLocalStorage();
     let token = undefined;
     if (user) {
-      user = JSON.parse(user);
       token = user.token;
 
       const headers = new HttpHeaders({
@@ -38,7 +37,6 @@ export abstract class BaseHttpService {
     let user: any = this.getUserFromLocalStorage();
     let token = undefined;
     if (user) {
-      user = JSON.parse(user);
       token = user.token;
       return new HttpHeaders({
         Authorization: 'Token ' + token,
@@ -49,7 +47,7 @@ export abstract class BaseHttpService {
 
   getUserFromLocalStorage(): any {
     if (typeof localStorage !== 'undefined') {
-      let user = localStorage.getItem('user');
+      let user = localStorage.getItem('tc_erp_auth_session');
       return user ? JSON.parse(user) : null;
     }
     return null;

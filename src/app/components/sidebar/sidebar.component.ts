@@ -3,14 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { User, UserRole } from '../../models/user.model';
+import { User } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
+import { AttendanceCheckInService } from '../../services/attendance-checkin.service';
+import { DeviceAuthModalService } from '../../services/device-auth-modal.service';
 
 export interface SubMenuItem {
   id: string;
   label: string;
   icon?: string;
-  allowedRoles?: UserRole[];
+  allowedRoles?: string[];
   route?: string;
 }
 
@@ -21,7 +23,7 @@ export interface MenuItem {
   badge?: string;
   badgeClass?: string;
   category?: string;
-  allowedRoles?: UserRole[];
+  allowedRoles?: string[];
   submenus?: SubMenuItem[];
   route?: string;
 }
@@ -42,6 +44,8 @@ export interface ActiveMenuEvent {
 })
 export class SidebarComponent implements OnInit {
   private authService = inject(AuthService);
+  private checkInService = inject(AttendanceCheckInService);
+  private modalService = inject(DeviceAuthModalService);
   private router = inject(Router);
 
   @Input() set currentUser(val: User | null) {
@@ -58,6 +62,14 @@ export class SidebarComponent implements OnInit {
   @Output() collapseChange = new EventEmitter<boolean>();
 
   private userSignal = signal<User | null>(null);
+
+  get primaryRole(): string {
+    const roles = this.currentUser?.roles?.map(r => r.name.toUpperCase()) || this.authService.userRoles();
+    if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('TL')) return 'TL';
+    if (roles.includes('TC')) return 'TC';
+    return '';
+  }
 
   // Sidebar expanded / collapsed state (desktop)
   isCollapsed = signal<boolean>(false);
@@ -171,19 +183,19 @@ export class SidebarComponent implements OnInit {
 
   // Computed filtered items based on user role AND search query
   filteredMenuItems = computed(() => {
-    const userRole = this.currentUser?.role || this.authService.userRole();
+    const userRoles = this.currentUser?.roles?.map(r => r.name.toUpperCase()) || this.authService.userRoles();
     const query = this.searchQuery().trim().toLowerCase();
 
     return this.menuItems
       .filter(item => {
-        if (item.allowedRoles && userRole && !item.allowedRoles.includes(userRole)) {
+        if (item.allowedRoles && userRoles.length > 0 && !item.allowedRoles.some(r => userRoles.includes(r))) {
           return false;
         }
         return true;
       })
       .map(item => {
         const validSubmenus = item.submenus ? item.submenus.filter(sub => {
-          if (sub.allowedRoles && userRole && !sub.allowedRoles.includes(userRole)) {
+          if (sub.allowedRoles && userRoles.length > 0 && !sub.allowedRoles.some(r => userRoles.includes(r))) {
             return false;
           }
           return true;
@@ -242,6 +254,25 @@ export class SidebarComponent implements OnInit {
   }
 
   selectMenu(itemId: string, hasSubmenus = false): void {
+    if (itemId !== 'dashboard' && !this.checkInService.hasCheckedInToday()) {
+      const item = this.menuItems.find(m => m.id === itemId);
+      
+      let title = 'Device Authorization Required';
+      let message = 'To access ERP modules and data, you must first complete your attendance check-in to authorize this device.';
+      
+      if (this.checkInService.hasCheckedOutToday()) {
+        title = 'Shift Completed';
+        message = 'Your shift has been completed for today. You cannot access modules after checking out. Please log out.';
+      }
+
+      this.modalService.show({
+        title: title,
+        message: message,
+        targetModule: item?.label || 'this module'
+      });
+      return;
+    }
+
     if (hasSubmenus) {
       this.toggleSubmenu(itemId);
     } else {
@@ -259,6 +290,26 @@ export class SidebarComponent implements OnInit {
   }
 
   selectSubmenu(parentMenuId: string, subItemId: string, event?: Event): void {
+    if (parentMenuId !== 'dashboard' && !this.checkInService.hasCheckedInToday()) {
+      const parent = this.menuItems.find(m => m.id === parentMenuId);
+      const sub = parent?.submenus?.find(s => s.id === subItemId);
+      
+      let title = 'Device Authorization Required';
+      let message = 'To access ERP modules and data, you must first complete your attendance check-in to authorize this device.';
+      
+      if (this.checkInService.hasCheckedOutToday()) {
+        title = 'Shift Completed';
+        message = 'Your shift has been completed for today. You cannot access modules after checking out. Please log out.';
+      }
+
+      this.modalService.show({
+        title: title,
+        message: message,
+        targetModule: sub?.label || 'this module'
+      });
+      return;
+    }
+
     if (event) {
       event.stopPropagation();
     }
@@ -280,6 +331,13 @@ export class SidebarComponent implements OnInit {
   }
 
   onLogout(): void {
+    if (this.checkInService.hasCheckedInToday()) {
+      this.modalService.show({
+        title: 'Checkout Required',
+        message: 'You are currently checked in for attendance. You must check out on the dashboard before logging out of the system.'
+      });
+      return;
+    }
     this.logout.emit();
   }
 }

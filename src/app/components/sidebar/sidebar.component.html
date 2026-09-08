@@ -1,17 +1,12 @@
 <!-- Mobile Backdrop Overlay -->
-<div 
-  class="sidebar-backdrop" 
-  [class.active]="isOpenMobile" 
+<div
+  class="sidebar-backdrop"
+  [class.active]="isOpenMobile"
   (click)="closeMobileDrawer.emit()"
 ></div>
 
 <!-- Main Side Menu Container -->
-<aside 
-  class="sidebar" 
-  [class.collapsed]="isCollapsed()" 
-  [class.open-mobile]="isOpenMobile"
->
-  
+<aside class="sidebar" [class.collapsed]="isCollapsed()" [class.open-mobile]="isOpenMobile">
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     @if (!isCollapsed()) {
@@ -24,20 +19,20 @@
           <span class="brand-tag">Telecalling Workspace</span>
         </div>
       </div>
-      <button 
-        type="button" 
-        class="collapse-btn" 
-        (click)="toggleCollapse()" 
+      <button
+        type="button"
+        class="collapse-btn"
+        (click)="toggleCollapse()"
         title="Collapse Sidebar"
       >
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
     } @else {
       <!-- Collapsed Single Centered Logo Button -->
-      <button 
-        type="button" 
-        class="collapsed-brand-btn" 
-        (click)="toggleCollapse()" 
+      <button
+        type="button"
+        class="collapsed-brand-btn"
+        (click)="toggleCollapse()"
         title="Expand Sidebar"
       >
         <div class="brand-logo">
@@ -52,10 +47,10 @@
   @if (!isCollapsed()) {
     <div class="search-box">
       <span class="material-symbols-outlined search-icon">search</span>
-      <input 
-        type="text" 
-        placeholder="Search modules..." 
-        [ngModel]="searchQuery()" 
+      <input
+        type="text"
+        placeholder="Search modules..."
+        [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
       />
       @if (searchQuery()) {
@@ -71,10 +66,9 @@
     <ul class="menu-list">
       @for (item of filteredMenuItems(); track item.id) {
         <li class="menu-item-wrap" [class.has-sub]="item.submenus?.length">
-          
-          <button 
-            type="button" 
-            class="menu-link" 
+          <button
+            type="button"
+            class="menu-link"
             [class.active]="activeMenuId() === item.id"
             [class.expanded]="isMenuExpanded(item.id)"
             (click)="selectMenu(item.id, !!item.submenus?.length)"
@@ -88,13 +82,16 @@
 
             @if (!isCollapsed()) {
               <span class="menu-label">{{ item.label }}</span>
-              
+
               @if (item.badge) {
                 <span class="menu-badge" [ngClass]="item.badgeClass || ''">{{ item.badge }}</span>
               }
 
               @if (item.submenus?.length) {
-                <span class="material-symbols-outlined submenu-arrow" [class.rotated]="isMenuExpanded(item.id)">
+                <span
+                  class="material-symbols-outlined submenu-arrow"
+                  [class.rotated]="isMenuExpanded(item.id)"
+                >
                   expand_more
                 </span>
               }
@@ -109,13 +106,15 @@
           }
 
           <!-- Accordion Submenu (Expanded Sidebar View) -->
-          @if (!isCollapsed() && item.submenus?.length && (isMenuExpanded(item.id) || searchQuery())) {
+          @if (
+            !isCollapsed() && item.submenus?.length && (isMenuExpanded(item.id) || searchQuery())
+          ) {
             <ul class="submenu-list">
               @for (sub of item.submenus; track sub.id) {
                 <li class="submenu-item">
-                  <button 
-                    type="button" 
-                    class="submenu-link" 
+                  <button
+                    type="button"
+                    class="submenu-link"
                     [class.active]="activeMenuId() === sub.id"
                     (click)="selectSubmenu(item.id, sub.id, $event)"
                   >
@@ -141,9 +140,9 @@
               <ul class="flyout-list">
                 @for (sub of item.submenus; track sub.id) {
                   <li>
-                    <button 
-                      type="button" 
-                      class="flyout-link" 
+                    <button
+                      type="button"
+                      class="flyout-link"
                       [class.active]="activeMenuId() === sub.id"
                       (click)="selectSubmenu(item.id, sub.id, $event)"
                     >
@@ -157,7 +156,6 @@
               </ul>
             </div>
           }
-
         </li>
       } @empty {
         <li class="empty-search">
@@ -173,26 +171,20 @@
   <!-- User Profile Footer -->
   <div class="sidebar-footer">
     <div class="user-card" [class.collapsed-card]="isCollapsed()">
-      <img 
-        [src]="currentUser?.avatar" 
-        [alt]="currentUser?.name" 
-        class="user-avatar" 
+      <img
+        [src]="currentUser?.avatar || '/default-avatar.png'"
+        [alt]="currentUser?.full_name"
+        class="user-avatar"
       />
       @if (!isCollapsed()) {
         <div class="user-info">
-          <span class="user-name">{{ currentUser?.name }}</span>
-          <span class="user-role-tag">{{ currentUser?.role }}</span>
+          <span class="user-name">{{ currentUser?.full_name }}</span>
+          <span class="user-role-tag">{{ primaryRole }}</span>
         </div>
-        <button 
-          type="button" 
-          class="logout-icon-btn" 
-          (click)="onLogout()" 
-          title="Sign Out"
-        >
+        <button type="button" class="logout-icon-btn" (click)="onLogout()" title="Sign Out">
           <span class="material-symbols-outlined">logout</span>
         </button>
       }
     </div>
   </div>
-
 </aside>

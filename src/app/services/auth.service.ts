@@ -1,17 +1,23 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { User, AuthSession, MOCK_USERS } from '../models/user.model';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { User, AuthSession } from '../models/user.model';
+import { AdminLoginService } from './login.service';
+import { LogoutService } from './logout.service';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly STORAGE_KEY = 'tc_erp_auth_session';
+  private loginService = inject(AdminLoginService);
+  private logoutService = inject(LogoutService);
 
   // Signals for reactive state
   readonly currentSession = signal<AuthSession | null>(this.loadStoredSession());
   readonly currentUser = computed(() => this.currentSession()?.user ?? null);
   readonly isLoggedIn = computed(() => !!this.currentSession());
-  readonly userRole = computed(() => this.currentSession()?.user.role ?? null);
+  readonly userRoles = computed(() => this.currentSession()?.user.roles?.map(r => r.name.toUpperCase()) ?? []);
 
   private loadStoredSession(): AuthSession | null {
     try {
@@ -26,46 +32,62 @@ export class AuthService {
     return null;
   }
 
-  login(username: string, password: string): { success: boolean; message: string; user?: User } {
-    const cleanUsername = username.trim().toLowerCase();
-    const mockAccount = MOCK_USERS[cleanUsername];
+  login(username: string, password: string): Observable<{ success: boolean; message: string; user?: User }> {
+    return this.loginService.getData({ username, password }).pipe(
+      map((response: any) => {
+        if (response.status === 'success' || response.token) {
+          const session: AuthSession = {
+            user: response.user,
+            token: response.token,
+            loginTime: new Date().toISOString()
+          };
 
-    if (!mockAccount) {
-      return { success: false, message: 'Invalid username. Please check your credentials.' };
-    }
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+          this.currentSession.set(session);
 
-    if (mockAccount.password !== password) {
-      return { success: false, message: 'Incorrect password. Please try again.' };
-    }
-
-    const session: AuthSession = {
-      user: mockAccount.user,
-      token: `mock_jwt_${Date.now()}_${mockAccount.user.id}`,
-      loginTime: new Date().toISOString()
-    };
-
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
-    this.currentSession.set(session);
-
-    return { success: true, message: 'Login successful!', user: mockAccount.user };
+          return { success: true, message: 'Login successful!', user: response.user };
+        } else {
+           return { success: false, message: response.message || 'Login failed.' };
+        }
+      }),
+      catchError((error) => {
+        let errorMsg = 'An error occurred during login. Please try again.';
+        if (error.error && error.error.errors) {
+            if (error.error.errors.non_field_errors) {
+                 errorMsg = error.error.errors.non_field_errors[0];
+            } else {
+                 errorMsg = 'Invalid credentials.';
+            }
+        } else if (error.error && error.error.message) {
+            errorMsg = error.error.message;
+        }
+        return of({ success: false, message: errorMsg });
+      })
+    );
   }
 
-  quickLogin(usernameKey: string): { success: boolean; message: string; user?: User } {
-    const mockAccount = MOCK_USERS[usernameKey];
-    if (!mockAccount) {
-      return { success: false, message: 'Account not found.' };
-    }
-    return this.login(mockAccount.user.username, mockAccount.password);
+  logout(): Observable<boolean> {
+    return this.logoutService.getData({}).pipe(
+      map(() => {
+        this.clearLocalSession();
+        return true;
+      }),
+      catchError(() => {
+        this.clearLocalSession();
+        return of(false);
+      })
+    );
   }
 
-  logout(): void {
+  private clearLocalSession(): void {
     localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem('tc_erp_device_id');
+    // Deliberately NOT clearing 'device_id' here so the physical device remains uniquely identified across logouts.
+    localStorage.removeItem('tc_erp_last_checkin_date');
     this.currentSession.set(null);
   }
 
-  hasRole(allowedRoles: Array<'ADMIN' | 'TL' | 'TC'>): boolean {
-    const role = this.userRole();
-    return role ? allowedRoles.includes(role) : false;
+  hasRole(allowedRoles: Array<string>): boolean {
+    const roles = this.userRoles();
+    return allowedRoles.some(allowed => roles.includes(allowed));
   }
 }

@@ -68,10 +68,10 @@
         (click)="toggleUserDropdown($event)"
         [class.active]="isUserDropdownOpen()"
       >
-        <img [src]="currentUser()?.avatar" [alt]="currentUser()?.name" class="trigger-avatar" />
-        <div class="trigger-info">
-          <span class="trigger-name">{{ currentUser()?.name }}</span>
-          <span class="role-badge" [ngClass]="roleBadgeClass">{{ userRole() }}</span>
+        <img [src]="currentUser()?.avatar || '/default-avatar.png'" [alt]="currentUser()?.full_name" class="trigger-avatar" />
+        <div class="dd-user-info">
+        <span class="dd-user-name">{{ currentUser()?.full_name }}</span>
+          <span class="role-badge" [ngClass]="roleBadgeClass">{{ primaryRole }}</span>
         </div>
         <span class="material-symbols-outlined trigger-chevron" [class.rotated]="isUserDropdownOpen()">
           expand_more
@@ -81,7 +81,7 @@
       @if (isUserDropdownOpen()) {
         <div class="user-dropdown-menu" (click)="$event.stopPropagation()">
           <div class="dropdown-header">
-            <span class="dd-user-name">{{ currentUser()?.name }}</span>
+            <span class="dd-user-name">{{ currentUser()?.full_name }}</span>
             <span class="dd-user-email">{{ currentUser()?.email }}</span>
           </div>
           <div class="dropdown-divider"></div>

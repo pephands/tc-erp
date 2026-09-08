@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BranchService } from '../../services/branch.service';
+import { BranchListService } from '../../services/branch-list.service';
 import { TelecallerService } from '../../services/telecaller.service';
 import { Telecaller } from '../../models/telecaller.model';
 
@@ -13,7 +13,7 @@ import { Telecaller } from '../../models/telecaller.model';
   styleUrl: './telecallers.component.css'
 })
 export class TelecallersComponent {
-  private branchService = inject(BranchService);
+  private branchService = inject(BranchListService);
   private telecallerService = inject(TelecallerService);
 
   // Filter dropdown selections
@@ -79,7 +79,18 @@ export class TelecallersComponent {
   private originalTelecallerSnapshot: Telecaller | null = null;
 
   // Branch options
-  branches = computed(() => this.branchService.branches());
+  branches = signal<any[]>([]);
+
+  constructor() {
+    this.branchService.getData().subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' || (Array.isArray(res) || res.data)) {
+            const data = Array.isArray(res) ? res : (res.data || []);
+            this.branches.set(data);
+        }
+      }
+    });
+  }
 
   // Time slot options
   loginTimeSlots: string[] = [

@@ -10,13 +10,14 @@ export interface LocationCoordinates {
 }
 
 export interface AttendanceCheckInPayload {
-  userId?: string;
+  userId?: string | number;
   userName?: string;
   userRole?: string;
   latitude: number;
   longitude: number;
   ipAddress: string;
   timestamp: string;
+  deviceid?: string;
 }
 
 export interface AttendanceCheckInResponse {
@@ -82,7 +83,7 @@ export class AttendanceCheckInService extends BaseHttpService {
   /**
    * Device Authorization ID LocalStorage Management
    */
-  private readonly DEVICE_STORAGE_KEY = 'tc_erp_device_id';
+  private readonly DEVICE_STORAGE_KEY = 'device_id';
 
   getDeviceId(): string | null {
     if (typeof localStorage !== 'undefined') {
@@ -105,6 +106,58 @@ export class AttendanceCheckInService extends BaseHttpService {
 
   hasDeviceId(): boolean {
     return !!this.getDeviceId();
+  }
+
+  hasCheckedInToday(): boolean {
+    if (typeof localStorage !== 'undefined') {
+      const lastCheckin = localStorage.getItem('tc_erp_last_checkin_date');
+      return lastCheckin === new Date().toDateString();
+    }
+    return false;
+  }
+
+  setAttendanceMarked(attendanceId?: number, timeStr?: string): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('tc_erp_last_checkin_date', new Date().toDateString());
+      if (attendanceId) {
+        localStorage.setItem('tc_erp_attendance_id', attendanceId.toString());
+      }
+      if (timeStr) {
+        localStorage.setItem('tc_erp_checkin_time', timeStr);
+      }
+    }
+  }
+
+  getCheckInTime(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('tc_erp_checkin_time');
+    }
+    return null;
+  }
+
+  getAttendanceId(): number | null {
+    if (typeof localStorage !== 'undefined') {
+      const idStr = localStorage.getItem('tc_erp_attendance_id');
+      return idStr ? parseInt(idStr, 10) : null;
+    }
+    return null;
+  }
+
+  clearAttendanceMarked(): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('tc_erp_last_checkin_date');
+      localStorage.removeItem('tc_erp_attendance_id');
+      localStorage.removeItem('tc_erp_checkin_time');
+      localStorage.setItem('tc_erp_has_checked_out_date', new Date().toDateString());
+    }
+  }
+
+  hasCheckedOutToday(): boolean {
+    if (typeof localStorage !== 'undefined') {
+      const lastCheckout = localStorage.getItem('tc_erp_has_checked_out_date');
+      return lastCheckout === new Date().toDateString();
+    }
+    return false;
   }
 
   /**

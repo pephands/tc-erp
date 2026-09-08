@@ -1,41 +1,45 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BranchService } from '../../services/branch.service';
+import { BranchListService } from '../../services/branch-list.service';
+import { BranchDeleteService } from '../../services/branch-delete.service';
+import { BranchUpdateService } from '../../services/branch-update.service';
 import { Branch } from '../../models/branch.model';
+import { ToastService } from '../../services/toast.service';
+import { AddBranchModalComponent } from '../modals/add-branch-modal/add-branch-modal.component';
 
 @Component({
   selector: 'app-branches',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddBranchModalComponent],
   templateUrl: './branches.component.html',
   styleUrl: './branches.component.css'
 })
-export class BranchesComponent {
-  private branchService = inject(BranchService);
+export class BranchesComponent implements OnInit {
+  private branchService = inject(BranchListService);
+  private branchDeleteService = inject(BranchDeleteService);
+  private branchUpdateService = inject(BranchUpdateService);
+  private toastService = inject(ToastService);
 
   // Pagination & Filter state
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
   searchQuery = signal<string>('');
 
-  // Edit / Add Modal state
-  isEditModalOpen = signal<boolean>(false);
-  isAddModalOpen = signal<boolean>(false);
+  // Modals state
+  isModalOpen = signal<boolean>(false);
+  selectedBranchForEdit = signal<Branch | undefined>(undefined);
 
-  // Edit Form Fields
-  editingId = signal<number | null>(null);
+  // Edit / Add Form Fields (temporarily re-added to satisfy template bindings)
   formName = '';
   formShortForm = '';
   formPhone = '';
   formAddress = '';
   formIsHidden = false;
 
-  // Original snapshot for Reset functionality
-  private originalBranchSnapshot: Branch | null = null;
-
   // All branches from service
-  allBranches = this.branchService.branches;
+  allBranches = signal<Branch[]>([]);
+  isLoading = signal<boolean>(false);
 
   // Filtered branches based on search query
   filteredBranches = computed(() => {
@@ -44,9 +48,10 @@ export class BranchesComponent {
 
     return this.allBranches().filter(b => 
       b.name.toLowerCase().includes(query) ||
-      b.shortForm.toLowerCase().includes(query) ||
-      b.phone.includes(query) ||
-      b.address.toLowerCase().includes(query)
+      b.code.toLowerCase().includes(query) ||
+      (b.phone && b.phone.includes(query)) ||
+      (b.email && b.email.toLowerCase().includes(query)) ||
+      (b.address && b.address.toLowerCase().includes(query))
     );
   });
 
@@ -68,6 +73,27 @@ export class BranchesComponent {
     return pages;
   });
 
+  ngOnInit(): void {
+    this.loadBranches();
+  }
+
+  loadBranches(): void {
+    this.isLoading.set(true);
+    this.branchService.getData().subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' || (Array.isArray(res) || res.data)) {
+            const data = Array.isArray(res) ? res : (res.data || []);
+            this.allBranches.set(data);
+        }
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.toastService.error('Error', 'Failed to load branches.');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
@@ -86,90 +112,66 @@ export class BranchesComponent {
     }
   }
 
-  // Open Edit Modal Popup with branch details
   openEditModal(branch: Branch): void {
-    this.originalBranchSnapshot = { ...branch };
-    this.editingId.set(branch.id);
-    this.formName = branch.name;
-    this.formShortForm = branch.shortForm;
-    this.formPhone = branch.phone;
-    this.formAddress = branch.address;
-    this.formIsHidden = branch.isHidden;
-
-    this.isEditModalOpen.set(true);
+    this.selectedBranchForEdit.set(branch);
+    this.isModalOpen.set(true);
   }
 
-  closeEditModal(): void {
-    this.isEditModalOpen.set(false);
-    this.editingId.set(null);
-    this.originalBranchSnapshot = null;
-  }
-
-  // Reset form to original branch snapshot
   resetEditForm(): void {
-    if (this.originalBranchSnapshot) {
-      this.formName = this.originalBranchSnapshot.name;
-      this.formShortForm = this.originalBranchSnapshot.shortForm;
-      this.formPhone = this.originalBranchSnapshot.phone;
-      this.formAddress = this.originalBranchSnapshot.address;
-      this.formIsHidden = this.originalBranchSnapshot.isHidden;
-    }
+    // Reset edit form disabled
   }
 
-  // Submit Update
   onUpdateBranch(): void {
-    const id = this.editingId();
-    if (id === null) return;
-
-    const updated: Branch = {
-      id,
-      name: this.formName.trim().toUpperCase(),
-      shortForm: this.formShortForm.trim().toUpperCase(),
-      phone: this.formPhone.trim(),
-      address: this.formAddress.trim() || 'NA',
-      isHidden: this.formIsHidden
-    };
-
-    this.branchService.updateBranch(updated);
-    this.closeEditModal();
+    this.toastService.info('Notice', 'Edit feature is temporarily disabled while API integration is ongoing.');
   }
 
-  // Open Add Modal
   openAddModal(): void {
-    this.formName = '';
-    this.formShortForm = '';
-    this.formPhone = '';
-    this.formAddress = '';
-    this.formIsHidden = false;
-
-    this.isAddModalOpen.set(true);
+    this.selectedBranchForEdit.set(undefined);
+    this.isModalOpen.set(true);
   }
 
-  closeAddModal(): void {
-    this.isAddModalOpen.set(false);
+  closeModal(): void {
+    this.isModalOpen.set(false);
+    this.selectedBranchForEdit.set(undefined);
   }
 
-  // Submit Add
-  onAddBranch(): void {
-    if (!this.formName.trim() || !this.formShortForm.trim()) {
-      return;
-    }
-
-    this.branchService.addBranch({
-      name: this.formName.trim().toUpperCase(),
-      shortForm: this.formShortForm.trim().toUpperCase(),
-      phone: this.formPhone.trim() || 'NA',
-      address: this.formAddress.trim() || 'NA',
-      isHidden: this.formIsHidden
-    });
-
-    this.closeAddModal();
+  onBranchAdded(): void {
+    this.loadBranches();
   }
 
-  // Delete Branch
   onDeleteBranch(id: number): void {
-    if (confirm(`Are you sure you want to delete branch ID ${id}?`)) {
-      this.branchService.deleteBranch(id);
+    if (window.confirm('Are you sure you want to deactivate this branch?')) {
+      this.branchDeleteService.deleteData(id).subscribe({
+        next: (res: any) => {
+          if (res.status === 'success') {
+            this.toastService.success('Deleted', res.message || 'Branch deactivated successfully.');
+            this.loadBranches();
+          } else {
+            this.toastService.error('Error', 'Failed to deactivate branch.');
+          }
+        },
+        error: (err) => {
+          this.toastService.error('API Error', err?.error?.message || 'Server error occurred.');
+        }
+      });
+    }
+  }
+
+  onRestoreBranch(id: number): void {
+    if (window.confirm('Are you sure you want to reactivate this branch?')) {
+      this.branchUpdateService.patchData(id, { status: 'Active' }).subscribe({
+        next: (res: any) => {
+          if (res.status === 'success') {
+            this.toastService.success('Restored', res.message || 'Branch reactivated successfully.');
+            this.loadBranches();
+          } else {
+            this.toastService.error('Error', 'Failed to reactivate branch.');
+          }
+        },
+        error: (err) => {
+          this.toastService.error('API Error', err?.error?.message || 'Server error occurred.');
+        }
+      });
     }
   }
 }

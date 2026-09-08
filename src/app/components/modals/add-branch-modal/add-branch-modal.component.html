@@ -1,0 +1,153 @@
+<div class="modal-backdrop" (click)="close()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span class="material-symbols-outlined modal-icon">add_business</span>
+        <h2 class="modal-title">{{ editBranch ? 'Edit Branch' : 'Add New Branch' }}</h2>
+      </div>
+      <button type="button" class="close-modal-btn" (click)="close()" [disabled]="isSubmitting()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="onSubmit()" class="branch-form">
+        
+        <!-- General Info -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            <span class="material-symbols-outlined">info</span> General Information
+          </h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formName">Branch Name *</label>
+              <input type="text" id="formName" name="formName" [(ngModel)]="formName" placeholder="e.g. ADAMBAKKAM" required />
+            </div>
+            <div class="form-group">
+              <label for="formCode">Branch Code *</label>
+              <input type="text" id="formCode" name="formCode" [(ngModel)]="formCode" placeholder="e.g. ADM" required />
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formPhone">Phone Number</label>
+              <input type="text" id="formPhone" name="formPhone" [(ngModel)]="formPhone" placeholder="e.g. 9876543210" />
+            </div>
+            <div class="form-group">
+              <label for="formEmail">Email</label>
+              <input type="email" id="formEmail" name="formEmail" [(ngModel)]="formEmail" placeholder="e.g. branch@example.com" />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="formAddress">Branch Address</label>
+            <textarea id="formAddress" name="formAddress" rows="2" [(ngModel)]="formAddress" placeholder="Full address..."></textarea>
+          </div>
+        </div>
+
+        <!-- IP Whitelisting -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            <span class="material-symbols-outlined">router</span> Allowed IP Addresses
+          </h3>
+          
+          <div class="ip-list">
+            @for (ipObj of ips(); track $index; let i = $index) {
+              <div class="ip-row">
+                <div class="form-group" style="flex: 2;">
+                  <div class="input-with-action">
+                    <input type="text" [name]="'ip_' + i" [(ngModel)]="ipObj.ip" placeholder="e.g. 192.168.1.1" />
+                    <button type="button" class="btn-action" (click)="detectIp(i)" [disabled]="isDetectingIp()" title="Detect My Current IP">
+                      <span class="material-symbols-outlined">my_location</span> Detect
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                  <input type="text" [name]="'label_' + i" [(ngModel)]="ipObj.label" placeholder="Label (e.g. Main Router)" />
+                </div>
+                <button type="button" class="btn-icon-danger" (click)="removeIpField(i)" *ngIf="ips().length > 1" title="Remove IP">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            }
+          </div>
+          
+          <button type="button" class="add-ip-btn" (click)="addIpField()">
+            <span class="material-symbols-outlined">add_circle</span> Add another IP
+          </button>
+        </div>
+
+        <!-- Location Plotting -->
+        <div class="form-section">
+          <h3 class="form-section-title">
+            <span class="material-symbols-outlined">location_on</span> Geolocation Details
+          </h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formLat">Latitude</label>
+              <input type="number" step="any" id="formLat" name="formLat" [(ngModel)]="formLat" placeholder="e.g. 13.0827" />
+            </div>
+            <div class="form-group">
+              <label for="formLng">Longitude</label>
+              <input type="number" step="any" id="formLng" name="formLng" [(ngModel)]="formLng" placeholder="e.g. 80.2707" />
+            </div>
+          </div>
+          
+          <div class="form-row" style="margin-top: 1rem;">
+            <div class="form-group" style="flex: 1;">
+              <label for="formRadius">Geofence Radius (meters)</label>
+              <input type="number" id="formRadius" name="formRadius" [(ngModel)]="formRadius" placeholder="e.g. 200" />
+            </div>
+            <div class="form-group" style="justify-content: flex-end;">
+              <button type="button" class="btn-action" (click)="detectLocation()" [disabled]="isDetectingLocation()" style="padding: 0.625rem; width: 100%;">
+                <span class="material-symbols-outlined">satellite_alt</span>
+                {{ isDetectingLocation() ? 'Detecting...' : 'Detect My Location Now' }}
+              </button>
+            </div>
+          </div>
+          
+          <div class="map-container">
+            @if (getMapUrl()) {
+              <iframe 
+                width="100%" 
+                height="100%" 
+                frameborder="0" 
+                scrolling="no" 
+                marginheight="0" 
+                marginwidth="0" 
+                [src]="getMapUrl()"
+                style="border: none;">
+              </iframe>
+            } @else {
+              <div class="map-placeholder">
+                <span class="material-symbols-outlined">map</span>
+                <span>Enter or detect coordinates to preview map</span>
+              </div>
+            }
+          </div>
+        </div>
+
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="close()" [disabled]="isSubmitting()">
+        Cancel
+      </button>
+      <button type="button" class="btn-submit" (click)="onSubmit()" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <div class="btn-spinner"></div>
+          Saving...
+        } @else {
+          <span class="material-symbols-outlined">save</span>
+          {{ editBranch ? 'Update Branch' : 'Save Branch' }}
+        }
+      </button>
+    </div>
+
+  </div>
+</div>

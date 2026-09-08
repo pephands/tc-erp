@@ -13,8 +13,25 @@ export class Endpoint {
     return this.baseUrl + 'accounts/login/';
   }
 
-  // Attendance Check-In
+  get logout(): string {
+    return this.baseUrl + 'accounts/logout/';
+  }
+
+  // Branches
+  get branches(): string {
+    return this.baseUrl + 'branches/';
+  }
+
+  // Attendance Check-In / Check-Out
   get attendanceCheckIn(): string {
     return this.baseUrl + 'attendance/check-in/';
+  }
+
+  get attendanceCheckOut(): string {
+    return this.baseUrl + 'attendance/check-out/';
+  }
+
+  get attendanceToday(): string {
+    return this.baseUrl + 'attendance/today/';
   }
 }
