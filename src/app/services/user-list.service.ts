@@ -22,14 +22,33 @@ export class UserListService extends BaseHttpService {
     return this.endPoint.users;
   }
 
-  getUsers(branchId?: number | null, roleCode?: string | null): Observable<any> {
+  getUsers(branchId?: number | null, roleCode?: string | null, page?: number, limit?: number, search?: string): Observable<any> {
     let url = this.endpoint + '?';
     if (branchId) url += `branch=${branchId}&`;
     if (roleCode) url += `role=${roleCode}&`;
+    if (page) url += `page=${page}&`;
+    if (limit) url += `page_size=${limit}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
     
     // Remove trailing '?' or '&'
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
 
     return this.httpClient.get(url, { headers: this.headers });
+  }
+
+  toggleUserStatus(userId: string | number, newStatus: string): Observable<any> {
+    const url = `${this.endpoint}${userId}/`;
+    return this.httpClient.patch(url, { status: newStatus }, { headers: this.headers });
+  }
+
+  addUser(userData: any): Observable<any> {
+    return this.httpClient.post(this.endpoint, userData, { headers: this.headers });
+  }
+
+  uploadManagersExcel(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    this.params = formData;
+    return this.httpClient.post(`${this.endpoint}bulk-upload/`, formData, { headers: this.multipartHeaders });
   }
 }

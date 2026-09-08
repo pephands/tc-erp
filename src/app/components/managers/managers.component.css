@@ -263,6 +263,28 @@
   font-size: 17px;
 }
 
+.btn-activate {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-activate:hover {
+  background: #16a34a;
+}
+
+.btn-activate .material-symbols-outlined {
+  font-size: 17px;
+}
+
 .no-data {
   text-align: center;
   padding: 3rem 1rem;

@@ -1,0 +1,77 @@
+  <div class="modal-backdrop" (click)="close.emit()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">groups</span>
+          <h2 class="modal-title">Add new Manager</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="close.emit()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <h3 class="section-title">Enter Manager Details</h3>
+
+        <form (ngSubmit)="onAddManagerSubmit()" class="manager-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addFullName">Full name</label>
+              <input 
+                type="text" 
+                id="addFullName" 
+                name="addFullName" 
+                [(ngModel)]="formFullName" 
+                placeholder="e.g. KARTHICK"
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="addMobile">Mobile Number</label>
+              <input 
+                type="text" 
+                id="addMobile" 
+                name="addMobile" 
+                [(ngModel)]="formMobile" 
+                placeholder="e.g. 9876543210"
+                required 
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addGender">Gender</label>
+              <select id="addGender" name="addGender" [(ngModel)]="formGender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="addBranch">Branches</label>
+              <select id="addBranch" name="addBranch" [(ngModel)]="formBranch">
+                <option value="" disabled>Select Branch</option>
+                @for (b of branches; track b.id) {
+                  <option [value]="b.name">{{ b.name }} ({{ b.shortForm }})</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn-submit">
+              Submit
+            </button>
+            <button type="button" class="btn-reset" (click)="resetAddForm()">
+              Reset
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>

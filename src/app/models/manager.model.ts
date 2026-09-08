@@ -1,5 +1,6 @@
 export interface Manager {
-  id: string; // e.g. ATC_7, ATC_8
+  id: string; // Database PK
+  employeeId?: string; // Employee ID (username)
   fullName: string;
   originalName?: string;
   mobile: string;

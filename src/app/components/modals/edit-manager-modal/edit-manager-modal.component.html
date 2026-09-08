@@ -1,0 +1,239 @@
+  <div class="modal-backdrop" (click)="close.emit()">
+    <div class="modal-card wide-modal-card" (click)="$event.stopPropagation()">
+      
+      <!-- Top Title Header -->
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">groups</span>
+          <h2 class="modal-title">Update User Details</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="close.emit()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body modal-scrollable">
+        <h3 class="section-title">Enter User Details</h3>
+
+        <form (ngSubmit)="onUpdateManagerSubmit()" class="manager-form">
+          
+          <!-- Row 1: Full name | Original name -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editFullName">Full name</label>
+              <input 
+                type="text" 
+                id="editFullName" 
+                name="editFullName" 
+                [(ngModel)]="formFullName" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editOriginalName">Original name</label>
+              <input 
+                type="text" 
+                id="editOriginalName" 
+                name="editOriginalName" 
+                [(ngModel)]="formOriginalName" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 2: Mobile Number | Official Number -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editMobile">Mobile Number</label>
+              <input 
+                type="text" 
+                id="editMobile" 
+                name="editMobile" 
+                [(ngModel)]="formMobile" 
+                required 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editOfficialNumber">Official Number</label>
+              <input 
+                type="text" 
+                id="editOfficialNumber" 
+                name="editOfficialNumber" 
+                [(ngModel)]="formOfficialNumber" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 3: Gender | Slab -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editGender">Gender</label>
+              <select id="editGender" name="editGender" [(ngModel)]="formGender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editSlab">Slab</label>
+              <input 
+                type="text" 
+                id="editSlab" 
+                name="editSlab" 
+                [(ngModel)]="formSlab" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 4: Role | Branches -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editRole">Role</label>
+              <select id="editRole" name="editRole" [(ngModel)]="formRole">
+                @for (r of roles; track r.id) {
+                  <option [value]="r.name">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editBranch">Branches</label>
+              <select id="editBranch" name="editBranch" [(ngModel)]="formBranch">
+                @for (b of branches; track b.id) {
+                  <option [value]="b.name">{{ b.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 5: Salary | Date of Relieving -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editSalary">Salary</label>
+              <input 
+                type="text" 
+                id="editSalary" 
+                name="editSalary" 
+                [(ngModel)]="formSalary" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editDateOfRelieving">Date of Relieving</label>
+              <input 
+                type="text" 
+                id="editDateOfRelieving" 
+                name="editDateOfRelieving" 
+                [(ngModel)]="formDateOfRelieving" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 6: Date of Joining | Bank IFSC Code -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDateOfJoining">Date of Joining</label>
+              <input 
+                type="text" 
+                id="editDateOfJoining" 
+                name="editDateOfJoining" 
+                [(ngModel)]="formDateOfJoining" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editBankIfscCode">Bank IFSC Code</label>
+              <input 
+                type="text" 
+                id="editBankIfscCode" 
+                name="editBankIfscCode" 
+                [(ngModel)]="formBankIfscCode" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 7: Email Id | Bank Account Number -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editEmail">Email Id</label>
+              <input 
+                type="text" 
+                id="editEmail" 
+                name="editEmail" 
+                [(ngModel)]="formEmail" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editBankAccountNumber">Bank Account Number</label>
+              <input 
+                type="text" 
+                id="editBankAccountNumber" 
+                name="editBankAccountNumber" 
+                [(ngModel)]="formBankAccountNumber" 
+              />
+            </div>
+          </div>
+
+          <!-- Row 8: Bank Holder Name -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBankHolderName">Bank Holder Name</label>
+              <input 
+                type="text" 
+                id="editBankHolderName" 
+                name="editBankHolderName" 
+                [(ngModel)]="formBankHolderName" 
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editStatus">Status</label>
+              <select id="editStatus" name="editStatus" [(ngModel)]="formStatus">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 9: Address (Textarea) -->
+          <div class="form-group full-width">
+            <label for="editAddress">Address</label>
+            <textarea 
+              id="editAddress" 
+              name="editAddress" 
+              rows="3" 
+              [(ngModel)]="formAddress"
+            ></textarea>
+          </div>
+
+          <!-- Row 10: Select Aadhar Image File Picker -->
+          <div class="form-group full-width upload-group">
+            <label>Select Aadhar Image</label>
+            <span class="file-hint">Allowed extensions (jpg,png,gif,pdf)</span>
+            <div class="file-input-wrapper">
+              <input 
+                type="file" 
+                accept=".jpg,.png,.gif,.pdf" 
+                (change)="onAadharFileSelected($event)" 
+              />
+            </div>
+          </div>
+
+          <!-- Action Buttons (Update & Reset - Matching Screenshot) -->
+          <div class="modal-footer">
+            <button type="submit" class="btn-update-navy">
+              Update
+            </button>
+            <button type="button" class="btn-reset" (click)="resetEditForm()">
+              Reset
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>

@@ -1,0 +1,45 @@
+  <div class="modal-backdrop" (click)="onClose()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">upload_file</span>
+          <h2 class="modal-title">Upload Manager Data</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="onClose()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <h3 class="section-title">Select Excel File</h3>
+
+        <form (ngSubmit)="onUploadSubmit()" class="manager-form">
+          
+          <div class="upload-dropzone">
+            <span class="file-hint">Allowed extensions (.xls, .xlsx)</span>
+            
+            <div class="file-input-wrapper">
+              <input 
+                type="file" 
+                id="excelFile" 
+                accept=".xls,.xlsx"
+                (change)="onFileSelected($event)" 
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn-submit" [disabled]="isUploading">
+              {{ isUploading ? 'Uploading...' : 'Submit' }}
+            </button>
+            <button type="button" class="btn-reset" (click)="onClose()" [disabled]="isUploading">
+              Cancel
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
