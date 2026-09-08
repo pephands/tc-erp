@@ -103,7 +103,14 @@
                 Checking In...
               }
               @case ('MARKED') {
-                Present & Marked
+                @if (isWfhMarked()) {
+                  <span class="wfh-status-text">
+                    <span class="material-symbols-outlined wfh-pill-icon">home_work</span>
+                    WFH Marked
+                  </span>
+                } @else {
+                  Present & Marked
+                }
               }
               @case ('COMPLETED') {
                 Shift Completed
@@ -142,13 +149,73 @@
     <!-- CTA Buttons Row -->
     <div class="attendance-cta-wrapper">
       @if (statusState() === 'IDLE') {
-        <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
-          <span class="material-symbols-outlined cta-icon">fingerprint</span>
-          <div class="cta-text-group">
-            <span class="cta-primary-text">Mark Attendance</span>
-            <span class="cta-secondary-text">Click to verify and check in for today's shift</span>
-          </div>
-        </button>
+        <div class="checkin-box-container">
+          
+          @if (!isWfhRequired()) {
+            <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
+              <span class="material-symbols-outlined cta-icon">fingerprint</span>
+              <div class="cta-text-group">
+                <span class="cta-primary-text">Mark Attendance</span>
+                <span class="cta-secondary-text">Click to verify and check in for today's shift</span>
+              </div>
+            </button>
+          }
+
+          @if (isWfhRequired()) {
+            <div class="wfh-request-container">
+              <div class="status-banner banner-warning" style="margin-bottom: 15px;">
+                <span class="material-symbols-outlined banner-icon">location_off</span>
+                <div class="banner-content">
+                  <strong>Off-site Location Detected</strong>
+                  <p>You cannot check in directly. If you are working remotely, request a WFH check-in.</p>
+                </div>
+              </div>
+
+              @if (!isWfhMode()) {
+                <button type="button" class="btn-retry-cta wfh-request-btn" (click)="onRequestWfh()">
+                  <span class="material-symbols-outlined">home_work</span>
+                  <span>Request WFH Passcode</span>
+                </button>
+              }
+
+              @if (isWfhMode()) {
+                <div class="wfh-passcode-box">
+                  <div class="passcode-header">
+                    <span class="material-symbols-outlined key-icon">vpn_key</span>
+                    <span class="passcode-title">Enter Today's 6-Character WFH Passcode</span>
+                  </div>
+                  <div class="passcode-input-row">
+                    <input
+                      type="text"
+                      class="passcode-input"
+                      maxlength="8"
+                      [(ngModel)]="wfhPasscode"
+                      placeholder="e.g. 7K2M9P"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <span class="passcode-helper">
+                    <span class="material-symbols-outlined info-icon">info</span>
+                    Please contact your Team Leader to generate your passcode. Valid for today only.
+                  </span>
+                </div>
+
+                <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
+                  <span class="material-symbols-outlined cta-icon">home_work</span>
+                  <div class="cta-text-group">
+                    <span class="cta-primary-text">Mark Attendance (WFH)</span>
+                    <span class="cta-secondary-text">Capture remote IP & GPS with authorized passcode</span>
+                  </div>
+                </button>
+              }
+              
+              <button type="button" class="btn-retry-cta mt-3" style="margin-top: 15px; background: transparent; border: 1px solid #ddd; color: var(--text-secondary);" (click)="onRetry()">
+                <span class="material-symbols-outlined">arrow_back</span>
+                <span>Cancel & Retry Normal Check-in</span>
+              </button>
+            </div>
+          }
+        </div>
       }
 
       @if (statusState() === 'LOCATING' || statusState() === 'SUBMITTING') {
@@ -165,7 +232,7 @@
         <div class="action-pair">
           <div class="checked-in-badge">
             <span class="material-symbols-outlined">task_alt</span>
-            <span>Checked In at {{ checkInTime() }}</span>
+            <span>Checked In at {{ checkInTime() }} {{ isWfhMarked() ? '(WFH)' : '' }}</span>
           </div>
 
           @if (!checkOutTime()) {
@@ -192,37 +259,253 @@
   <div class="dashboard-role-section">
     @switch (primaryRole) {
       @case ('ADMIN') {
-        <div class="section-card">
-          <div class="section-card-header">
-            <div class="icon-chip admin-chip">
-              <span class="material-symbols-outlined">admin_panel_settings</span>
+        <!-- WFH Passcode Management Card for Admin -->
+        <div class="wfh-admin-card shadow-card">
+          <div class="wfh-card-header">
+            <div class="icon-chip wfh-chip">
+              <span class="material-symbols-outlined">key</span>
             </div>
             <div>
-              <h3>Admin Dashboard Overview</h3>
-              <p>System metrics, manager performance, and operational reports will appear here.</p>
+              <h3 class="wfh-card-title">Daily WFH Passcode Generator</h3>
+              <p class="wfh-card-subtitle">Generate single-use, 1-day remote check-in passcodes for telecallers</p>
             </div>
           </div>
-          <div class="empty-placeholder-box">
-            <span class="material-symbols-outlined box-icon">analytics</span>
-            <p>Admin information dashboard is ready for module components.</p>
+
+          <div class="wfh-generator-row">
+            <div class="select-group">
+              <label for="adminStaffSelect" class="input-label">Select Staff Member</label>
+              <select id="adminStaffSelect" class="staff-select" [(ngModel)]="selectedStaffId">
+                <option [ngValue]="null">-- Choose Staff Member --</option>
+                @for (staff of staffUsers(); track staff.id) {
+                  <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
+                }
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="btn-generate-code"
+              [disabled]="!selectedStaffId() || isGeneratingPasscode()"
+              (click)="onGeneratePasscode()"
+            >
+              @if (isGeneratingPasscode()) {
+                <div class="btn-spinner-sm"></div>
+                <span>Generating...</span>
+              } @else {
+                <span class="material-symbols-outlined">generating_tokens</span>
+                <span>Generate Today's Code</span>
+              }
+            </button>
+          </div>
+
+          @if (lastGeneratedPasscode()) {
+            <div class="generated-passcode-alert">
+              <div class="alert-left">
+                <span class="material-symbols-outlined alert-icon">check_circle</span>
+                <div>
+                  <span class="alert-title">WFH Passcode for {{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.username }}</span>
+                  <span class="alert-sub">Valid for 1 check-in today ({{ lastGeneratedPasscode()?.date }})</span>
+                </div>
+              </div>
+              <div class="alert-right">
+                <span class="passcode-display">{{ lastGeneratedPasscode()?.passcode }}</span>
+                <button
+                  type="button"
+                  class="btn-copy-code"
+                  (click)="copyPasscode(lastGeneratedPasscode()!.passcode)"
+                  title="Copy to clipboard"
+                >
+                  <span class="material-symbols-outlined">content_copy</span>
+                  <span>{{ copiedCode() === lastGeneratedPasscode()?.passcode ? 'Copied!' : 'Copy Code' }}</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Today's Active Passcodes List -->
+          <div class="passcodes-table-section">
+            <h4 class="table-title">Today's Issued WFH Passcodes ({{ todayPasscodes().length }})</h4>
+            @if (todayPasscodes().length === 0) {
+              <p class="no-passcodes-text">No WFH passcodes generated yet for today.</p>
+            } @else {
+              <div class="passcodes-table-wrap">
+                <table class="passcodes-table">
+                  <thead>
+                    <tr>
+                      <th>Staff Member</th>
+                      <th>Passcode</th>
+                      <th>Status</th>
+                      <th>Created By</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of todayPasscodes(); track item.id) {
+                      <tr>
+                        <td class="user-cell">
+                          <strong>{{ item.user_details?.full_name || item.user_details?.username }}</strong>
+                          <span class="user-sub">{{ item.user_details?.username }}</span>
+                        </td>
+                        <td>
+                          <code class="code-badge">{{ item.passcode }}</code>
+                        </td>
+                        <td>
+                          @if (item.is_used) {
+                            <span class="status-badge used-badge">
+                              <span class="material-symbols-outlined badge-icon">done_all</span>
+                              Used
+                            </span>
+                          } @else {
+                            <span class="status-badge active-badge">
+                              <span class="material-symbols-outlined badge-icon">lock_open</span>
+                              Active (Unused)
+                            </span>
+                          }
+                        </td>
+                        <td>{{ item.created_by_details?.full_name || item.created_by_details?.username || 'System' }}</td>
+                        <td>
+                          <button
+                            type="button"
+                            class="btn-table-copy"
+                            [disabled]="item.is_used"
+                            (click)="copyPasscode(item.passcode)"
+                            title="Copy passcode"
+                          >
+                            <span class="material-symbols-outlined">content_copy</span>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           </div>
         </div>
       }
 
       @case ('TL') {
-        <div class="section-card">
-          <div class="section-card-header">
+        <!-- WFH Passcode Management Card for TL -->
+        <div class="wfh-admin-card shadow-card">
+          <div class="wfh-card-header">
             <div class="icon-chip tl-chip">
               <span class="material-symbols-outlined">supervisor_account</span>
             </div>
             <div>
-              <h3>Team Leader Overview</h3>
-              <p>Telecaller performance, base assignment, and approval logs will appear here.</p>
+              <h3 class="wfh-card-title">Team Leader WFH Authorization</h3>
+              <p class="wfh-card-subtitle">Generate single-use 1-day remote passcodes for team members in your branch</p>
             </div>
           </div>
-          <div class="empty-placeholder-box">
-            <span class="material-symbols-outlined box-icon">groups</span>
-            <p>TL team oversight dashboard is ready for module components.</p>
+
+          <div class="wfh-generator-row">
+            <div class="select-group">
+              <label for="tlStaffSelect" class="input-label">Select Team Member</label>
+              <select id="tlStaffSelect" class="staff-select" [(ngModel)]="selectedStaffId">
+                <option [ngValue]="null">-- Choose Team Member --</option>
+                @for (staff of staffUsers(); track staff.id) {
+                  <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
+                }
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="btn-generate-code"
+              [disabled]="!selectedStaffId() || isGeneratingPasscode()"
+              (click)="onGeneratePasscode()"
+            >
+              @if (isGeneratingPasscode()) {
+                <div class="btn-spinner-sm"></div>
+                <span>Generating...</span>
+              } @else {
+                <span class="material-symbols-outlined">generating_tokens</span>
+                <span>Generate Today's Code</span>
+              }
+            </button>
+          </div>
+
+          @if (lastGeneratedPasscode()) {
+            <div class="generated-passcode-alert">
+              <div class="alert-left">
+                <span class="material-symbols-outlined alert-icon">check_circle</span>
+                <div>
+                  <span class="alert-title">WFH Passcode for {{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.username }}</span>
+                  <span class="alert-sub">Valid for 1 check-in today ({{ lastGeneratedPasscode()?.date }})</span>
+                </div>
+              </div>
+              <div class="alert-right">
+                <span class="passcode-display">{{ lastGeneratedPasscode()?.passcode }}</span>
+                <button
+                  type="button"
+                  class="btn-copy-code"
+                  (click)="copyPasscode(lastGeneratedPasscode()!.passcode)"
+                  title="Copy to clipboard"
+                >
+                  <span class="material-symbols-outlined">content_copy</span>
+                  <span>{{ copiedCode() === lastGeneratedPasscode()?.passcode ? 'Copied!' : 'Copy Code' }}</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Today's Active Passcodes List -->
+          <div class="passcodes-table-section">
+            <h4 class="table-title">Today's Issued WFH Passcodes ({{ todayPasscodes().length }})</h4>
+            @if (todayPasscodes().length === 0) {
+              <p class="no-passcodes-text">No WFH passcodes generated yet for today.</p>
+            } @else {
+              <div class="passcodes-table-wrap">
+                <table class="passcodes-table">
+                  <thead>
+                    <tr>
+                      <th>Staff Member</th>
+                      <th>Passcode</th>
+                      <th>Status</th>
+                      <th>Created By</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of todayPasscodes(); track item.id) {
+                      <tr>
+                        <td class="user-cell">
+                          <strong>{{ item.user_details?.full_name || item.user_details?.username }}</strong>
+                          <span class="user-sub">{{ item.user_details?.username }}</span>
+                        </td>
+                        <td>
+                          <code class="code-badge">{{ item.passcode }}</code>
+                        </td>
+                        <td>
+                          @if (item.is_used) {
+                            <span class="status-badge used-badge">
+                              <span class="material-symbols-outlined badge-icon">done_all</span>
+                              Used
+                            </span>
+                          } @else {
+                            <span class="status-badge active-badge">
+                              <span class="material-symbols-outlined badge-icon">lock_open</span>
+                              Active (Unused)
+                            </span>
+                          }
+                        </td>
+                        <td>{{ item.created_by_details?.full_name || item.created_by_details?.username || 'System' }}</td>
+                        <td>
+                          <button
+                            type="button"
+                            class="btn-table-copy"
+                            [disabled]="item.is_used"
+                            (click)="copyPasscode(item.passcode)"
+                            title="Copy passcode"
+                          >
+                            <span class="material-symbols-outlined">content_copy</span>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           </div>
         </div>
       }

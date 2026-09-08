@@ -1,17 +1,20 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { AttendanceCheckInService, LocationCoordinates, AttendanceCheckInPayload } from '../../services/attendance-checkin.service';
 import { AttendanceCheckOutService, AttendanceCheckOutPayload } from '../../services/attendance-checkout.service';
 import { AttendanceTodayService } from '../../services/attendance-today.service';
 import { ToastService } from '../../services/toast.service';
+import { WFHPasscodeService, WFHPasscodeRecord } from '../../services/wfh-passcode.service';
+import { UserListService } from '../../services/user-list.service';
 
 export type CheckInStatusState = 'IDLE' | 'LOCATING' | 'SUBMITTING' | 'MARKED' | 'REJECTED' | 'COMPLETED';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -21,6 +24,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private checkOutService = inject(AttendanceCheckOutService);
   private todayService = inject(AttendanceTodayService);
   private toastService = inject(ToastService);
+  private wfhService = inject(WFHPasscodeService);
+  private userListService = inject(UserListService);
 
   currentUser = this.authService.currentUser;
   userRoles = this.authService.userRoles;
@@ -47,23 +52,117 @@ export class DashboardComponent implements OnInit, OnDestroy {
   checkOutTime = signal<string | null>(null);
   rejectionReason = signal<string | null>(null);
 
+  // WFH Staff State
+  isWfhMode = signal<boolean>(false);
+  isWfhRequired = signal<boolean>(false);
+  wfhPasscode = signal<string>('');
+  isWfhMarked = signal<boolean>(false);
+
+  // TL / Admin WFH Passcode Management State
+  staffUsers = signal<any[]>([]);
+  selectedStaffId = signal<number | null>(null);
+  todayPasscodes = signal<WFHPasscodeRecord[]>([]);
+  isGeneratingPasscode = signal<boolean>(false);
+  lastGeneratedPasscode = signal<WFHPasscodeRecord | null>(null);
+  copiedCode = signal<string | null>(null);
+
   ngOnInit(): void {
     this.startLiveClock();
     this.fetchInitialDeviceInfo();
     this.syncAttendanceState();
+
+    if (this.primaryRole === 'ADMIN' || this.primaryRole === 'TL') {
+      this.loadStaffUsers();
+      this.loadTodayPasscodes();
+    }
+  }
+
+  onRequestWfh(): void {
+    this.wfhService.requestPasscode().subscribe({
+      next: (res: any) => {
+        this.toastService.success('WFH Requested', res.message || 'Passcode requested successfully.');
+        this.isWfhMode.set(true);
+      },
+      error: (err: any) => {
+        this.toastService.error('Request Failed', err.error?.message || 'Could not request WFH passcode.');
+      }
+    });
+  }
+
+  loadStaffUsers(): void {
+    this.userListService.getUsers().subscribe({
+      next: (res: any) => {
+        const users = Array.isArray(res) ? res : (res?.data || []);
+        this.staffUsers.set(users.filter((u: any) => u.is_active));
+      },
+      error: () => {}
+    });
+  }
+
+  loadTodayPasscodes(): void {
+    this.wfhService.getPasscodes().subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' && res.data) {
+          this.todayPasscodes.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  onGeneratePasscode(): void {
+    const staffId = this.selectedStaffId();
+    if (!staffId) {
+      this.toastService.error('Selection Required', 'Please select a staff member to generate a WFH passcode.');
+      return;
+    }
+
+    this.isGeneratingPasscode.set(true);
+    this.wfhService.generatePasscode(staffId).subscribe({
+      next: (res: any) => {
+        this.isGeneratingPasscode.set(false);
+        if (res.status === 'success' && res.data) {
+          this.lastGeneratedPasscode.set(res.data);
+          this.toastService.success('Passcode Generated', res.message || 'WFH Passcode ready to share.');
+          this.loadTodayPasscodes();
+        } else {
+          this.toastService.error('Error', 'Failed to generate passcode.');
+        }
+      },
+      error: (err: any) => {
+        this.isGeneratingPasscode.set(false);
+        this.toastService.error('Generation Failed', err?.error?.message || 'Server error generating passcode.');
+      }
+    });
+  }
+
+  copyPasscode(code: string): void {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        this.copiedCode.set(code);
+        this.toastService.info('Copied', `Passcode ${code} copied to clipboard!`);
+        setTimeout(() => {
+          if (this.copiedCode() === code) {
+            this.copiedCode.set(null);
+          }
+        }, 3000);
+      });
+    }
   }
 
   private syncAttendanceState(): void {
     this.todayService.getData().subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
-          
           if (res.data.attendance) {
             if (res.data.attendance.in_time) {
               this.checkInTime.set(this.formatTimeString(res.data.attendance.in_time));
             }
             if (res.data.attendance.out_time) {
               this.checkOutTime.set(this.formatTimeString(res.data.attendance.out_time));
+            }
+            if (res.data.attendance.is_wfh) {
+              this.isWfhMarked.set(true);
             }
           }
 
@@ -76,17 +175,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
               const savedTime = this.checkInService.getCheckInTime();
               this.checkInTime.set(savedTime || '-- : --');
             }
+            if (this.checkInService.isWfhToday()) {
+              this.isWfhMarked.set(true);
+            }
           } else {
             this.statusState.set('IDLE');
           }
         }
       },
       error: () => {
-        // Fallback to local storage if API fails
         if (this.checkInService.hasCheckedInToday()) {
           this.statusState.set('MARKED');
           const savedTime = this.checkInService.getCheckInTime();
           this.checkInTime.set(savedTime || '-- : --');
+          if (this.checkInService.isWfhToday()) {
+            this.isWfhMarked.set(true);
+          }
         }
       }
     });
@@ -128,6 +232,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async onCheckIn(): Promise<void> {
+    if (this.isWfhMode() && !this.wfhPasscode().trim()) {
+      this.toastService.error('Passcode Required', 'Please enter your 6-character WFH passcode provided by your Team Leader.');
+      return;
+    }
+
     this.statusState.set('LOCATING');
     this.locationError.set(null);
     this.rejectionReason.set(null);
@@ -139,7 +248,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } catch (err: any) {
       coords = { latitude: 13.0827, longitude: 80.2707 };
       this.locationCoords.set(coords);
-      this.locationError.set('Defaulting to registered office location coordinates.');
+      this.locationError.set('Defaulting to registered location coordinates.');
     }
 
     this.statusState.set('SUBMITTING');
@@ -151,6 +260,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.checkInService.setDeviceId(currentDeviceId);
     }
 
+    const isWfh = this.isWfhMode();
     const payload: AttendanceCheckInPayload = {
       userId: this.currentUser()?.id,
       userName: this.currentUser()?.full_name,
@@ -159,30 +269,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
       longitude: coords.longitude,
       ipAddress: this.clientIp(),
       timestamp: now.toISOString(),
-      deviceid: currentDeviceId
+      deviceid: currentDeviceId,
+      is_wfh: isWfh,
+      override_code: isWfh ? this.wfhPasscode().trim().toUpperCase() : undefined
     };
 
     // Submit payload to backend
     this.checkInService.submitCheckIn(payload).subscribe({
       next: (res: any) => {
         const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        // Backend responds with res.data.id for the attendance record
-        this.checkInService.setAttendanceMarked(res?.data?.id, timeStr);
+        this.checkInService.setAttendanceMarked(res?.data?.id, timeStr, isWfh);
         this.statusState.set('MARKED');
         this.checkInTime.set(timeStr);
-        this.toastService.success('Attendance Marked Successfully', `Verified and recorded at ${timeStr}. ERP device session active.`);
+        if (isWfh) {
+          this.isWfhMarked.set(true);
+        }
+        this.toastService.success(
+          isWfh ? 'WFH Attendance Marked' : 'Attendance Marked Successfully',
+          `Verified and recorded at ${timeStr}. ERP device session active.`
+        );
       },
       error: (err) => {
         this.statusState.set('IDLE');
         
         let errorMsg = 'Failed to record attendance. Please try again.';
-        
-        // Handle DRF ValidationError format
         if (err.error) {
           if (Array.isArray(err.error)) {
              errorMsg = err.error[0];
           } else if (typeof err.error === 'object') {
-             // Extract the first error message from the object values
              const firstKey = Object.keys(err.error)[0];
              if (firstKey) {
                const val = err.error[firstKey];
@@ -193,7 +307,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }
         
-        this.toastService.error('Check-in Rejected', errorMsg);
+        if (errorMsg.includes('IP Mismatch') || errorMsg.includes('Geofence')) {
+          this.isWfhRequired.set(true);
+          this.toastService.error('Off-site Location Detected', 'You are not within the authorized network/location. Please request WFH.');
+        } else {
+          this.toastService.error('Check-in Rejected', errorMsg);
+        }
       }
     });
   }
@@ -239,6 +358,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.statusState.set('IDLE');
     this.locationError.set(null);
     this.rejectionReason.set(null);
+    this.isWfhRequired.set(false);
+    this.isWfhMode.set(false);
+    this.wfhPasscode.set('');
   }
 
   get roleBadgeClass(): string {

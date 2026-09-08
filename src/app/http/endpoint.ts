@@ -17,6 +17,10 @@ export class Endpoint {
     return this.baseUrl + 'accounts/logout/';
   }
 
+  get users(): string {
+    return this.baseUrl + 'accounts/users/';
+  }
+
   // Branches
   get branches(): string {
     return this.baseUrl + 'branches/';
@@ -33,5 +37,13 @@ export class Endpoint {
 
   get attendanceToday(): string {
     return this.baseUrl + 'attendance/today/';
+  }
+
+  get wfhPasscode(): string {
+    return this.baseUrl + 'attendance/wfh-passcode/';
+  }
+
+  get wfhRequest(): string {
+    return this.baseUrl + 'attendance/wfh-request/';
   }
 }

@@ -18,6 +18,8 @@ export interface AttendanceCheckInPayload {
   ipAddress: string;
   timestamp: string;
   deviceid?: string;
+  is_wfh?: boolean;
+  override_code?: string;
 }
 
 export interface AttendanceCheckInResponse {
@@ -116,7 +118,7 @@ export class AttendanceCheckInService extends BaseHttpService {
     return false;
   }
 
-  setAttendanceMarked(attendanceId?: number, timeStr?: string): void {
+  setAttendanceMarked(attendanceId?: number, timeStr?: string, isWfh?: boolean): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('tc_erp_last_checkin_date', new Date().toDateString());
       if (attendanceId) {
@@ -125,7 +127,19 @@ export class AttendanceCheckInService extends BaseHttpService {
       if (timeStr) {
         localStorage.setItem('tc_erp_checkin_time', timeStr);
       }
+      if (isWfh) {
+        localStorage.setItem('tc_erp_is_wfh', 'true');
+      } else {
+        localStorage.removeItem('tc_erp_is_wfh');
+      }
     }
+  }
+
+  isWfhToday(): boolean {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('tc_erp_is_wfh') === 'true';
+    }
+    return false;
   }
 
   getCheckInTime(): string | null {
@@ -148,6 +162,7 @@ export class AttendanceCheckInService extends BaseHttpService {
       localStorage.removeItem('tc_erp_last_checkin_date');
       localStorage.removeItem('tc_erp_attendance_id');
       localStorage.removeItem('tc_erp_checkin_time');
+      localStorage.removeItem('tc_erp_is_wfh');
       localStorage.setItem('tc_erp_has_checked_out_date', new Date().toDateString());
     }
   }
