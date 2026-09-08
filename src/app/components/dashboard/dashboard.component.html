@@ -271,16 +271,48 @@
             </div>
           </div>
 
-          <div class="wfh-generator-row">
-            <div class="select-group">
-              <label for="adminStaffSelect" class="input-label">Select Staff Member</label>
-              <select id="adminStaffSelect" class="staff-select" [(ngModel)]="selectedStaffId">
-                <option [ngValue]="null">-- Choose Staff Member --</option>
-                @for (staff of staffUsers(); track staff.id) {
-                  <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
-                }
-              </select>
+          <div class="wfh-generator-container">
+            <div class="wfh-filters-row">
+              <div class="select-group">
+                <label class="input-label">Filter by Branch</label>
+                <div class="select-wrapper">
+                  <span class="material-symbols-outlined select-icon">domain</span>
+                  <select class="filter-select modern-input" [(ngModel)]="selectedBranch" (change)="onFilterChange()">
+                    <option [ngValue]="null">All Branches</option>
+                    @for (branch of branches(); track branch.id) {
+                      <option [ngValue]="branch.id">{{ branch.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+              
+              <div class="select-group">
+                <label class="input-label">Filter by Role</label>
+                <div class="select-wrapper">
+                  <span class="material-symbols-outlined select-icon">badge</span>
+                  <select class="filter-select modern-input" [(ngModel)]="selectedRole" (change)="onFilterChange()">
+                    <option [ngValue]="null">All Roles</option>
+                    @for (role of availableRoles(); track role.code) {
+                      <option [ngValue]="role.code">{{ role.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
             </div>
+
+            <div class="wfh-action-row">
+              <div class="select-group flex-1">
+                <label for="adminStaffSelect" class="input-label">Select Staff Member</label>
+                <div class="select-wrapper">
+                  <span class="material-symbols-outlined select-icon">person</span>
+                  <select id="adminStaffSelect" class="staff-select modern-input" [(ngModel)]="selectedStaffId">
+                    <option [ngValue]="null">-- Choose Staff Member --</option>
+                    @for (staff of staffUsers(); track staff.id) {
+                      <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
+                    }
+                  </select>
+                </div>
+              </div>
 
             <button
               type="button"
@@ -296,6 +328,7 @@
                 <span>Generate Today's Code</span>
               }
             </button>
+            </div>
           </div>
 
           @if (lastGeneratedPasscode()) {
@@ -397,16 +430,35 @@
             </div>
           </div>
 
-          <div class="wfh-generator-row">
-            <div class="select-group">
-              <label for="tlStaffSelect" class="input-label">Select Team Member</label>
-              <select id="tlStaffSelect" class="staff-select" [(ngModel)]="selectedStaffId">
-                <option [ngValue]="null">-- Choose Team Member --</option>
-                @for (staff of staffUsers(); track staff.id) {
-                  <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
-                }
-              </select>
+          <div class="wfh-generator-container">
+            <div class="wfh-filters-row">
+              <div class="select-group">
+                <label class="input-label">Filter by Role</label>
+                <div class="select-wrapper">
+                  <span class="material-symbols-outlined select-icon">badge</span>
+                  <select class="filter-select modern-input" [(ngModel)]="selectedRole" (change)="onFilterChange()">
+                    <option [ngValue]="null">All Roles</option>
+                    @for (role of availableRoles(); track role.code) {
+                      <option [ngValue]="role.code">{{ role.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
             </div>
+
+            <div class="wfh-action-row">
+              <div class="select-group flex-1">
+                <label for="tlStaffSelect" class="input-label">Select Team Member</label>
+                <div class="select-wrapper">
+                  <span class="material-symbols-outlined select-icon">person</span>
+                  <select id="tlStaffSelect" class="staff-select modern-input" [(ngModel)]="selectedStaffId">
+                    <option [ngValue]="null">-- Choose Team Member --</option>
+                    @for (staff of staffUsers(); track staff.id) {
+                      <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
+                    }
+                  </select>
+                </div>
+              </div>
 
             <button
               type="button"
@@ -422,6 +474,7 @@
                 <span>Generate Today's Code</span>
               }
             </button>
+            </div>
           </div>
 
           @if (lastGeneratedPasscode()) {

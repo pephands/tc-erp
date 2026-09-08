@@ -8,6 +8,7 @@ import { AttendanceTodayService } from '../../services/attendance-today.service'
 import { ToastService } from '../../services/toast.service';
 import { WFHPasscodeService, WFHPasscodeRecord } from '../../services/wfh-passcode.service';
 import { UserListService } from '../../services/user-list.service';
+import { BranchListService } from '../../services/branch-list.service';
 
 export type CheckInStatusState = 'IDLE' | 'LOCATING' | 'SUBMITTING' | 'MARKED' | 'REJECTED' | 'COMPLETED';
 
@@ -26,6 +27,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private wfhService = inject(WFHPasscodeService);
   private userListService = inject(UserListService);
+  private branchListService = inject(BranchListService);
 
   currentUser = this.authService.currentUser;
   userRoles = this.authService.userRoles;
@@ -66,15 +68,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
   lastGeneratedPasscode = signal<WFHPasscodeRecord | null>(null);
   copiedCode = signal<string | null>(null);
 
+  // Filters State
+  branches = signal<any[]>([]);
+  selectedBranch = signal<number | null>(null);
+  selectedRole = signal<string | null>(null);
+  availableRoles = signal<any[]>([
+    { code: 'TL', name: 'Team Leader' },
+    { code: 'TC', name: 'Telecaller' }
+  ]);
+
   ngOnInit(): void {
     this.startLiveClock();
     this.fetchInitialDeviceInfo();
     this.syncAttendanceState();
 
     if (this.primaryRole === 'ADMIN' || this.primaryRole === 'TL') {
+      this.loadBranches();
       this.loadStaffUsers();
       this.loadTodayPasscodes();
     }
+  }
+
+  loadBranches(): void {
+    this.branchListService.getData().subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' && res.data) {
+          this.branches.set(res.data);
+        }
+      },
+      error: () => {}
+    });
   }
 
   onRequestWfh(): void {
@@ -90,13 +113,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadStaffUsers(): void {
-    this.userListService.getUsers().subscribe({
+    const branchId = this.selectedBranch();
+    const roleCode = this.selectedRole();
+    
+    this.userListService.getUsers(branchId, roleCode).subscribe({
       next: (res: any) => {
         const users = Array.isArray(res) ? res : (res?.data || []);
         this.staffUsers.set(users.filter((u: any) => u.is_active));
+        this.selectedStaffId.set(null); // Reset selection when list updates
       },
       error: () => {}
     });
+  }
+
+  onFilterChange(): void {
+    this.loadStaffUsers();
   }
 
   loadTodayPasscodes(): void {

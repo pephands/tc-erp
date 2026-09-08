@@ -22,7 +22,14 @@ export class UserListService extends BaseHttpService {
     return this.endPoint.users;
   }
 
-  getUsers(): Observable<any> {
-    return this.httpGetMethod();
+  getUsers(branchId?: number | null, roleCode?: string | null): Observable<any> {
+    let url = this.endpoint + '?';
+    if (branchId) url += `branch=${branchId}&`;
+    if (roleCode) url += `role=${roleCode}&`;
+    
+    // Remove trailing '?' or '&'
+    url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
+
+    return this.httpClient.get(url, { headers: this.headers });
   }
 }
