@@ -13,8 +13,8 @@ export interface AttendanceCheckInPayload {
   userId?: string | number;
   userName?: string;
   userRole?: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   ipAddress: string;
   timestamp: string;
   deviceid?: string;
@@ -50,10 +50,12 @@ export class AttendanceCheckInService extends BaseHttpService {
 
   /**
    * Captures the client's current geographic location via HTML5 Geolocation API
+   * Tries high accuracy first, falls back to standard accuracy if high accuracy times out/fails
    */
   getCurrentLocation(): Promise<LocationCoordinates> {
     return new Promise((resolve, reject) => {
       if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+        // First attempt with high accuracy (5 second timeout)
         navigator.geolocation.getCurrentPosition(
           (position) => {
             resolve({
@@ -61,10 +63,20 @@ export class AttendanceCheckInService extends BaseHttpService {
               longitude: position.coords.longitude
             });
           },
-          (error) => {
-            reject(error);
+          () => {
+            // Fallback to standard accuracy (10 second timeout)
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                resolve({
+                  latitude: pos.coords.latitude,
+                  longitude: pos.coords.longitude
+                });
+              },
+              (err) => reject(err),
+              { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+            );
           },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
       } else {
         reject(new Error('Geolocation is not supported by this browser.'));
@@ -73,12 +85,18 @@ export class AttendanceCheckInService extends BaseHttpService {
   }
 
   /**
-   * Retrieves the client's IP address from ipify or fallback service
+   * Retrieves the client's IP address using primary and fallback services
    */
   getClientIp(): Observable<string> {
     return this.httpClient.get<{ ip: string }>('https://api.ipify.org?format=json').pipe(
       map(res => res.ip),
-      catchError(() => of('127.0.0.1'))
+      catchError(() => this.httpClient.get<{ ip: string }>('https://api.ip.sb/jsonip').pipe(
+        map(res => res.ip),
+        catchError(() => this.httpClient.get<any>('https://api.db-ip.com/v2/free/self').pipe(
+          map(res => res.ipAddress),
+          catchError(() => of('127.0.0.1'))
+        ))
+      ))
     );
   }
 

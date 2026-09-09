@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AttendanceCheckInService, LocationCoordinates, AttendanceCheckInPayload } from '../../services/attendance-checkin.service';
 import { AttendanceCheckOutService, AttendanceCheckOutPayload } from '../../services/attendance-checkout.service';
@@ -268,6 +269,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Try refreshing public IP if currently fallback 127.0.0.1
+    if (this.clientIp() === '127.0.0.1' || !this.clientIp()) {
+      try {
+        const freshIp = await firstValueFrom(this.checkInService.getClientIp());
+        if (freshIp) {
+          this.clientIp.set(freshIp);
+        }
+      } catch (_) {}
+    }
+
     this.statusState.set('LOCATING');
     this.locationError.set(null);
     this.rejectionReason.set(null);
@@ -277,9 +288,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       coords = await this.checkInService.getCurrentLocation();
       this.locationCoords.set(coords);
     } catch (err: any) {
-      coords = { latitude: 13.0827, longitude: 80.2707 };
-      this.locationCoords.set(coords);
-      this.locationError.set('Defaulting to registered location coordinates.');
+      if (!this.isWfhMode()) {
+        this.statusState.set('IDLE');
+        this.toastService.error('Location Access Failed', 'Could not detect your current location. Please ensure location permissions are enabled in your browser.');
+        return;
+      }
+      this.locationError.set('Location not available. Proceeding with WFH check-in.');
     }
 
     this.statusState.set('SUBMITTING');
@@ -296,8 +310,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       userId: this.currentUser()?.id,
       userName: this.currentUser()?.full_name,
       userRole: this.primaryRole || undefined,
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: coords ? coords.latitude : undefined,
+      longitude: coords ? coords.longitude : undefined,
       ipAddress: this.clientIp(),
       timestamp: now.toISOString(),
       deviceid: currentDeviceId,

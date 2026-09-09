@@ -20,6 +20,7 @@ export interface User {
   roles: Role[];
   shift_start_time?: string;
   shift_end_time?: string;
+  is_password_reset_required?: boolean;
   is_active: boolean;
   is_staff: boolean;
   date_joined?: string;

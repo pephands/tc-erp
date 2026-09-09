@@ -107,18 +107,28 @@ export class AddBranchModalComponent implements OnInit {
       return;
     }
     this.isDetectingLocation.set(true);
+
+    const onSuccess = (position: GeolocationPosition) => {
+      this.formLat = position.coords.latitude;
+      this.formLng = position.coords.longitude;
+      this.isDetectingLocation.set(false);
+      this.toastService.success('Location Detected', 'Coordinates updated successfully.');
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.formLat = position.coords.latitude;
-        this.formLng = position.coords.longitude;
-        this.isDetectingLocation.set(false);
-        this.toastService.success('Location Detected', 'Coordinates updated successfully.');
+      onSuccess,
+      () => {
+        // Fallback to standard accuracy
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (error) => {
+            this.isDetectingLocation.set(false);
+            this.toastService.error('Location Error', error.message || 'Failed to detect location.');
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        );
       },
-      (error) => {
-        this.isDetectingLocation.set(false);
-        this.toastService.error('Location Error', error.message || 'Failed to detect location.');
-      },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   }
 

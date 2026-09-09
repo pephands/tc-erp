@@ -21,6 +21,10 @@ export class Endpoint {
     return this.baseUrl + 'accounts/users/';
   }
 
+  get changePassword(): string {
+    return this.baseUrl + 'accounts/change-password/';
+  }
+
   // Branches
   get branches(): string {
     return this.baseUrl + 'branches/';

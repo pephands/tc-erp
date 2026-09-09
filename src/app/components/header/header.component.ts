@@ -71,7 +71,7 @@ export class HeaderComponent {
 
   onResetPassword(): void {
     this.closeDropdowns();
-    alert('Reset Password requested. A password reset link has been sent to your email.');
+    this.authService.openPasswordResetModal(false);
   }
 
   onLogout(): void {
