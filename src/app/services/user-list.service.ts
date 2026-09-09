@@ -66,7 +66,29 @@ export class UserListService extends BaseHttpService {
   uploadManagersExcel(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('target_role', 'TL');
     this.params = formData;
     return this.httpClient.post(`${this.endpoint}bulk-upload/`, formData, { headers: this.multipartHeaders });
+  }
+
+  uploadTelecallersExcel(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('target_role', 'TC');
+    this.params = formData;
+    return this.httpClient.post(`${this.endpoint}bulk-upload/`, formData, { headers: this.multipartHeaders });
+  }
+
+  downloadSampleTemplate(role: string = 'telecaller'): Observable<Blob> {
+    const url = `${this.endpoint}sample-template/?role=${role}`;
+    return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
+  }
+
+  exportTelecallersExcel(branch?: string, search?: string): Observable<Blob> {
+    let url = `${this.endpoint}export/?role=TC&`;
+    if (branch) url += `branch=${encodeURIComponent(branch)}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
+    return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
   }
 }

@@ -6,8 +6,8 @@
       <div class="modal-title-group">
         <span class="material-symbols-outlined modal-icon">upload_file</span>
         <div>
-          <h2 class="modal-title">Upload Manager / TL Data</h2>
-          <p class="modal-subtitle">Batch import or update Team Leads & Managers via Excel (.xls, .xlsx)</p>
+          <h2 class="modal-title">Upload TeleCaller Data</h2>
+          <p class="modal-subtitle">Batch import or update TeleCallers via Excel (.xls, .xlsx)</p>
         </div>
       </div>
       <button type="button" class="close-modal-btn" (click)="onClose()" [disabled]="isUploading()">
@@ -24,7 +24,7 @@
           <span class="material-symbols-outlined info-icon">info</span>
           <div>
             <strong>Upload Instructions:</strong>
-            <p>New Managers/TLs will be added with status <strong>ACTIVE</strong> and initial login password set to <code>Welcome&#64;123</code>. Existing records matched by Mobile Number or Employee ID will be updated.</p>
+            <p>New TeleCallers will be added with status <strong>ACTIVE</strong> and initial login password set to <code>Welcome&#64;123</code>. Existing TeleCallers matched by Mobile Number or Employee ID will be updated.</p>
           </div>
         </div>
         <button type="button" class="btn-sample-download" (click)="downloadSampleExcel()">
@@ -49,12 +49,12 @@
               <div class="dropzone-icon-circle">
                 <span class="material-symbols-outlined">cloud_upload</span>
               </div>
-              <p class="dropzone-primary-text">Drag & drop your Excel file here or <label for="managerExcelFileInput" class="browse-link">browse</label></p>
+              <p class="dropzone-primary-text">Drag & drop your Excel file here or <label for="excelFileInput" class="browse-link">browse</label></p>
               <p class="dropzone-secondary-text">Supported formats: <strong>.xls</strong>, <strong>.xlsx</strong></p>
               
               <input 
                 type="file" 
-                id="managerExcelFileInput" 
+                id="excelFileInput" 
                 accept=".xls,.xlsx"
                 (change)="onFileSelected($event)" 
                 class="hidden-file-input"
@@ -92,9 +92,13 @@
             <span class="column-badge">Gender</span>
             <span class="column-badge">Branch</span>
             <span class="column-badge">Role</span>
+            <span class="column-badge">Slab</span>
             <span class="column-badge">Status</span>
             <span class="column-badge">Email ID</span>
             <span class="column-badge">Salary</span>
+            <span class="column-badge">Official No</span>
+            <span class="column-badge">Login Time</span>
+            <span class="column-badge">Logoff Time</span>
           </div>
         </div>
 

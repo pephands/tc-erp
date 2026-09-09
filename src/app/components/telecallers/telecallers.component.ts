@@ -5,13 +5,15 @@ import { BranchListService } from '../../services/branch-list.service';
 import { TelecallerService } from '../../services/telecaller.service';
 import { UserListService } from '../../services/user-list.service';
 import { Telecaller } from '../../models/telecaller.model';
+import { ToastService } from '../../services/toast.service';
 
 import { AddTelecallerModalComponent } from '../modals/add-telecaller-modal/add-telecaller-modal.component';
+import { UploadTelecallerModalComponent } from '../modals/upload-telecaller-modal/upload-telecaller-modal.component';
 
 @Component({
   selector: 'app-telecallers',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddTelecallerModalComponent],
+  imports: [CommonModule, FormsModule, AddTelecallerModalComponent, UploadTelecallerModalComponent],
   templateUrl: './telecallers.component.html',
   styleUrl: './telecallers.component.css'
 })
@@ -19,6 +21,7 @@ export class TelecallersComponent {
   private branchService = inject(BranchListService);
   private telecallerService = inject(TelecallerService);
   private userListService = inject(UserListService);
+  private toastService = inject(ToastService);
 
   // Filter dropdown selections
   selectedBranch = signal<string>('');
@@ -427,6 +430,25 @@ export class TelecallersComponent {
   }
 
   onDownloadTelecallers(): void {
-    alert('Exporting telecallers list...');
+    const branch = this.selectedBranch();
+    const search = this.searchQuery().trim();
+    
+    this.toastService.info('Exporting Telecallers', 'Generating Excel file download...');
+    this.userListService.exportTelecallersExcel(branch, search).subscribe({
+      next: (blob: Blob) => {
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `telecallers_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.toastService.success('Export Complete', 'Telecallers Excel file downloaded successfully.');
+      },
+      error: (err) => {
+        console.error('Error downloading telecallers excel:', err);
+        this.toastService.error('Export Failed', 'Unable to export telecallers. Please try again.');
+      }
+    });
   }
 }

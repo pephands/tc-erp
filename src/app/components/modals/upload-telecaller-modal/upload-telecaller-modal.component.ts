@@ -5,13 +5,13 @@ import { UserListService } from '../../../services/user-list.service';
 import { ToastService } from '../../../services/toast.service';
 
 @Component({
-  selector: 'app-upload-manager-modal',
+  selector: 'app-upload-telecaller-modal',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './upload-manager-modal.component.html',
-  styleUrl: './upload-manager-modal.component.css'
+  templateUrl: './upload-telecaller-modal.component.html',
+  styleUrl: './upload-telecaller-modal.component.css'
 })
-export class UploadManagerModalComponent {
+export class UploadTelecallerModalComponent {
   private userListService = inject(UserListService);
   private toastService = inject(ToastService);
   
@@ -82,22 +82,23 @@ export class UploadManagerModalComponent {
   }
 
   downloadSampleExcel(): void {
-    this.userListService.downloadSampleTemplate('manager').subscribe({
+    this.userListService.downloadSampleTemplate('telecaller').subscribe({
       next: (blob: Blob) => {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', 'sample_managers.xlsx');
+        link.setAttribute('download', 'sample_telecallers.xlsx');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        this.toastService.info('Sample Downloaded', 'sample_managers.xlsx downloaded from server.');
+        this.toastService.info('Sample Downloaded', 'sample_telecallers.xlsx downloaded from server.');
       },
       error: () => {
-        const headers = ['Mobile Number', 'Full Name', 'Gender', 'Branch', 'Role', 'Status', 'Email ID', 'Salary'];
+        // Fallback to generating template file directly
+        const headers = ['Mobile Number', 'Full Name', 'Gender', 'Branch', 'Role', 'Status', 'Email ID', 'Salary', 'Official No', 'Login Time', 'Logoff Time'];
         const sampleRows = [
-          ['9876543200', 'MOHAN KUMAR', 'Male', 'ADAMBAKKAM', 'Team Lead', 'Active', 'mohan@paavai.com', '25000'],
-          ['9876543201', 'SARAVANAN S', 'Male', 'ADAMBAKKAM', 'Team Lead', 'Active', 'saravanan@paavai.com', '28000'],
+          ['9876543210', 'ABI M', 'Female', 'ADAMBAKKAM', 'Tele Caller', 'Active', 'abi@paavai.com', '12000', '9087020101', '09:00 AM', '06:00 PM'],
+          ['7395949844', 'ALIYA K', 'Female', 'ADAMBAKKAM', 'Tele Caller', 'Active', 'aliya@paavai.com', '12500', '9087020102', '09:00 AM', '06:00 PM'],
         ];
 
         let csvContent = headers.join(',') + '\n';
@@ -109,11 +110,11 @@ export class UploadManagerModalComponent {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', 'sample_managers.csv');
+        link.setAttribute('download', 'sample_telecallers.csv');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        this.toastService.info('Sample Downloaded', 'Sample manager template downloaded.');
+        this.toastService.info('Sample Downloaded', 'Sample template file downloaded successfully.');
       }
     });
   }
@@ -128,7 +129,7 @@ export class UploadManagerModalComponent {
     this.isUploading.set(true);
     this.uploadError.set(null);
 
-    this.userListService.uploadManagersExcel(file).subscribe({
+    this.userListService.uploadTelecallersExcel(file).subscribe({
       next: (res: any) => {
         this.isUploading.set(false);
         const created = res.data?.created ?? 0;
@@ -141,7 +142,7 @@ export class UploadManagerModalComponent {
       },
       error: (err: any) => {
         this.isUploading.set(false);
-        console.error('Error uploading managers excel', err);
+        console.error('Error uploading telecallers excel', err);
         const errorMsg = err.error?.message || 'Failed to process Excel file. Please verify file format and columns.';
         this.uploadError.set(errorMsg);
         this.toastService.error('Upload Failed', errorMsg);
