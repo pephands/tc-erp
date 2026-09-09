@@ -63,8 +63,14 @@ export class SidebarComponent implements OnInit {
 
   private userSignal = signal<User | null>(null);
 
+  get userRoles(): string[] {
+    const rawRoles = this.currentUser?.roles || [];
+    const extracted = this.authService.extractRoleCodes(rawRoles);
+    return extracted.length > 0 ? extracted : this.authService.userRoles();
+  }
+
   get primaryRole(): string {
-    const roles = this.currentUser?.roles?.map(r => r.name.toUpperCase()) || this.authService.userRoles();
+    const roles = this.userRoles;
     if (roles.includes('ADMIN')) return 'ADMIN';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
@@ -183,7 +189,7 @@ export class SidebarComponent implements OnInit {
 
   // Computed filtered items based on user role AND search query
   filteredMenuItems = computed(() => {
-    const userRoles = this.currentUser?.roles?.map(r => r.name.toUpperCase()) || this.authService.userRoles();
+    const userRoles = this.userRoles;
     const query = this.searchQuery().trim().toLowerCase();
 
     return this.menuItems

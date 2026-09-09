@@ -1,11 +1,11 @@
 import { Injectable, signal } from '@angular/core';
-import { Telecaller, MOCK_TELECALLERS } from '../models/telecaller.model';
+import { Telecaller } from '../models/telecaller.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TelecallerService {
-  readonly telecallers = signal<Telecaller[]>(MOCK_TELECALLERS);
+  readonly telecallers = signal<Telecaller[]>([]);
 
   getTelecallers(): Telecaller[] {
     return this.telecallers();

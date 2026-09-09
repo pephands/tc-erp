@@ -6,9 +6,9 @@ import { TelecallerService } from '../../services/telecaller.service';
 import { UserListService } from '../../services/user-list.service';
 import { Telecaller } from '../../models/telecaller.model';
 import { ToastService } from '../../services/toast.service';
-
 import { AddTelecallerModalComponent } from '../modals/add-telecaller-modal/add-telecaller-modal.component';
 import { UploadTelecallerModalComponent } from '../modals/upload-telecaller-modal/upload-telecaller-modal.component';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-telecallers',
@@ -22,6 +22,16 @@ export class TelecallersComponent {
   private telecallerService = inject(TelecallerService);
   private userListService = inject(UserListService);
   private toastService = inject(ToastService);
+  private authService = inject(AuthService);
+
+  get isTlUser(): boolean {
+    const roles = this.authService.userRoles();
+    return roles.includes('TL') && !roles.includes('ADMIN');
+  }
+
+  get userBranchName(): string {
+    return this.authService.currentUser()?.branch?.name || '';
+  }
 
   // Filter dropdown selections
   selectedBranch = signal<string>('');
@@ -90,9 +100,17 @@ export class TelecallersComponent {
   branches = signal<any[]>([]);
 
   constructor() {
-    this.branchService.getData().subscribe({
-      next: (res: any) => {
-        if (res.status === 'success' || (Array.isArray(res) || res.data)) {
+    if (this.isTlUser) {
+      const userBranch = this.userBranchName;
+      if (userBranch) {
+        this.selectedBranch.set(userBranch);
+      }
+      this.isFilterApplied.set(true);
+      this.fetchTelecallersFromApi();
+    } else {
+      this.branchService.getData().subscribe({
+        next: (res: any) => {
+          if (res.status === 'success' || (Array.isArray(res) || res.data)) {
             const data = Array.isArray(res) ? res : (res.data || []);
             this.branches.set(data);
             if (data.length > 0 && !this.selectedBranch()) {
@@ -100,9 +118,10 @@ export class TelecallersComponent {
               this.isFilterApplied.set(true);
               this.fetchTelecallersFromApi();
             }
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   // Time slot options
@@ -194,8 +213,12 @@ export class TelecallersComponent {
 
   // Clear / Reset Filters
   onResetFilters(): void {
-    const defaultBranch = this.branches().length > 0 ? this.branches()[0].name : '';
-    this.selectedBranch.set(defaultBranch);
+    if (this.isTlUser) {
+      this.selectedBranch.set(this.userBranchName);
+    } else {
+      const defaultBranch = this.branches().length > 0 ? this.branches()[0].name : '';
+      this.selectedBranch.set(defaultBranch);
+    }
     this.selectedLoginTime.set('');
     this.selectedLogOffTime.set('');
     this.searchQuery.set('');
@@ -205,7 +228,13 @@ export class TelecallersComponent {
   }
 
   fetchTelecallersFromApi(): void {
-    const branch = this.selectedBranch();
+    let branch = this.selectedBranch();
+    if (this.isTlUser && (!branch || branch === '')) {
+      branch = this.userBranchName;
+      if (branch) {
+        this.selectedBranch.set(branch);
+      }
+    }
     const loginTime = this.selectedLoginTime();
     const logOffTime = this.selectedLogOffTime();
     const search = this.searchQuery().trim();

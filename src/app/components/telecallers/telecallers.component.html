@@ -5,6 +5,9 @@
       <h2 class="section-heading">TeleCaller Management</h2>
       <p class="section-subheading">
         Manage calling queues, branch assignments, and attendance logs.
+        @if (isTlUser && userBranchName) {
+          <span class="tl-branch-badge">Branch: {{ userBranchName }}</span>
+        }
       </p>
     </div>
 
@@ -38,23 +41,25 @@
     </div>
 
     <div class="filter-controls-grid">
-      <!-- Filter 1: Branch -->
-      <div class="filter-field">
-        <label for="branchSelect">Branch</label>
-        <div class="select-wrapper">
-          <span class="material-symbols-outlined input-icon">domain</span>
-          <select
-            id="branchSelect"
-            [ngModel]="selectedBranch()"
-            (ngModelChange)="onBranchChange($event)"
-          >
-            <option value="">All Branches</option>
-            @for (b of branches(); track b.id) {
-              <option [value]="b.name">{{ b.name }}</option>
-            }
-          </select>
+      <!-- Filter 1: Branch (Admin Only) -->
+      @if (!isTlUser) {
+        <div class="filter-field">
+          <label for="branchSelect">Branch</label>
+          <div class="select-wrapper">
+            <span class="material-symbols-outlined input-icon">domain</span>
+            <select
+              id="branchSelect"
+              [ngModel]="selectedBranch()"
+              (ngModelChange)="onBranchChange($event)"
+            >
+              <option value="">All Branches</option>
+              @for (b of branches(); track b.id) {
+                <option [value]="b.name">{{ b.name }}</option>
+              }
+            </select>
+          </div>
         </div>
-      </div>
+      }
 
       <!-- Filter 2: Login Time -->
       <div class="filter-field">

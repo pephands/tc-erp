@@ -43,6 +43,14 @@ export class Endpoint {
     return this.baseUrl + 'attendance/today/';
   }
 
+  get attendanceList(): string {
+    return this.baseUrl + 'attendance/';
+  }
+
+  get attendanceExport(): string {
+    return this.baseUrl + 'attendance/export/';
+  }
+
   get wfhPasscode(): string {
     return this.baseUrl + 'attendance/wfh-passcode/';
   }

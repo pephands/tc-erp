@@ -21,7 +21,10 @@ export class AuthService {
   readonly currentSession = signal<AuthSession | null>(this.loadStoredSession());
   readonly currentUser = computed(() => this.currentSession()?.user ?? null);
   readonly isLoggedIn = computed(() => !!this.currentSession());
-  readonly userRoles = computed(() => this.currentSession()?.user.roles?.map(r => r.name.toUpperCase()) ?? []);
+  readonly userRoles = computed(() => {
+    const rolesList = this.currentSession()?.user.roles ?? [];
+    return this.extractRoleCodes(rolesList);
+  });
 
   // Password Reset Modal Signals
   readonly isPasswordResetModalOpen = signal<boolean>(false);
@@ -143,5 +146,29 @@ export class AuthService {
   hasRole(allowedRoles: Array<string>): boolean {
     const roles = this.userRoles();
     return allowedRoles.some(allowed => roles.includes(allowed));
+  }
+
+  extractRoleCodes(rolesList: any[]): string[] {
+    const codes: string[] = [];
+    if (!rolesList || !Array.isArray(rolesList)) return codes;
+
+    for (const r of rolesList) {
+      if (typeof r === 'string') {
+        const upper = r.trim().toUpperCase();
+        codes.push(upper);
+        if (upper === 'TEAM LEAD' || upper === 'MANAGER' || upper === 'TL') codes.push('TL');
+        if (upper === 'TELE CALLER' || upper === 'TELECALLER' || upper === 'TC') codes.push('TC');
+        if (upper === 'ADMINISTRATOR' || upper === 'ADMIN') codes.push('ADMIN');
+      } else if (r && typeof r === 'object') {
+        const code = (r.code || '').trim().toUpperCase();
+        const name = (r.name || '').trim().toUpperCase();
+        if (code) codes.push(code);
+        if (name) codes.push(name);
+        if (name === 'TEAM LEAD' || name === 'MANAGER' || code === 'TL') codes.push('TL');
+        if (name === 'TELE CALLER' || name === 'TELECALLER' || code === 'TC') codes.push('TC');
+        if (name === 'ADMINISTRATOR' || code === 'ADMIN') codes.push('ADMIN');
+      }
+    }
+    return Array.from(new Set(codes));
   }
 }

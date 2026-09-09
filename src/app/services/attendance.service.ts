@@ -1,19 +1,49 @@
-import { Injectable, signal } from '@angular/core';
-import { AttendanceRecord, MOCK_ATTENDANCE } from '../models/attendance.model';
+import { Injectable, Injector, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { BaseHttpService } from '../http/baseHttp';
+import { Endpoint } from '../http/endpoint';
+import { AttendanceRecord } from '../models/attendance.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AttendanceService {
-  readonly attendanceRecords = signal<AttendanceRecord[]>(MOCK_ATTENDANCE);
+export class AttendanceService extends BaseHttpService {
+  readonly attendanceRecords = signal<AttendanceRecord[]>([]);
 
-  getAttendanceRecords(): AttendanceRecord[] {
-    return this.attendanceRecords();
+  constructor(
+    public endPoint: Endpoint,
+    public injector: Injector,
+  ) {
+    super(injector);
   }
 
-  refreshAttendance(): void {
-    // Simulate refreshing dataset
-    const current = [...this.attendanceRecords()];
-    this.attendanceRecords.set(current);
+  get isAuthenticatedEndpoint(): boolean {
+    return true;
+  }
+
+  get endpoint(): string {
+    return this.endPoint.attendanceList;
+  }
+
+  getAttendanceRecords(branch?: string, startDate?: string, endDate?: string, search?: string): Observable<any> {
+    let url = `${this.endpoint}?`;
+    if (branch) url += `branch=${encodeURIComponent(branch)}&`;
+    if (startDate) url += `start_date=${encodeURIComponent(startDate)}&`;
+    if (endDate) url += `end_date=${encodeURIComponent(endDate)}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+
+    url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
+    return this.httpClient.get(url, { headers: this.headers });
+  }
+
+  exportAttendanceExcel(branch?: string, startDate?: string, endDate?: string, search?: string): Observable<Blob> {
+    let url = `${this.endPoint.attendanceExport}?`;
+    if (branch) url += `branch=${encodeURIComponent(branch)}&`;
+    if (startDate) url += `start_date=${encodeURIComponent(startDate)}&`;
+    if (endDate) url += `end_date=${encodeURIComponent(endDate)}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+
+    url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
+    return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
   }
 }
