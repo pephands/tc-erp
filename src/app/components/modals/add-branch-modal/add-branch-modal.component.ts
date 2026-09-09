@@ -128,6 +128,16 @@ export class AddBranchModalComponent implements OnInit {
       return;
     }
 
+    const filledIps = this.ips().filter(ip => ip.ip.trim() !== '').map(ip => ip.ip.trim());
+    const seenIps = new Set<string>();
+    for (const ip of filledIps) {
+      if (seenIps.has(ip)) {
+        this.toastService.error('Validation Error', `Duplicate IP address '${ip}' is not allowed in allowed IPs.`);
+        return;
+      }
+      seenIps.add(ip);
+    }
+
     const payload = {
       name: this.formName.trim().toUpperCase(),
       code: this.formCode.trim().toUpperCase(),
@@ -144,6 +154,24 @@ export class AddBranchModalComponent implements OnInit {
       }))
     };
 
+    const handleApiError = (err: any) => {
+      this.isSubmitting.set(false);
+      let errorMsg = 'Server error occurred.';
+      if (err?.error?.message) {
+        errorMsg = err.error.message;
+      } else if (err?.error?.errors) {
+        const errObj = err.error.errors;
+        if (typeof errObj === 'string') {
+          errorMsg = errObj;
+        } else if (typeof errObj === 'object') {
+          const firstKey = Object.keys(errObj)[0];
+          const val = errObj[firstKey];
+          errorMsg = Array.isArray(val) ? val[0] : String(val);
+        }
+      }
+      this.toastService.error('API Error', errorMsg);
+    };
+
     this.isSubmitting.set(true);
 
     if (this.editBranch) {
@@ -155,13 +183,10 @@ export class AddBranchModalComponent implements OnInit {
             this.branchAdded.emit();
             this.close();
           } else {
-            this.toastService.error('Error', 'Failed to update branch.');
+            this.toastService.error('Error', res.message || 'Failed to update branch.');
           }
         },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          this.toastService.error('API Error', err?.error?.message || 'Server error occurred.');
-        }
+        error: handleApiError
       });
     } else {
       this.branchCreateService.postData(payload).subscribe({
@@ -172,13 +197,10 @@ export class AddBranchModalComponent implements OnInit {
             this.branchAdded.emit();
             this.close();
           } else {
-            this.toastService.error('Error', 'Failed to create branch.');
+            this.toastService.error('Error', res.message || 'Failed to create branch.');
           }
         },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          this.toastService.error('API Error', err?.error?.message || 'Server error occurred.');
-        }
+        error: handleApiError
       });
     }
   }

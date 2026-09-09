@@ -224,10 +224,10 @@
 
           <!-- Action Buttons (Update & Reset - Matching Screenshot) -->
           <div class="modal-footer">
-            <button type="submit" class="btn-update-navy">
-              Update
+            <button type="submit" class="btn-update-navy" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Updating...' : 'Update' }}
             </button>
-            <button type="button" class="btn-reset" (click)="resetEditForm()">
+            <button type="button" class="btn-reset" (click)="resetEditForm()" [disabled]="isSubmitting()">
               Reset
             </button>
           </div>

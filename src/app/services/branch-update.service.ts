@@ -22,12 +22,12 @@ export class BranchUpdateService extends BaseHttpService {
     return this.endPoint.branches;
   }
 
-  putData(id: number, payload: any): Observable<any> {
+  putData(id: number | string, payload: any): Observable<any> {
     const url = `${this.endpoint}${id}/`;
-    return this.httpPutMethod(payload, url);
+    return this.httpClient.put(url, payload, { headers: this.headers });
   }
 
-  patchData(id: number, payload: any): Observable<any> {
+  patchData(id: number | string, payload: any): Observable<any> {
     const url = `${this.endpoint}${id}/`;
     return this.httpClient.patch(url, payload, { headers: this.headers });
   }
