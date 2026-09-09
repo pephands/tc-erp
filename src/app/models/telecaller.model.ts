@@ -1,5 +1,6 @@
 export interface Telecaller {
   id: string; // e.g. ADM_104, ADM_105
+  rawId?: number | string;
   fullName: string;
   originalName?: string;
   personalNo: string;

@@ -1,10 +1,11 @@
 <main class="telecallers-container">
-
   <!-- Top Action & Header Bar -->
   <div class="action-header-bar">
     <div class="header-title-section">
       <h2 class="section-heading">TeleCaller Management</h2>
-      <p class="section-subheading">Manage calling queues, branch assignments, and attendance logs.</p>
+      <p class="section-subheading">
+        Manage calling queues, branch assignments, and attendance logs.
+      </p>
     </div>
 
     <!-- Action Buttons Cluster -->
@@ -42,12 +43,12 @@
         <label for="branchSelect">Branch</label>
         <div class="select-wrapper">
           <span class="material-symbols-outlined input-icon">domain</span>
-          <select 
+          <select
             id="branchSelect"
-            [ngModel]="selectedBranch()" 
-            (ngModelChange)="selectedBranch.set($event)"
+            [ngModel]="selectedBranch()"
+            (ngModelChange)="onBranchChange($event)"
           >
-            <option value="" disabled selected>Select Branch</option>
+            <option value="">All Branches</option>
             @for (b of branches(); track b.id) {
               <option [value]="b.name">{{ b.name }}</option>
             }
@@ -60,12 +61,12 @@
         <label for="loginTimeSelect">Login Time</label>
         <div class="select-wrapper">
           <span class="material-symbols-outlined input-icon">schedule</span>
-          <select 
+          <select
             id="loginTimeSelect"
-            [ngModel]="selectedLoginTime()" 
-            (ngModelChange)="selectedLoginTime.set($event)"
+            [ngModel]="selectedLoginTime()"
+            (ngModelChange)="onLoginTimeChange($event)"
           >
-            <option value="" disabled selected>Select Login Time</option>
+            <option value="">All Login Times</option>
             @for (t of loginTimeSlots; track t) {
               <option [value]="t">{{ t }}</option>
             }
@@ -78,12 +79,12 @@
         <label for="logOffTimeSelect">LogOff Time</label>
         <div class="select-wrapper">
           <span class="material-symbols-outlined input-icon">timer_off</span>
-          <select 
+          <select
             id="logOffTimeSelect"
-            [ngModel]="selectedLogOffTime()" 
-            (ngModelChange)="selectedLogOffTime.set($event)"
+            [ngModel]="selectedLogOffTime()"
+            (ngModelChange)="onLogOffTimeChange($event)"
           >
-            <option value="" disabled selected>Select LogOff Time</option>
+            <option value="">All LogOff Times</option>
             @for (t of logOffTimeSlots; track t) {
               <option [value]="t">{{ t }}</option>
             }
@@ -95,31 +96,27 @@
       <div class="filter-field action-field">
         <label class="invisible-label">Action</label>
         <div class="filter-btn-group">
-          <button type="button" class="btn-apply-filters" (click)="onApplyFilters()">
-            <span class="material-symbols-outlined">tune</span>
-            <span>Apply Filters</span>
+          <button
+            type="button"
+            class="btn-reset-filters"
+            (click)="onResetFilters()"
+            title="Reset Filters"
+          >
+            <span class="material-symbols-outlined">restart_alt</span>
           </button>
-
-          @if (isFilterApplied()) {
-            <button type="button" class="btn-reset-filters" (click)="onResetFilters()" title="Reset Filters">
-              <span class="material-symbols-outlined">restart_alt</span>
-            </button>
-          }
         </div>
       </div>
-
     </div>
   </div>
 
   <!-- Table Card Container -->
   <div class="table-card">
-    
     <!-- Table Toolbar (Search Bar & Scope Selector) -->
     <div class="table-toolbar">
       <div class="table-search-group">
         <div class="select-scope-wrapper">
-          <select 
-            [ngModel]="selectedSearchOption()" 
+          <select
+            [ngModel]="selectedSearchOption()"
             (ngModelChange)="selectedSearchOption.set($event)"
           >
             <option value="name">Name</option>
@@ -131,11 +128,11 @@
 
         <div class="table-search-field">
           <span class="material-symbols-outlined search-icon">search</span>
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            [ngModel]="searchQuery()" 
-            (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+          <input
+            type="text"
+            placeholder="Search..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
           />
         </div>
       </div>
@@ -164,10 +161,13 @@
               <td colspan="9" class="empty-table-state">
                 <span class="material-symbols-outlined empty-icon">filter_alt_off</span>
                 <p class="empty-title">Select a Filter to View Records</p>
-                <p class="empty-subtitle">Please select a Branch, Login Time, or LogOff Time above and click <strong>Apply Filters</strong> to display telecallers.</p>
+                <p class="empty-subtitle">
+                  Please select a Branch, Login Time, or LogOff Time above and click
+                  <strong>Apply Filters</strong> to display telecallers.
+                </p>
               </td>
             </tr>
-          } 
+          }
           <!-- State 2: Filtered Telecallers List -->
           @else {
             @for (telecaller of paginatedTelecallers(); track telecaller.id) {
@@ -187,9 +187,9 @@
                   <div class="action-btn-group">
                     @if (telecaller.status === 'InActive') {
                       <!-- 1. Tick Mark Action -->
-                      <button 
-                        type="button" 
-                        class="btn-activate-check" 
+                      <button
+                        type="button"
+                        class="btn-activate-check"
                         (click)="onActivateClick(telecaller)"
                         title="Activate TeleCaller Status"
                       >
@@ -197,9 +197,9 @@
                       </button>
                     } @else {
                       <!-- 2. Edit Action -->
-                      <button 
-                        type="button" 
-                        class="btn-edit" 
+                      <button
+                        type="button"
+                        class="btn-edit"
                         (click)="openEditModal(telecaller)"
                         title="Edit TeleCaller Details"
                       >
@@ -207,9 +207,9 @@
                       </button>
 
                       <!-- 3. Delete Action -->
-                      <button 
-                        type="button" 
-                        class="btn-delete" 
+                      <button
+                        type="button"
+                        class="btn-delete"
                         (click)="onDeleteClick(telecaller)"
                         title="Delete TeleCaller"
                       >
@@ -221,9 +221,9 @@
                 <td class="col-aadhar">
                   @if (telecaller.hasAadhar) {
                     <!-- View Aadhar Eye Button -->
-                    <button 
-                      type="button" 
-                      class="btn-view-aadhar" 
+                    <button
+                      type="button"
+                      class="btn-view-aadhar"
                       (click)="openAadharModal(telecaller)"
                       title="View Aadhar Card"
                     >
@@ -250,9 +250,9 @@
     @if (isFilterApplied() && filteredTelecallers().length > 0) {
       <div class="pagination-bar">
         <div class="pagination-controls">
-          <button 
-            type="button" 
-            class="page-btn nav-btn" 
+          <button
+            type="button"
+            class="page-btn nav-btn"
             [disabled]="currentPage() === 1"
             (click)="prevPage()"
           >
@@ -260,9 +260,9 @@
           </button>
 
           @for (p of pageNumbers(); track p) {
-            <button 
-              type="button" 
-              class="page-btn" 
+            <button
+              type="button"
+              class="page-btn"
               [class.active]="currentPage() === p"
               (click)="setPage(p)"
             >
@@ -270,18 +270,18 @@
             </button>
           }
 
-          <button 
-            type="button" 
-            class="page-btn nav-btn" 
+          <button
+            type="button"
+            class="page-btn nav-btn"
             [disabled]="currentPage() === totalPages()"
             (click)="nextPage()"
           >
             Next
           </button>
 
-          <button 
-            type="button" 
-            class="page-btn nav-btn" 
+          <button
+            type="button"
+            class="page-btn nav-btn"
             [disabled]="currentPage() === totalPages()"
             (click)="lastPage()"
           >
@@ -290,20 +290,18 @@
         </div>
 
         <div class="pagination-info">
-          Showing {{ paginatedTelecallers().length }} of {{ filteredTelecallers().length }} telecallers
+          Showing {{ paginatedTelecallers().length }} of
+          {{ filteredTelecallers().length }} telecallers
         </div>
       </div>
     }
-
   </div>
-
 </main>
 
 <!-- Modal Popup Overlay for UPLOAD TELECALLER EDIT DATA (Exact Match to Screenshot) -->
 @if (isUploadModalOpen()) {
   <div class="modal-backdrop" (click)="closeUploadModal()">
     <div class="modal-card wide-modal-card" (click)="$event.stopPropagation()">
-      
       <!-- Modal Header -->
       <div class="modal-header">
         <div class="modal-title-group">
@@ -317,484 +315,34 @@
 
       <div class="modal-body">
         <h3 class="section-title">Select Excel File</h3>
-        
+
         <form (ngSubmit)="onUploadExcelSubmit()" class="telecaller-form">
           <div class="form-group full-width upload-group">
             <span class="file-hint">Allowed extensions (xls, xlsx)</span>
             <div class="file-input-wrapper">
-              <input 
-                type="file" 
-                accept=".xls,.xlsx" 
-                (change)="onExcelFileSelected($event)" 
-              />
+              <input type="file" accept=".xls,.xlsx" (change)="onExcelFileSelected($event)" />
             </div>
           </div>
 
           <div class="modal-footer">
-            <button type="submit" class="btn-update-navy">
-              Submit
-            </button>
-            <button type="button" class="btn-reset" (click)="closeUploadModal()">
-              Reset
-            </button>
+            <button type="submit" class="btn-update-navy">Submit</button>
+            <button type="button" class="btn-reset" (click)="closeUploadModal()">Reset</button>
           </div>
         </form>
       </div>
-
     </div>
   </div>
 }
 
-<!-- Modal Popup Overlay for ADD NEW TELECALLER -->
-@if (isAddModalOpen()) {
-  <div class="modal-backdrop" (click)="closeAddModal()">
-    <div class="modal-card wide-modal-card" (click)="$event.stopPropagation()">
-      
-      <!-- Modal Title Header -->
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="material-symbols-outlined modal-icon">groups</span>
-          <h2 class="modal-title">TeleCaller Details</h2>
-        </div>
-        <button type="button" class="close-modal-btn" (click)="closeAddModal()">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-
-      <div class="modal-body modal-scrollable">
-        <h3 class="section-title">Enter TeleCaller Details</h3>
-
-        <form (ngSubmit)="onAddTelecallerSubmit()" class="telecaller-form">
-          
-          <!-- Row 1: Full name | Original name -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addFullName">Full name</label>
-              <input 
-                type="text" 
-                id="addFullName" 
-                name="addFullName" 
-                [(ngModel)]="addFullName" 
-                required 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="addOriginalName">Original name</label>
-              <input 
-                type="text" 
-                id="addOriginalName" 
-                name="addOriginalName" 
-                [(ngModel)]="addOriginalName" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 2: Mobile Number | Official Number -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addMobile">Mobile Number</label>
-              <input 
-                type="text" 
-                id="addMobile" 
-                name="addMobile" 
-                [(ngModel)]="addMobile" 
-                required 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="addOfficialNumber">Official Number</label>
-              <input 
-                type="text" 
-                id="addOfficialNumber" 
-                name="addOfficialNumber" 
-                [(ngModel)]="addOfficialNumber" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 3: Gender | Slab -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addGender">Gender</label>
-              <select id="addGender" name="addGender" [(ngModel)]="addGender">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="addSlab">Slab</label>
-              <input 
-                type="text" 
-                id="addSlab" 
-                name="addSlab" 
-                [(ngModel)]="addSlab" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 4: Branches | Salary -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addBranch">Branches</label>
-              <select id="addBranch" name="addBranch" [(ngModel)]="addBranch">
-                <option value="" disabled>Select Branch</option>
-                @for (b of branches(); track b.id) {
-                  <option [value]="b.name">{{ b.name }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="addSalary">Salary</label>
-              <input 
-                type="text" 
-                id="addSalary" 
-                name="addSalary" 
-                [(ngModel)]="addSalary" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 5: Date of Joining | Date of Relieving -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addDateOfJoining">Date of Joining</label>
-              <input 
-                type="text" 
-                id="addDateOfJoining" 
-                name="addDateOfJoining" 
-                placeholder="Select Date"
-                [(ngModel)]="addDateOfJoining" 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="addDateOfRelieving">Date of Relieving</label>
-              <input 
-                type="text" 
-                id="addDateOfRelieving" 
-                name="addDateOfRelieving" 
-                placeholder="Select Date"
-                [(ngModel)]="addDateOfRelieving" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 6: Bank Account Number | Bank IFSC Code -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addBankAccountNumber">Bank Account Number</label>
-              <input 
-                type="text" 
-                id="addBankAccountNumber" 
-                name="addBankAccountNumber" 
-                [(ngModel)]="addBankAccountNumber" 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="addBankIfscCode">Bank IFSC Code</label>
-              <input 
-                type="text" 
-                id="addBankIfscCode" 
-                name="addBankIfscCode" 
-                [(ngModel)]="addBankIfscCode" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 7: Bank Holder Name -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="addBankHolderName">Bank Holder Name</label>
-              <input 
-                type="text" 
-                id="addBankHolderName" 
-                name="addBankHolderName" 
-                [(ngModel)]="addBankHolderName" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 8: Address (Textarea) -->
-          <div class="form-group full-width">
-            <label for="addAddress">Address</label>
-            <textarea 
-              id="addAddress" 
-              name="addAddress" 
-              rows="3" 
-              [(ngModel)]="addAddress"
-            ></textarea>
-          </div>
-
-          <!-- Row 9: Select Aadhar File Picker -->
-          <div class="form-group full-width upload-group">
-            <label>Select Aadhar</label>
-            <span class="file-hint">Allowed extensions (jpg,png,gif,pdf)</span>
-            <div class="file-input-wrapper">
-              <input 
-                type="file" 
-                accept=".jpg,.png,.gif,.pdf" 
-                (change)="onAddAadharSelected($event)" 
-              />
-            </div>
-          </div>
-
-          <!-- Action Buttons (Submit & Reset) -->
-          <div class="modal-footer">
-            <button type="submit" class="btn-update-navy">
-              Submit
-            </button>
-            <button type="button" class="btn-reset" (click)="resetAddForm()">
-              Reset
-            </button>
-          </div>
-
-        </form>
-      </div>
-
-    </div>
-  </div>
-}
-
-<!-- Modal Popup Overlay for EDIT TELECALLER / UPDATE USER DETAILS -->
-@if (isEditModalOpen()) {
-  <div class="modal-backdrop" (click)="closeEditModal()">
-    <div class="modal-card wide-modal-card" (click)="$event.stopPropagation()">
-      
-      <!-- Modal Title Header -->
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="material-symbols-outlined modal-icon">manage_accounts</span>
-          <h2 class="modal-title">Update User Details</h2>
-        </div>
-        <button type="button" class="close-modal-btn" (click)="closeEditModal()">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-
-      <div class="modal-body modal-scrollable">
-        <h3 class="section-title">Enter User Details</h3>
-
-        <form (ngSubmit)="onUpdateTelecallerSubmit()" class="telecaller-form">
-          
-          <!-- Row 1: Full name | Original name -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editFullName">Full name</label>
-              <input 
-                type="text" 
-                id="editFullName" 
-                name="editFullName" 
-                [(ngModel)]="formFullName" 
-                required 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="editOriginalName">Original name</label>
-              <input 
-                type="text" 
-                id="editOriginalName" 
-                name="editOriginalName" 
-                [(ngModel)]="formOriginalName" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 2: Mobile Number | Official Number -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editMobile">Mobile Number</label>
-              <input 
-                type="text" 
-                id="editMobile" 
-                name="editMobile" 
-                [(ngModel)]="formMobile" 
-                required 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="editOfficialNumber">Official Number</label>
-              <input 
-                type="text" 
-                id="editOfficialNumber" 
-                name="editOfficialNumber" 
-                [(ngModel)]="formOfficialNumber" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 3: Gender | Slab -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editGender">Gender</label>
-              <select id="editGender" name="editGender" [(ngModel)]="formGender">
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="editSlab">Slab</label>
-              <input 
-                type="text" 
-                id="editSlab" 
-                name="editSlab" 
-                [(ngModel)]="formSlab" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 4: Role | Branches -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editRole">Role</label>
-              <select id="editRole" name="editRole" [(ngModel)]="formRole">
-                <option value="Tele Caller">Tele Caller</option>
-                <option value="Team Lead">Team Lead</option>
-                <option value="Manager">Manager</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="editBranch">Branches</label>
-              <select id="editBranch" name="editBranch" [(ngModel)]="formBranch">
-                @for (b of branches(); track b.id) {
-                  <option [value]="b.name">{{ b.name }}</option>
-                }
-              </select>
-            </div>
-          </div>
-
-          <!-- Row 5: Salary | Date of Relieving -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editSalary">Salary</label>
-              <input 
-                type="text" 
-                id="editSalary" 
-                name="editSalary" 
-                [(ngModel)]="formSalary" 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="editDateOfRelieving">Date of Relieving</label>
-              <input 
-                type="text" 
-                id="editDateOfRelieving" 
-                name="editDateOfRelieving" 
-                [(ngModel)]="formDateOfRelieving" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 6: Date of Joining | Bank IFSC Code -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editDateOfJoining">Date of Joining</label>
-              <input 
-                type="text" 
-                id="editDateOfJoining" 
-                name="editDateOfJoining" 
-                [(ngModel)]="formDateOfJoining" 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="editBankIfscCode">Bank IFSC Code</label>
-              <input 
-                type="text" 
-                id="editBankIfscCode" 
-                name="editBankIfscCode" 
-                [(ngModel)]="formBankIfscCode" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 7: Email Id | Bank Account Number -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editEmail">Email Id</label>
-              <input 
-                type="text" 
-                id="editEmail" 
-                name="editEmail" 
-                placeholder="EmailId"
-                [(ngModel)]="formEmail" 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="editBankAccountNumber">Bank Account Number</label>
-              <input 
-                type="text" 
-                id="editBankAccountNumber" 
-                name="editBankAccountNumber" 
-                [(ngModel)]="formBankAccountNumber" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 8: Bank Holder Name -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editBankHolderName">Bank Holder Name</label>
-              <input 
-                type="text" 
-                id="editBankHolderName" 
-                name="editBankHolderName" 
-                [(ngModel)]="formBankHolderName" 
-              />
-            </div>
-          </div>
-
-          <!-- Row 9: Address (Textarea) -->
-          <div class="form-group full-width">
-            <label for="editAddress">Address</label>
-            <textarea 
-              id="editAddress" 
-              name="editAddress" 
-              rows="3" 
-              [(ngModel)]="formAddress"
-            ></textarea>
-          </div>
-
-          <!-- Row 10: Select Aadhar Image File Picker -->
-          <div class="form-group full-width upload-group">
-            <label>Select Aadhar Image</label>
-            <span class="file-hint">Allowed extensions (jpg,png,gif,pdf)</span>
-            <div class="file-input-wrapper">
-              <input 
-                type="file" 
-                accept=".jpg,.png,.gif,.pdf" 
-                (change)="onEditAadharSelected($event)" 
-              />
-            </div>
-          </div>
-
-          <!-- Action Buttons (Update & Reset) -->
-          <div class="modal-footer">
-            <button type="submit" class="btn-update-navy">
-              Update
-            </button>
-            <button type="button" class="btn-reset" (click)="resetEditForm()">
-              Reset
-            </button>
-          </div>
-
-        </form>
-      </div>
-
-    </div>
-  </div>
+<!-- Modal Popup Overlay for ADD & EDIT TELECALLER -->
+@if (isAddModalOpen() || isEditModalOpen()) {
+  <app-add-telecaller-modal
+    [branches]="branches()"
+    [telecallerToEdit]="selectedTelecallerToEdit()"
+    (close)="isAddModalOpen() ? closeAddModal() : closeEditModal()"
+    (added)="fetchTelecallersFromApi()"
+    (updated)="fetchTelecallersFromApi()"
+  ></app-add-telecaller-modal>
 }
 
 <!-- Modal Popup for View Aadhar Document -->

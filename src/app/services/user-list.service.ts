@@ -36,6 +36,19 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.get(url, { headers: this.headers });
   }
 
+  getTelecallers(branch?: string | number | null, loginTime?: string | null, logOffTime?: string | null, page?: number, limit?: number, search?: string): Observable<any> {
+    let url = `${this.endpoint}?role=TC&is_active=all&`;
+    if (branch) url += `branch=${encodeURIComponent(branch)}&`;
+    if (loginTime) url += `login_time=${encodeURIComponent(loginTime)}&`;
+    if (logOffTime) url += `logoff_time=${encodeURIComponent(logOffTime)}&`;
+    if (page) url += `page=${page}&`;
+    if (limit) url += `page_size=${limit}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    
+    url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
+    return this.httpClient.get(url, { headers: this.headers });
+  }
+
   toggleUserStatus(userId: string | number, newStatus: string): Observable<any> {
     const url = `${this.endpoint}${userId}/`;
     return this.httpClient.patch(url, { status: newStatus }, { headers: this.headers });
@@ -43,6 +56,11 @@ export class UserListService extends BaseHttpService {
 
   addUser(userData: any): Observable<any> {
     return this.httpClient.post(this.endpoint, userData, { headers: this.headers });
+  }
+
+  updateUser(userId: string | number, userData: any): Observable<any> {
+    const url = `${this.endpoint}${userId}/`;
+    return this.httpClient.patch(url, userData, { headers: this.headers });
   }
 
   uploadManagersExcel(file: File): Observable<any> {

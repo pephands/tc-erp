@@ -3,18 +3,22 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BranchListService } from '../../services/branch-list.service';
 import { TelecallerService } from '../../services/telecaller.service';
+import { UserListService } from '../../services/user-list.service';
 import { Telecaller } from '../../models/telecaller.model';
+
+import { AddTelecallerModalComponent } from '../modals/add-telecaller-modal/add-telecaller-modal.component';
 
 @Component({
   selector: 'app-telecallers',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddTelecallerModalComponent],
   templateUrl: './telecallers.component.html',
   styleUrl: './telecallers.component.css'
 })
 export class TelecallersComponent {
   private branchService = inject(BranchListService);
   private telecallerService = inject(TelecallerService);
+  private userListService = inject(UserListService);
 
   // Filter dropdown selections
   selectedBranch = signal<string>('');
@@ -32,6 +36,7 @@ export class TelecallersComponent {
 
   // Modals state
   selectedAadharTelecaller = signal<Telecaller | null>(null);
+  selectedTelecallerToEdit = signal<Telecaller | null>(null);
   isEditModalOpen = signal<boolean>(false);
   isAddModalOpen = signal<boolean>(false);
   isUploadModalOpen = signal<boolean>(false);
@@ -87,6 +92,11 @@ export class TelecallersComponent {
         if (res.status === 'success' || (Array.isArray(res) || res.data)) {
             const data = Array.isArray(res) ? res : (res.data || []);
             this.branches.set(data);
+            if (data.length > 0 && !this.selectedBranch()) {
+              this.selectedBranch.set(data[0].name);
+              this.isFilterApplied.set(true);
+              this.fetchTelecallersFromApi();
+            }
         }
       }
     });
@@ -103,6 +113,7 @@ export class TelecallersComponent {
   ];
 
   logOffTimeSlots: string[] = [
+    '05:00 PM',
     '06:00 PM',
     '07:00 PM',
     '08:00 PM',
@@ -114,33 +125,12 @@ export class TelecallersComponent {
   // All telecallers from service
   allTelecallers = this.telecallerService.telecallers;
 
-  // Filtered Telecallers (Only loaded if isFilterApplied is true)
+  // Filtered Telecallers
   filteredTelecallers = computed(() => {
-    if (!this.isFilterApplied()) {
-      return [];
-    }
-
-    const branchFilter = this.selectedBranch();
-    const loginFilter = this.selectedLoginTime();
-    const logOffFilter = this.selectedLogOffTime();
     const query = this.searchQuery().trim().toLowerCase();
     const searchScope = this.selectedSearchOption();
 
     return this.allTelecallers().filter(t => {
-      // Filter 1: Branch
-      if (branchFilter && t.branch.toUpperCase() !== branchFilter.toUpperCase()) {
-        return false;
-      }
-      // Filter 2: Login Time
-      if (loginFilter && t.loginTime !== loginFilter) {
-        return false;
-      }
-      // Filter 3: LogOff Time
-      if (logOffFilter && t.logOffTime !== logOffFilter) {
-        return false;
-      }
-
-      // Search Query Filter
       if (query) {
         if (searchScope === 'id' && !t.id.toLowerCase().includes(query)) {
           return false;
@@ -155,7 +145,6 @@ export class TelecallersComponent {
           return false;
         }
       }
-
       return true;
     });
   });
@@ -178,24 +167,103 @@ export class TelecallersComponent {
     return pages;
   });
 
-  // Apply Filters Action
-  onApplyFilters(): void {
-    if (!this.selectedBranch() && !this.selectedLoginTime() && !this.selectedLogOffTime()) {
-      alert('Please select at least one filter (Branch, Login Time, or LogOff Time) before applying.');
-      return;
-    }
+  // Instant Filter Change Handlers
+  onBranchChange(branch: string): void {
+    this.selectedBranch.set(branch);
     this.isFilterApplied.set(true);
     this.currentPage.set(1);
+    this.fetchTelecallersFromApi();
+  }
+
+  onLoginTimeChange(loginTime: string): void {
+    this.selectedLoginTime.set(loginTime);
+    this.isFilterApplied.set(true);
+    this.currentPage.set(1);
+    this.fetchTelecallersFromApi();
+  }
+
+  onLogOffTimeChange(logOffTime: string): void {
+    this.selectedLogOffTime.set(logOffTime);
+    this.isFilterApplied.set(true);
+    this.currentPage.set(1);
+    this.fetchTelecallersFromApi();
   }
 
   // Clear / Reset Filters
   onResetFilters(): void {
-    this.selectedBranch.set('');
+    const defaultBranch = this.branches().length > 0 ? this.branches()[0].name : '';
+    this.selectedBranch.set(defaultBranch);
     this.selectedLoginTime.set('');
     this.selectedLogOffTime.set('');
     this.searchQuery.set('');
-    this.isFilterApplied.set(false);
+    this.isFilterApplied.set(true);
     this.currentPage.set(1);
+    this.fetchTelecallersFromApi();
+  }
+
+  fetchTelecallersFromApi(): void {
+    const branch = this.selectedBranch();
+    const loginTime = this.selectedLoginTime();
+    const logOffTime = this.selectedLogOffTime();
+    const search = this.searchQuery().trim();
+
+    this.userListService.getTelecallers(branch, loginTime, logOffTime, 1, 100, search).subscribe({
+      next: (res: any) => {
+        let results: any[] = [];
+        if (res && res.results) {
+          results = res.results;
+        } else if (Array.isArray(res)) {
+          results = res;
+        } else if (res && res.data) {
+          results = Array.isArray(res.data) ? res.data : [res.data];
+        }
+
+        const mapped = results.map((u: any) => this.mapApiUserToTelecaller(u));
+        this.telecallerService.telecallers.set(mapped);
+      },
+      error: (err: any) => {
+        console.error('Error fetching telecallers:', err);
+      }
+    });
+  }
+
+  private mapApiUserToTelecaller(u: any): Telecaller {
+    return {
+      id: u.username || `TC_${u.id}`,
+      fullName: u.full_name || u.username || '',
+      originalName: u.full_name || '',
+      personalNo: u.phone || u.username || '',
+      officialNo: u.office_phone || '',
+      gender: u.gender === 'Female' ? 'Female' : 'Male',
+      role: u.roles?.[0]?.name || 'Tele Caller',
+      slab: u.slab || '',
+      salary: u.salary || '0',
+      dateOfJoining: u.date_of_joining || '',
+      dateOfRelieving: u.date_of_relieving || '',
+      email: u.email || '',
+      bankAccountNumber: u.bank_account_number || '',
+      bankHolderName: u.bank_holder_name || '',
+      bankIfscCode: u.bank_ifsc_code || '',
+      address: u.address || '',
+      status: u.status || (u.is_active ? 'Active' : 'InActive'),
+      branch: u.branch?.name || '',
+      loginTime: this.formatTime12h(u.shift_start_time) || '09:00 AM',
+      logOffTime: this.formatTime12h(u.shift_end_time) || '06:00 PM',
+      hasAadhar: !!u.aadhar_image
+    };
+  }
+
+  private formatTime12h(timeStr?: string): string {
+    if (!timeStr) return '';
+    const parts = timeStr.split(':');
+    if (parts.length < 2) return timeStr;
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const strHours = hours < 10 ? '0' + hours : '' + hours;
+    return `${strHours}:${minutes} ${ampm}`;
   }
 
   // Pagination Handlers
@@ -255,77 +323,24 @@ export class TelecallersComponent {
 
   // --- ADD NEW TELECALLER MODAL HANDLERS ---
   onAddNew(): void {
-    this.resetAddForm();
+    this.selectedTelecallerToEdit.set(null);
     this.isAddModalOpen.set(true);
   }
 
   closeAddModal(): void {
     this.isAddModalOpen.set(false);
-    this.resetAddForm();
+    this.selectedTelecallerToEdit.set(null);
   }
 
-  resetAddForm(): void {
-    this.addFullName = '';
-    this.addOriginalName = '';
-    this.addMobile = '';
-    this.addOfficialNumber = '';
-    this.addGender = 'Male';
-    this.addSlab = '';
-    this.addBranch = this.branches()[0]?.name || 'ADAMBAKKAM';
-    this.addSalary = '';
-    this.addDateOfJoining = '';
-    this.addDateOfRelieving = '';
-    this.addBankAccountNumber = '';
-    this.addBankHolderName = '';
-    this.addBankIfscCode = '';
-    this.addAddress = '';
-    this.selectedAddAadharFile = null;
+  // --- EDIT TELECALLER MODAL HANDLERS ---
+  openEditModal(telecaller: Telecaller): void {
+    this.selectedTelecallerToEdit.set(telecaller);
+    this.isEditModalOpen.set(true);
   }
 
-  onAddAadharSelected(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
-      this.selectedAddAadharFile = target.files[0];
-    }
-  }
-
-  onAddTelecallerSubmit(): void {
-    if (!this.addFullName.trim() || !this.addMobile.trim() || !this.addBranch) {
-      alert('Please fill in required fields (Full name, Mobile Number, Branch).');
-      return;
-    }
-
-    const nextIdNum = this.allTelecallers().length + 130;
-    const newId = `ADM_${nextIdNum}`;
-
-    const newTelecaller: Telecaller = {
-      id: newId,
-      fullName: this.addFullName.trim().toUpperCase(),
-      originalName: this.addOriginalName.trim(),
-      personalNo: this.addMobile.trim(),
-      officialNo: this.addOfficialNumber.trim(),
-      gender: this.addGender === 'Other' ? 'Female' : this.addGender,
-      role: 'Tele Caller',
-      slab: this.addSlab.trim(),
-      branch: this.addBranch,
-      salary: this.addSalary.trim() || '0',
-      dateOfJoining: this.addDateOfJoining.trim() || '1970-01-01 00:00:00',
-      dateOfRelieving: this.addDateOfRelieving.trim() || '1970-01-01 00:00:00',
-      bankAccountNumber: this.addBankAccountNumber.trim(),
-      bankHolderName: this.addBankHolderName.trim(),
-      bankIfscCode: this.addBankIfscCode.trim(),
-      address: this.addAddress.trim(),
-      status: 'Active',
-      loginTime: '09:00 AM',
-      logOffTime: '06:00 PM',
-      hasAadhar: !!this.selectedAddAadharFile
-    };
-
-    const current = this.allTelecallers();
-    this.telecallerService.telecallers.set([newTelecaller, ...current]);
-
-    this.isFilterApplied.set(true);
-    this.closeAddModal();
+  closeEditModal(): void {
+    this.isEditModalOpen.set(false);
+    this.selectedTelecallerToEdit.set(null);
   }
 
   // 1. Tick Mark Action with Warning Dialog
@@ -342,38 +357,6 @@ export class TelecallersComponent {
     if (confirm(confirmMessage)) {
       this.telecallerService.deleteTelecaller(telecaller.id);
     }
-  }
-
-  // 3. Edit Action Popup Modal
-  openEditModal(telecaller: Telecaller): void {
-    this.originalTelecallerSnapshot = { ...telecaller };
-    this.editingId.set(telecaller.id);
-    this.formFullName = telecaller.fullName || '';
-    this.formOriginalName = telecaller.originalName || '';
-    this.formMobile = telecaller.personalNo || '';
-    this.formOfficialNumber = telecaller.officialNo || '';
-    this.formGender = telecaller.gender || 'Female';
-    this.formRole = telecaller.role || 'Tele Caller';
-    this.formSlab = telecaller.slab || '';
-    this.formBranch = telecaller.branch || '';
-    this.formSalary = telecaller.salary || '0';
-    this.formDateOfJoining = telecaller.dateOfJoining || '1970-01-01 00:00:00';
-    this.formDateOfRelieving = telecaller.dateOfRelieving || '1970-01-01 00:00:00';
-    this.formEmail = telecaller.email || '';
-    this.formBankAccountNumber = telecaller.bankAccountNumber || '';
-    this.formBankHolderName = telecaller.bankHolderName || '';
-    this.formBankIfscCode = telecaller.bankIfscCode || '';
-    this.formAddress = telecaller.address || '';
-    this.selectedEditAadharFile = null;
-
-    this.isEditModalOpen.set(true);
-  }
-
-  closeEditModal(): void {
-    this.isEditModalOpen.set(false);
-    this.editingId.set(null);
-    this.originalTelecallerSnapshot = null;
-    this.selectedEditAadharFile = null;
   }
 
   resetEditForm(): void {

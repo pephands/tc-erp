@@ -1,0 +1,217 @@
+<div class="modal-backdrop" (click)="close.emit()">
+  <div class="modal-card wide-modal-card" (click)="$event.stopPropagation()">
+    
+    <!-- Modal Title Header -->
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span class="material-symbols-outlined modal-icon">{{ isEditMode ? 'manage_accounts' : 'groups' }}</span>
+        <h2 class="modal-title">{{ isEditMode ? 'Update User Details' : 'TeleCaller Details' }}</h2>
+      </div>
+      <button type="button" class="close-modal-btn" (click)="close.emit()" title="Close Modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Form Body -->
+    <div class="modal-body modal-scrollable">
+      <h3 class="section-title">{{ isEditMode ? 'Enter User Details' : 'Enter TeleCaller Details' }}</h3>
+
+      <form (ngSubmit)="onAddTelecallerSubmit()" class="telecaller-form">
+        
+        <!-- Row 1: Full name | Original name -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addFullName">Full name</label>
+            <input 
+              type="text" 
+              id="addFullName" 
+              name="addFullName" 
+              [(ngModel)]="formFullName" 
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="addOriginalName">Original name</label>
+            <input 
+              type="text" 
+              id="addOriginalName" 
+              name="addOriginalName" 
+              [(ngModel)]="formOriginalName" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 2: Mobile Number | Official Number -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addMobile">Mobile Number</label>
+            <input 
+              type="text" 
+              id="addMobile" 
+              name="addMobile" 
+              [(ngModel)]="formMobile" 
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="addOfficialNumber">Official Number</label>
+            <input 
+              type="text" 
+              id="addOfficialNumber" 
+              name="addOfficialNumber" 
+              [(ngModel)]="formOfficialNumber" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 3: Gender | Slab -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addGender">Gender</label>
+            <select id="addGender" name="addGender" [(ngModel)]="formGender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="addSlab">Slab</label>
+            <input 
+              type="text" 
+              id="addSlab" 
+              name="addSlab" 
+              [(ngModel)]="formSlab" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 4: Branches | Salary -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addBranch">Branches</label>
+            <select id="addBranch" name="addBranch" [(ngModel)]="formBranch">
+              <option value="" disabled>Select Branch</option>
+              @for (b of branches; track b.id) {
+                <option [value]="b.name">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="addSalary">Salary</label>
+            <input 
+              type="text" 
+              id="addSalary" 
+              name="addSalary" 
+              [(ngModel)]="formSalary" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 5: Date of Joining | Date of Relieving -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addDateOfJoining">Date of Joining</label>
+            <input 
+              type="text" 
+              id="addDateOfJoining" 
+              name="addDateOfJoining" 
+              placeholder="Select Date"
+              onfocus="(this.type='date')"
+              onblur="if(!this.value)this.type='text'"
+              [(ngModel)]="formDateOfJoining" 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="addDateOfRelieving">Date of Relieving</label>
+            <input 
+              type="text" 
+              id="addDateOfRelieving" 
+              name="addDateOfRelieving" 
+              placeholder="Select Date"
+              onfocus="(this.type='date')"
+              onblur="if(!this.value)this.type='text'"
+              [(ngModel)]="formDateOfRelieving" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 6: Bank Account Number | Bank IFSC Code -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addBankAccountNumber">Bank Account Number</label>
+            <input 
+              type="text" 
+              id="addBankAccountNumber" 
+              name="addBankAccountNumber" 
+              [(ngModel)]="formBankAccountNumber" 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="addBankIfscCode">Bank IFSC Code</label>
+            <input 
+              type="text" 
+              id="addBankIfscCode" 
+              name="addBankIfscCode" 
+              [(ngModel)]="formBankIfscCode" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 7: Bank Holder Name -->
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label for="addBankHolderName">Bank Holder Name</label>
+            <input 
+              type="text" 
+              id="addBankHolderName" 
+              name="addBankHolderName" 
+              [(ngModel)]="formBankHolderName" 
+            />
+          </div>
+        </div>
+
+        <!-- Row 8: Address (Textarea full width) -->
+        <div class="form-group full-width">
+          <label for="addAddress">Address</label>
+          <textarea 
+            id="addAddress" 
+            name="addAddress" 
+            rows="4" 
+            [(ngModel)]="formAddress"
+          ></textarea>
+        </div>
+
+        <!-- Row 9: Select Aadhar File Picker -->
+        <div class="form-group full-width upload-group">
+          <label>Select Aadhar</label>
+          <span class="file-hint">Allowed extensions &#123;jpg,png,gif,pdf&#125;</span>
+          <div class="file-input-wrapper">
+            <input 
+              type="file" 
+              accept=".jpg,.png,.gif,.pdf" 
+              (change)="onAadharFileSelected($event)" 
+            />
+          </div>
+        </div>
+
+        <!-- Modal Action Footer Buttons -->
+        <div class="modal-footer">
+          <button type="submit" class="btn-submit">
+            {{ isEditMode ? 'Update' : 'Submit' }}
+          </button>
+          <button type="button" class="btn-reset" (click)="resetAddForm()">
+            Reset
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
