@@ -21,6 +21,10 @@ export class Endpoint {
     return this.baseUrl + 'accounts/users/';
   }
 
+  get telecallers(): string {
+    return this.baseUrl + 'accounts/users/?role=TC';
+  }
+
   get changePassword(): string {
     return this.baseUrl + 'accounts/change-password/';
   }
@@ -75,5 +79,46 @@ export class Endpoint {
 
   get wfhRequest(): string {
     return this.baseUrl + 'attendance/wfh-request/';
+  }
+
+  get dashboardSummary(): string {
+    return this.baseUrl + 'dashboard/';
+  }
+
+  // Telecalling Domain
+  get telecallingUpload(): string {
+    return this.baseUrl + 'telecalling/upload/';
+  }
+
+  get telecallingMasterSummary(): string {
+    return this.baseUrl + 'telecalling/master-summary/';
+  }
+
+  get telecallingUnallocatedExport(): string {
+    return this.baseUrl + 'telecalling/unallocated/export/';
+  }
+
+  get telecallingUnallocatedFlush(): string {
+    return this.baseUrl + 'telecalling/unallocated/flush/';
+  }
+
+  get telecallingRequests(): string {
+    return this.baseUrl + 'telecalling/requests/';
+  }
+
+  get telecallingBranchPool(): string {
+    return this.baseUrl + 'telecalling/branch-pool/';
+  }
+
+  get telecallingAssignTc(): string {
+    return this.baseUrl + 'telecalling/assign-tc/';
+  }
+
+  get telecallingTcQueue(): string {
+    return this.baseUrl + 'telecalling/tc-queue/';
+  }
+
+  get telecallingCallLog(): string {
+    return this.baseUrl + 'telecalling/call-log/';
   }
 }

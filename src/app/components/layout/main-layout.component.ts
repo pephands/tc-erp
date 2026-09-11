@@ -57,6 +57,14 @@ export class MainLayoutComponent {
       this.pageTitle.set('Assign / Approve Task');
       this.pageIcon.set('groups');
       this.parentTitle.set('Task Management');
+    } else if (url.includes('/tl-data-management')) {
+      this.pageTitle.set('Branch Data Management');
+      this.pageIcon.set('domain');
+      this.parentTitle.set('Task Management');
+    } else if (url.includes('/telecaller-workstation') || url.includes('/work-details')) {
+      this.pageTitle.set('Telecalling Workstation');
+      this.pageIcon.set('phone_in_talk');
+      this.parentTitle.set('Task Management');
     } else if (url.includes('/branch-documents')) {
       this.pageTitle.set('Branch Document Details');
       this.pageIcon.set('folder_shared');

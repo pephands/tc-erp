@@ -1,0 +1,243 @@
+<div class="page-container">
+  @if (showToast()) {
+    <div class="toast-notification shadow-card">
+      <span class="material-symbols-outlined check-icon">check_circle</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <main class="content-body">
+    <!-- Header Bar -->
+    <div class="action-header-bar">
+      <div class="header-title-section">
+        <h2 class="section-heading">Telecalling Workstation</h2>
+        <p class="section-subheading">
+          Your daily assigned donor calling queue. Dial numbers, record donor feedback, and update donor profiles.
+        </p>
+      </div>
+
+      <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
+        <button type="button" class="btn-download-assigned" (click)="onDownloadAssignedData()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: #292524; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+          <span>Download Assigned Data</span>
+        </button>
+        <div class="queue-summary-badge">
+          <span class="material-symbols-outlined icon">phone_in_talk</span>
+          <span>Pending Queue: {{ totalRecords() }} Donors</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calling Queue Table Card -->
+    <div class="table-card shadow-card">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input
+            type="text"
+            placeholder="Search donor name or phone number..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+          />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Donor Name</th>
+              <th>Phone Number</th>
+              <th>DOB</th>
+              <th>Assigned Date</th>
+              <th>Status</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="7" class="loading-table-state">
+                  <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                  <p class="loading-title">Fetching your daily calling queue...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (item of paginatedQueue(); track item.id; let i = $index) {
+                <tr>
+                  <td class="font-medium">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+                  <td class="font-semibold donor-name">{{ item.donorName }}</td>
+                  <td class="font-bold phone-number">{{ item.phoneNumber }}</td>
+                  <td class="text-muted">{{ item.dob || '-' }}</td>
+                  <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'shortDate') : (item.createdAt ? (item.createdAt | date:'shortDate') : '-') }}</td>
+                  <td>
+                    <span class="status-assigned-badge">Assigned to You</span>
+                  </td>
+                  <td class="actions-cell">
+                    <button
+                      type="button"
+                      class="btn-call-action"
+                      (click)="onOpenCallModal(item)"
+                      title="Call Donor & Record Remarks"
+                    >
+                      <span class="material-symbols-outlined">call</span>
+                      <span>Call & Update</span>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="empty-table-state">
+                    <span class="material-symbols-outlined empty-icon">check_circle</span>
+                    <p class="empty-title">Queue Complete / No Assigned Calls</p>
+                    <p class="empty-subtitle">You have no pending numbers in your calling queue.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      @if (totalRecords() > 0) {
+        <div class="pagination-bar">
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="page-btn nav-btn"
+              [disabled]="currentPage() === 1"
+              (click)="setPage(currentPage() - 1)"
+            >
+              Prev
+            </button>
+
+            @for (p of pagesArray(); track p) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="currentPage() === p"
+                (click)="setPage(p)"
+              >
+                {{ p }}
+              </button>
+            }
+
+            <button
+              type="button"
+              class="page-btn nav-btn"
+              [disabled]="currentPage() === totalPages()"
+              (click)="nextPage()"
+            >
+              Next
+            </button>
+
+            <button
+              type="button"
+              class="page-btn nav-btn"
+              [disabled]="currentPage() === totalPages()"
+              (click)="lastPage()"
+            >
+              Last
+            </button>
+          </div>
+
+          <div class="pagination-info">
+            Showing {{ paginatedQueue().length }} of {{ totalRecords() }} assigned donors
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- ==========================================
+       MODAL: CALL LOG & DONOR UPDATE DIALOG
+       ========================================== -->
+  @if (isCallModalOpen()) {
+    <div class="modal-backdrop" (click)="closeCallModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-title-header">
+          <div class="header-left">
+            <span class="material-symbols-outlined call-header-icon">phone_in_talk</span>
+            <h2>Record Call Log & Update Donor</h2>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeCallModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Phone Number: <span class="highlight-phone">{{ selectedDonor()?.phoneNumber }}</span></h3>
+            <span class="subtext">Update donor profile details and select call outcome</span>
+          </div>
+
+          <div class="box-content-area">
+            <!-- Form Row 1: Donor Name & DOB -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Donor Name *</label>
+                <input
+                  type="text"
+                  placeholder="Enter or update donor full name"
+                  [ngModel]="donorNameInput()"
+                  (ngModelChange)="donorNameInput.set($event)"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <label>Date of Birth (DOB)</label>
+                <input
+                  type="date"
+                  [ngModel]="dobInput()"
+                  (ngModelChange)="dobInput.set($event)"
+                />
+              </div>
+            </div>
+
+            <!-- Form Group: Disposition -->
+            <div class="form-group margin-top-sm">
+              <label>Call Disposition / Outcome *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="callDisposition()" (ngModelChange)="callDisposition.set($event)">
+                  @for (opt of dispositionOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Form Group: Remarks -->
+            <div class="form-group margin-top-sm">
+              <label>Call Remarks / Feedback</label>
+              <textarea
+                rows="3"
+                placeholder="Enter call notes, response details, or follow-up instructions..."
+                [ngModel]="remarksInput()"
+                (ngModelChange)="remarksInput.set($event)"
+              ></textarea>
+            </div>
+
+            <!-- Actions Footer -->
+            <div class="modal-actions-footer">
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting()"
+                (click)="onSubmitCallLog()"
+              >
+                {{ isSubmitting() ? 'Saving Call Log...' : 'Submit Call Log' }}
+              </button>
+
+              <button type="button" class="btn-modal-reset" (click)="closeCallModal()">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

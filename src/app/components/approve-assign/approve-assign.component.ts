@@ -1,42 +1,120 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApproveAssignService } from '../../services/approve-assign.service';
-import { ApproveAssignRecord } from '../../models/approve-assign.model';
+import { TelecallingService } from '../../services/telecalling.service';
+import {
+  BranchAllocationRequestRecord,
+  MasterSummaryData,
+} from '../../models/telecalling.model';
 
 @Component({
   selector: 'app-approve-assign',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './approve-assign.component.html',
-  styleUrl: './approve-assign.component.css'
+  styleUrl: './approve-assign.component.css',
 })
-export class ApproveAssignComponent {
-  private service = inject(ApproveAssignService);
+export class ApproveAssignComponent implements OnInit {
+  private service = inject(TelecallingService);
 
-  records = this.service.getRecords();
+  // Data signals
+  requestsList = signal<BranchAllocationRequestRecord[]>([]);
+  masterSummary = signal<MasterSummaryData | null>(null);
+  branchesList = signal<any[]>([]);
 
-  // Search & Pagination State
+  // State flags & loading
+  isLoading = signal<boolean>(false);
+  isSubmitting = signal<boolean>(false);
+  isExporting = signal<boolean>(false);
+
+  // Toast feedback
+  toastMessage = signal<string>('');
+  showToast = signal<boolean>(false);
+
+  // Search & Pagination
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
 
-  // Filtered records based on search query
+  // Modals
+  isUploadModalOpen = signal<boolean>(false);
+  isFlushConfirmModalOpen = signal<boolean>(false);
+  isAssignBranchModalOpen = signal<boolean>(false);
+
+  // Form Inputs: Upload Base
+  uploadCategory = signal<'BASE' | 'NON_BASE'>('BASE');
+  selectedFile = signal<File | null>(null);
+  uploadFileName = signal<string>('No file chosen');
+
+  // Form Inputs: Admin Direct Assign to Branch
+  assignBranchId = signal<number | string>('');
+  assignBranchCategory = signal<'BASE' | 'NON_BASE'>('BASE');
+  assignBranchQuantity = signal<number | null>(null);
+
+  ngOnInit(): void {
+    this.loadData();
+    this.loadBranches();
+  }
+
+  loadBranches(): void {
+    this.service.fetchBranches().subscribe({
+      next: (branches) => this.branchesList.set(branches),
+      error: (err) => console.error('Error fetching branches:', err),
+    });
+  }
+
+  triggerToast(msg: string): void {
+    this.toastMessage.set(msg);
+    this.showToast.set(true);
+    setTimeout(() => {
+      this.showToast.set(false);
+    }, 4000);
+  }
+
+  loadData(): void {
+    this.isLoading.set(true);
+    this.fetchRequests();
+
+    this.service.fetchMasterSummary().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'success') {
+          this.masterSummary.set(res.data);
+        }
+      },
+      error: (err: any) => console.error('Error fetching master summary:', err),
+    });
+  }
+
+  fetchRequests(): void {
+    this.service.fetchAllocationRequests().subscribe({
+      next: (data) => {
+        this.requestsList.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching requests:', err);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  // Filtered & Paginated records
   filteredRecords = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
-    const list = this.records();
+    const list = this.requestsList();
+
     if (!query) return list;
 
-    return list.filter(r => 
-      r.requestId.toLowerCase().includes(query) ||
-      r.branch.toLowerCase().includes(query) ||
-      r.requestedBy.toLowerCase().includes(query) ||
-      r.base.toLowerCase().includes(query) ||
-      r.status.toLowerCase().includes(query)
+    return list.filter(
+      (r) =>
+        String(r.id).includes(query) ||
+        (r.branchName && r.branchName.toLowerCase().includes(query)) ||
+        (r.requestedByName && r.requestedByName.toLowerCase().includes(query)) ||
+        r.category.toLowerCase().includes(query) ||
+        r.status.toLowerCase().includes(query)
     );
   });
 
-  // Paginated records
   paginatedRecords = computed(() => {
     const list = this.filteredRecords();
     const page = this.currentPage();
@@ -66,7 +144,7 @@ export class ApproveAssignComponent {
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
-      this.currentPage.update(p => p + 1);
+      this.currentPage.update((p) => p + 1);
     }
   }
 
@@ -74,49 +152,11 @@ export class ApproveAssignComponent {
     this.currentPage.set(this.totalPages());
   }
 
-  onApprove(record: ApproveAssignRecord): void {
-    this.service.approveRequest(record.requestId);
-  }
-
-  onCancel(record: ApproveAssignRecord): void {
-    this.service.cancelRequest(record.requestId);
-  }
-
-  onDownload(record: ApproveAssignRecord): void {
-    alert(`Downloading base report for Request ID #${record.requestId} (${record.branch})`);
-  }
-
-  // Modal Dialog Signals
-  isUploadModalOpen = signal<boolean>(false);
-  isSubmitModalOpen = signal<boolean>(false);
-
-  // Upload Modal State
-  uploadFileName = signal<string>('No file chosen');
-  selectedFile = signal<File | null>(null);
-
-  // Submit Task Modal State
-  submitBranch = signal<string>('');
-  submitCallType = signal<string>('');
-  submitTaskCount = signal<number | null>(null);
-
-  // Available Branches list for dropdown
-  branchesList = [
-    'PERAMBUR',
-    'VIRUDHACHALAM',
-    'REDHILLS',
-    'TAMBARAM',
-    'AMBATHUR',
-    'SALEM',
-    'TEYNAMPET',
-    'COIMBATORE',
-    'MADURAI',
-    'TRICHY',
-    'VELLORE',
-    'ERODE'
-  ];
-
-  // Header Action Handlers
-  onUploadBase(): void {
+  // Admin Actions: Upload Base Excel
+  onOpenUploadModal(): void {
+    this.uploadCategory.set('BASE');
+    this.selectedFile.set(null);
+    this.uploadFileName.set('No file chosen');
     this.isUploadModalOpen.set(true);
   }
 
@@ -135,67 +175,173 @@ export class ApproveAssignComponent {
     }
   }
 
-  onResetUpload(): void {
-    this.selectedFile.set(null);
-    this.uploadFileName.set('No file chosen');
-  }
-
   onSubmitUpload(): void {
-    if (!this.selectedFile()) {
+    const file = this.selectedFile();
+    const category = this.uploadCategory();
+
+    if (!file) {
       alert('Please select an Excel file (.xls, .xlsx) to upload.');
       return;
     }
-    alert(`File "${this.uploadFileName()}" uploaded successfully!`);
-    this.closeUploadModal();
-    this.onResetUpload();
+
+    this.isSubmitting.set(true);
+    this.service.uploadExcel(file, category).subscribe({
+      next: (res: any) => {
+        this.isSubmitting.set(false);
+        this.closeUploadModal();
+        const msg = res.message || 'File uploaded and parsed successfully!';
+        this.triggerToast(msg);
+        this.loadData();
+      },
+      error: (err: any) => {
+        this.isSubmitting.set(false);
+        console.error('Error uploading excel:', err);
+        const errorMsg = err.error?.message || 'Failed to upload Excel file.';
+        alert(errorMsg);
+      },
+    });
   }
 
-  onSubmitBase(): void {
-    this.isSubmitModalOpen.set(true);
+  // Admin Actions: Download & Flush Unallocated Master Data
+  onDownloadUnallocatedData(): void {
+    this.isExporting.set(true);
+    this.service.exportUnallocatedExcel('ALL').subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Unallocated_Master_Data_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.isExporting.set(false);
+        this.triggerToast('Unallocated master data downloaded successfully.');
+      },
+      error: (err: any) => {
+        console.error('Error downloading unallocated data:', err);
+        this.isExporting.set(false);
+        alert('Failed to download unallocated master data.');
+      },
+    });
   }
 
-  closeSubmitModal(): void {
-    this.isSubmitModalOpen.set(false);
+  onOpenFlushModal(): void {
+    this.isFlushConfirmModalOpen.set(true);
   }
 
-  onResetSubmitTask(): void {
-    this.submitBranch.set('');
-    this.submitCallType.set('');
-    this.submitTaskCount.set(null);
+  closeFlushModal(): void {
+    this.isFlushConfirmModalOpen.set(false);
   }
 
-  onSubmitTaskForm(): void {
-    const branch = this.submitBranch();
-    const callType = this.submitCallType();
-    const count = this.submitTaskCount();
+  onConfirmFlushUnallocated(): void {
+    this.isSubmitting.set(true);
+    this.service.flushUnallocated('ALL').subscribe({
+      next: (res: any) => {
+        this.isSubmitting.set(false);
+        this.closeFlushModal();
+        const msg = res.message || 'Unallocated master pool data cleared.';
+        this.triggerToast(msg);
+        this.loadData();
+      },
+      error: (err: any) => {
+        this.isSubmitting.set(false);
+        console.error('Error flushing master data:', err);
+        alert('Failed to flush unallocated master data.');
+      },
+    });
+  }
 
-    if (!branch) {
-      alert('Please select a Branch Name.');
+  // Admin Request Actions: Approve / Reject
+  onApproveRequest(req: BranchAllocationRequestRecord): void {
+    if (confirm(`Approve request #${req.id} for ${req.requestedQuantity} ${req.category} numbers for ${req.branchName}?`)) {
+      this.service.approveAllocationRequest(req.id).subscribe({
+        next: (res: any) => {
+          this.triggerToast(`Request #${req.id} approved successfully!`);
+          this.loadData();
+        },
+        error: (err: any) => {
+          console.error('Error approving request:', err);
+          const msg = err.error?.message || 'Failed to approve request.';
+          alert(msg);
+        },
+      });
+    }
+  }
+
+  onRejectRequest(req: BranchAllocationRequestRecord): void {
+    if (confirm(`Reject request #${req.id} (${req.branchName})?`)) {
+      this.service.rejectAllocationRequest(req.id).subscribe({
+        next: (res: any) => {
+          this.triggerToast(`Request #${req.id} rejected.`);
+          this.loadData();
+        },
+        error: (err: any) => {
+          console.error('Error rejecting request:', err);
+          alert('Failed to reject request.');
+        },
+      });
+    }
+  }
+
+  // Admin Action: Assign Data Directly to Branch
+  onOpenAssignBranchModal(): void {
+    this.assignBranchId.set('');
+    this.assignBranchCategory.set('BASE');
+    this.assignBranchQuantity.set(null);
+    this.isAssignBranchModalOpen.set(true);
+  }
+
+  closeAssignBranchModal(): void {
+    this.isAssignBranchModalOpen.set(false);
+  }
+
+  onSubmitAssignBranch(): void {
+    const branchId = Number(this.assignBranchId());
+    const category = this.assignBranchCategory();
+    const qty = this.assignBranchQuantity();
+
+    if (!branchId) {
+      alert('Please select a Branch.');
       return;
     }
-    if (!callType) {
-      alert('Please select a Call Type.');
-      return;
-    }
-    if (!count || count <= 0) {
-      alert('Please enter a valid Task Count.');
+    if (!qty || qty <= 0) {
+      alert('Please enter a valid quantity.');
       return;
     }
 
-    const baseDisplay = callType.includes('Non Base') ? 'Non Base' : 'Base';
-    this.service.addRequest(branch, baseDisplay, count);
-    alert(`Task submitted successfully for ${branch} (${baseDisplay} - ${count} tasks)!`);
-    this.closeSubmitModal();
-    this.onResetSubmitTask();
-  }
-
-  onDownloadBase(): void {
-    alert('Downloading full base report...');
-  }
-
-  onDeleteBase(): void {
-    if (confirm('Are you sure you want to delete base records?')) {
-      alert('Base records deleted.');
-    }
+    this.isSubmitting.set(true);
+    this.service.createAllocationRequest(category, qty, branchId).subscribe({
+      next: (res: any) => {
+        const reqId = res.data?.id;
+        if (reqId) {
+          this.service.approveAllocationRequest(reqId).subscribe({
+            next: () => {
+              this.isSubmitting.set(false);
+              this.closeAssignBranchModal();
+              this.triggerToast(`${qty} ${category === 'BASE' ? 'Base' : 'Non Base'} numbers assigned directly to branch!`);
+              this.loadData();
+            },
+            error: (err: any) => {
+              this.isSubmitting.set(false);
+              console.error('Error approving direct branch assignment:', err);
+              alert(err.error?.message || 'Request created but auto-approval failed.');
+              this.loadData();
+            },
+          });
+        } else {
+          this.isSubmitting.set(false);
+          this.closeAssignBranchModal();
+          this.triggerToast('Allocation request created for branch.');
+          this.loadData();
+        }
+      },
+      error: (err: any) => {
+        this.isSubmitting.set(false);
+        console.error('Error creating branch allocation:', err);
+        alert(err.error?.message || 'Failed to assign numbers to branch.');
+      },
+    });
   }
 }
+

@@ -1,0 +1,231 @@
+import { Injectable, Injector, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { BaseHttpService } from '../http/baseHttp';
+import { Endpoint } from '../http/endpoint';
+import {
+  MasterDonorRecord,
+  BranchAllocationRequestRecord,
+  MasterSummaryData,
+  BranchPoolData,
+  TelecallerUserOption,
+  deserializeMasterDonor,
+  deserializeAllocationRequest,
+} from '../models/telecalling.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TelecallingService extends BaseHttpService {
+  public tcQueueSignal = signal<MasterDonorRecord[]>([]);
+
+  constructor(
+    public endPoint: Endpoint,
+    public injector: Injector
+  ) {
+    super(injector);
+  }
+
+  get isAuthenticatedEndpoint(): boolean {
+    return true;
+  }
+
+  get endpoint(): string {
+    return this.endPoint.telecallingRequests;
+  }
+
+  uploadExcel(file: File, category: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+
+    return this.httpClient.post(this.endPoint.telecallingUpload, formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
+  fetchMasterSummary(): Observable<any> {
+    return this.httpClient.get(this.endPoint.telecallingMasterSummary, {
+      headers: this.headers,
+    });
+  }
+
+  exportUnallocatedExcel(category: string = 'ALL'): Observable<Blob> {
+    return this.httpClient.get(this.endPoint.telecallingUnallocatedExport, {
+      headers: this.headers,
+      params: { category },
+      responseType: 'blob',
+    });
+  }
+
+  flushUnallocated(category: string = 'ALL'): Observable<any> {
+    return this.httpClient.post(
+      this.endPoint.telecallingUnallocatedFlush,
+      { category },
+      { headers: this.headers }
+    );
+  }
+
+  fetchAllocationRequests(): Observable<BranchAllocationRequestRecord[]> {
+    return this.httpClient
+      .get(this.endPoint.telecallingRequests, { headers: this.headers })
+      .pipe(
+        map((res: any) => {
+          let items: any[] = [];
+          if (res && res.status === 'success' && res.data) {
+            items = Array.isArray(res.data) ? res.data : [res.data];
+          }
+          return items.map((item: any) => deserializeAllocationRequest(item));
+        })
+      );
+  }
+
+  createAllocationRequest(category: string, quantity: number, branchId?: number): Observable<any> {
+    const payload: any = { category, requested_quantity: quantity };
+    if (branchId) payload.branch = branchId;
+
+    return this.httpClient.post(this.endPoint.telecallingRequests, payload, {
+      headers: this.headers,
+    });
+  }
+
+  approveAllocationRequest(requestId: number): Observable<any> {
+    const url = `${this.endPoint.telecallingRequests}${requestId}/approve/`;
+    return this.httpClient.post(url, {}, { headers: this.headers });
+  }
+
+  rejectAllocationRequest(requestId: number): Observable<any> {
+    const url = `${this.endPoint.telecallingRequests}${requestId}/reject/`;
+    return this.httpClient.post(url, {}, { headers: this.headers });
+  }
+
+  fetchBranchPool(branchId?: number): Observable<any> {
+    const params: any = {};
+    if (branchId) params.branch = branchId;
+
+    return this.httpClient.get(this.endPoint.telecallingBranchPool, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  assignToTelecaller(
+    telecallerIds: number[] | number,
+    category: string,
+    count: number,
+    branchId?: number
+  ): Observable<any> {
+    const ids = Array.isArray(telecallerIds) ? telecallerIds : [telecallerIds];
+    const payload: any = {
+      telecaller_ids: ids,
+      category,
+      count,
+    };
+    if (branchId) payload.branch = branchId;
+
+    return this.httpClient.post(this.endPoint.telecallingAssignTc, payload, {
+      headers: this.headers,
+    });
+  }
+
+  fetchTcQueue(
+    page: number = 1,
+    pageSize: number = 10,
+    search?: string
+  ): Observable<{ records: MasterDonorRecord[]; totalCount: number; totalPages: number }> {
+    const params: any = { page, page_size: pageSize };
+    if (search) params.search = search;
+
+    return this.httpClient
+      .get(this.endPoint.telecallingTcQueue, {
+        headers: this.headers,
+        params,
+      })
+      .pipe(
+        map((res: any) => {
+          let items: any[] = [];
+          let totalCount = 0;
+          let totalPages = 1;
+
+          if (res && res.status === 'success') {
+            items = Array.isArray(res.data) ? res.data : [];
+            totalCount = res.total_count ?? items.length;
+            totalPages = res.total_pages ?? 1;
+          }
+
+          const records = items.map((item: any) => deserializeMasterDonor(item));
+          this.tcQueueSignal.set(records);
+          return { records, totalCount, totalPages };
+        })
+      );
+  }
+
+  fetchAllTcQueue(search?: string): Observable<MasterDonorRecord[]> {
+    const params: any = { all: 'true' };
+    if (search) params.search = search;
+
+    return this.httpClient
+      .get(this.endPoint.telecallingTcQueue, {
+        headers: this.headers,
+        params,
+      })
+      .pipe(
+        map((res: any) => {
+          let items: any[] = [];
+          if (res && res.status === 'success' && res.data) {
+            items = Array.isArray(res.data) ? res.data : [res.data];
+          }
+          return items.map((item: any) => deserializeMasterDonor(item));
+        })
+      );
+  }
+
+  logCall(
+    telecallingDataId: number,
+    disposition: string,
+    remarks?: string,
+    updatedName?: string,
+    updatedDob?: string
+  ): Observable<any> {
+    const payload: any = {
+      telecalling_data_id: telecallingDataId,
+      call_disposition: disposition,
+      remarks: remarks || '',
+      updated_donor_name: updatedName || '',
+      updated_dob: updatedDob || null,
+    };
+
+    return this.httpClient.post(this.endPoint.telecallingCallLog, payload, {
+      headers: this.headers,
+    });
+  }
+
+  fetchTelecallers(): Observable<TelecallerUserOption[]> {
+    return this.httpClient.get<any>(this.endPoint.telecallers, { headers: this.headers }).pipe(
+      map((res: any) => {
+        const list = res.data || res.results || (Array.isArray(res) ? res : []);
+        return list.map((item: any) => ({
+          id: item.id,
+          username: item.username || item.email || '',
+          full_name: item.full_name || item.name || item.username || '',
+          branch_name: item.branch_name || item.branch?.name || '',
+        }));
+      })
+    );
+  }
+
+  fetchBranches(): Observable<any[]> {
+    return this.httpClient.get<any>(this.endPoint.branches, { headers: this.headers }).pipe(
+      map((res: any) => {
+        const list = res.data || res.results || (Array.isArray(res) ? res : []);
+        return list.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          code: item.code || '',
+        }));
+      })
+    );
+  }
+}
+
+

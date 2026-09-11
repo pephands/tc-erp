@@ -1,0 +1,361 @@
+<div class="page-container">
+  @if (showToast()) {
+    <div class="toast-notification shadow-card">
+      <span class="material-symbols-outlined check-icon">check_circle</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <main class="content-body">
+    <!-- Action Toolbar Row -->
+    <div class="top-action-toolbar">
+      <div class="header-title">
+        <h2 class="section-heading">Branch Data Management</h2>
+        <p class="section-subheading">
+          Request data batches from Admin, view available rollover pool, and distribute data to telecallers.
+        </p>
+      </div>
+
+      <div class="action-buttons-group">
+        <button type="button" class="btn-toolbar btn-submit" (click)="onOpenSubmitTaskModal()">
+          <span class="material-symbols-outlined">add_circle</span>
+          <span>Request Data Batch</span>
+        </button>
+
+        <button type="button" class="btn-toolbar btn-assign-tc" (click)="onOpenAssignTcModal()">
+          <span class="material-symbols-outlined">assignment_ind</span>
+          <span>Assign to Telecaller</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TL / Branch Pool Summary Metrics -->
+    @if (branchPool()) {
+      <div class="metrics-grid">
+        <div class="metric-card shadow-card">
+          <div class="metric-icon-box branch-bg">
+            <span class="material-symbols-outlined">domain</span>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Available Branch Pool (Rollover)</span>
+            <h3 class="metric-value">{{ branchPool()?.total_unused_count | number }}</h3>
+            <span class="metric-subtext">
+              Base: {{ branchPool()?.unused_base_count }} | Non Base: {{ branchPool()?.unused_non_base_count }}
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card shadow-card">
+          <div class="metric-icon-box assigned-bg">
+            <span class="material-symbols-outlined">support_agent</span>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Assigned to Telecallers</span>
+            <h3 class="metric-value">{{ branchPool()?.assigned_tc_count | number }}</h3>
+          </div>
+        </div>
+
+        <div class="metric-card shadow-card">
+          <div class="metric-icon-box completed-bg">
+            <span class="material-symbols-outlined">check_circle</span>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Completed Calls</span>
+            <h3 class="metric-value">{{ branchPool()?.completed_count | number }}</h3>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Main Table Card Container: Request History -->
+    <div class="table-card margin-top-sm">
+      <div class="table-header-bar">
+        <h3 class="table-title">Branch Allocation Requests History</h3>
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Search request ID, category, status..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+          />
+          <button type="button" class="search-btn" title="Search">
+            <span class="material-symbols-outlined">search</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>Branch</th>
+              <th>Category</th>
+              <th>Requested Qty</th>
+              <th>Approved Qty</th>
+              <th>Requested By</th>
+              <th>Requested Date</th>
+              <th>Approved Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="9" class="loading-table-state">
+                  <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                  <p class="loading-title">Fetching allocation requests...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (item of paginatedRecords(); track item.id) {
+                <tr>
+                  <td class="font-medium">#{{ item.id }}</td>
+                  <td class="font-semibold branch-name">{{ item.branchName }}</td>
+                  <td>
+                    <span
+                      class="category-badge"
+                      [class.cat-base]="item.category === 'BASE'"
+                      [class.cat-nonbase]="item.category === 'NON_BASE'"
+                    >
+                      {{ item.category === 'BASE' ? 'Base' : 'Non Base' }}
+                    </span>
+                  </td>
+                  <td class="font-bold">{{ item.requestedQuantity | number }}</td>
+                  <td class="font-bold text-success">{{ item.approvedQuantity ? (item.approvedQuantity | number) : '-' }}</td>
+                  <td class="requested-by-text">{{ item.requestedByName || 'TL' }}</td>
+                  <td class="text-muted">{{ item.createdAt ? (item.createdAt | date:'shortDate') : '-' }}</td>
+                  <td class="text-muted">{{ item.approvedAt ? (item.approvedAt | date:'shortDate') : '-' }}</td>
+                  <td>
+                    <span
+                      class="status-text"
+                      [class.status-progressing]="item.status === 'PENDING'"
+                      [class.status-approved]="item.status === 'APPROVED'"
+                      [class.status-cancelled]="item.status === 'REJECTED'"
+                    >
+                      {{ item.status }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8" class="empty-state-cell">
+                    <span class="material-symbols-outlined empty-icon">assignment_late</span>
+                    <p>No allocation requests submitted yet</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      @if (filteredRecords().length > 0) {
+        <div class="pagination-footer">
+          <div class="pagination-btn-group">
+            @for (page of pagesArray(); track page) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="currentPage() === page"
+                (click)="setPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            @if (totalPages() > 1) {
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="currentPage() === totalPages()"
+                (click)="nextPage()"
+              >
+                Next
+              </button>
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="currentPage() === totalPages()"
+                (click)="lastPage()"
+              >
+                Last
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- ==========================================
+       MODAL 1: REQUEST DATA BATCH (TL)
+       ========================================== -->
+  @if (isSubmitModalOpen()) {
+    <div class="modal-backdrop" (click)="closeSubmitModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-title-header">
+          <h2>Request Data Batch for Branch</h2>
+          <button type="button" class="modal-close-btn" (click)="closeSubmitModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Select Data Type & Requested Quantity</h3>
+          </div>
+
+          <div class="box-content-area">
+            <div class="form-group">
+              <label>Data Category *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="submitCategory()" (ngModelChange)="submitCategory.set($event)">
+                  <option value="BASE">
+                    Base ({{ (masterSummary()?.unallocated_base_count || 0) | number }})
+                  </option>
+                  <option value="NON_BASE">
+                    Non Base ({{ (masterSummary()?.unallocated_non_base_count || 0) | number }})
+                  </option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Requested Quantity *</label>
+              <input
+                type="number"
+                placeholder="e.g. 2000"
+                [ngModel]="submitQuantity()"
+                (ngModelChange)="submitQuantity.set($event)"
+              />
+            </div>
+
+            <div class="modal-actions-footer">
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting()"
+                (click)="onSubmitTaskRequest()"
+              >
+                {{ isSubmitting() ? 'Submitting...' : 'Submit Request to Admin' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==========================================
+       MODAL 2: ASSIGN NUMBERS TO TELECALLERS (TL)
+       ========================================== -->
+  @if (isAssignTcModalOpen()) {
+    <div class="modal-backdrop" (click)="closeAssignTcModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-title-header">
+          <h2>Assign Numbers to Telecallers</h2>
+          <button type="button" class="modal-close-btn" (click)="closeAssignTcModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Distribute Branch Pool Data</h3>
+          </div>
+
+          <div class="box-content-area">
+            <div class="form-group">
+              <div class="multi-select-header">
+                <label>Select Telecallers ({{ selectedTcIds().length }} Selected) *</label>
+                <button
+                  type="button"
+                  class="btn-select-all"
+                  (click)="toggleSelectAllTelecallers()"
+                >
+                  {{ isAllTelecallersSelected() ? 'Deselect All' : 'Select All' }}
+                </button>
+              </div>
+              <span class="tc-hint-text">
+                💡 Tip: Click 'Select All' for full branch, Shift + Click for range selection, or Ctrl/Cmd + Click to deselect.
+              </span>
+
+              <div class="tc-checkbox-list">
+                @for (tc of telecallersList(); track tc.id; let idx = $index) {
+                  <div
+                    class="tc-checkbox-item"
+                    [class.selected]="isTcSelected(tc.id)"
+                    (click)="onTelecallerClick($event, tc.id, idx)"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="isTcSelected(tc.id)"
+                      tabindex="-1"
+                      style="pointer-events: none;"
+                    />
+                    <div class="tc-info">
+                      <span class="tc-name">{{ tc.full_name || tc.username }}</span>
+                      <span class="tc-user">@{{ tc.username }}</span>
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="no-tc-text">No telecallers available in your branch.</p>
+                }
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Data Category *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="assignCategory()" (ngModelChange)="assignCategory.set($event)">
+                  <option value="BASE">
+                    Base ({{ (branchPool()?.unused_base_count || 0) | number }} Available)
+                  </option>
+                  <option value="NON_BASE">
+                    Non Base ({{ (branchPool()?.unused_non_base_count || 0) | number }} Available)
+                  </option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Count per Telecaller *</label>
+              <input
+                type="number"
+                placeholder="e.g. 100"
+                [ngModel]="assignQuantity()"
+                (ngModelChange)="assignQuantity.set($event)"
+              />
+            </div>
+
+            @if (totalRequiredCount() > 0) {
+              <div class="allocation-summary-banner">
+                <span class="material-symbols-outlined icon">info</span>
+                <span>
+                  Total Pool Allocation: <strong>{{ totalRequiredCount() | number }} numbers</strong>
+                  ({{ assignQuantity() }} × {{ selectedTcIds().length }} telecallers)
+                </span>
+              </div>
+            }
+
+            <div class="modal-actions-footer">
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting() || selectedTcIds().length === 0"
+                (click)="onSubmitAssignTc()"
+              >
+                {{ isSubmitting() ? 'Assigning Data...' : 'Assign Data' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

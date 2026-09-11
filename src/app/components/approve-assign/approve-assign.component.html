@@ -1,43 +1,95 @@
 <div class="page-container">
-  <!-- Content Container -->
+  @if (showToast()) {
+    <div class="toast-notification shadow-card">
+      <span class="material-symbols-outlined check-icon">check_circle</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
   <main class="content-body">
-
-    <!-- Action Toolbar (Top Right Action Buttons) -->
+    <!-- Action Toolbar Row -->
     <div class="top-action-toolbar">
+      <div class="header-title">
+        <h2 class="section-heading">Master Base Allocation & Management</h2>
+        <p class="section-subheading">
+          Upload master base Excel datasets, approve or reject branch allocation requests, export unallocated data, and flush master pool.
+        </p>
+      </div>
+
       <div class="action-buttons-group">
-        <button type="button" class="btn-toolbar btn-upload" (click)="onUploadBase()">
+        <button type="button" class="btn-toolbar btn-upload" (click)="onOpenUploadModal()">
           <span class="material-symbols-outlined">file_upload</span>
-          <span>Upload Base</span>
+          <span>Upload Excel</span>
         </button>
 
-        <button type="button" class="btn-toolbar btn-submit" (click)="onSubmitBase()">
-          <span class="material-symbols-outlined">add</span>
-          <span>Submit Base</span>
+        <button type="button" class="btn-toolbar btn-submit" (click)="onOpenAssignBranchModal()">
+          <span class="material-symbols-outlined">domain_add</span>
+          <span>Assign to Branch</span>
         </button>
 
-        <button type="button" class="btn-toolbar btn-download-base" (click)="onDownloadBase()">
+        <button
+          type="button"
+          class="btn-toolbar btn-download-base"
+          [disabled]="isExporting()"
+          (click)="onDownloadUnallocatedData()"
+        >
           <span class="material-symbols-outlined">download</span>
-          <span>Download Base</span>
+          <span>Download Unallocated</span>
         </button>
 
-        <button type="button" class="btn-toolbar btn-delete-base" (click)="onDeleteBase()">
-          <span class="material-symbols-outlined">delete</span>
-          <span>Delete Base</span>
+        <button type="button" class="btn-toolbar btn-delete-base" (click)="onOpenFlushModal()">
+          <span class="material-symbols-outlined">delete_sweep</span>
+          <span>Flush Master Pool</span>
         </button>
       </div>
     </div>
 
-    <!-- Main Table Card Container -->
-    <div class="table-card">
+    <!-- Admin Master Pool Summary Metrics -->
+    @if (masterSummary()) {
+      <div class="metrics-grid">
+        <div class="metric-card shadow-card">
+          <div class="metric-icon-box base-bg">
+            <span class="material-symbols-outlined">cloud_upload</span>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Unallocated Base</span>
+            <h3 class="metric-value">{{ masterSummary()?.unallocated_base_count | number }}</h3>
+          </div>
+        </div>
 
-      <!-- Table Header Bar with Search -->
+        <div class="metric-card shadow-card">
+          <div class="metric-icon-box nonbase-bg">
+            <span class="material-symbols-outlined">contacts</span>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Unallocated Non Base</span>
+            <h3 class="metric-value">{{ masterSummary()?.unallocated_non_base_count | number }}</h3>
+          </div>
+        </div>
+
+        <div class="metric-card shadow-card">
+          <div class="metric-icon-box total-bg">
+            <span class="material-symbols-outlined">dataset</span>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Total Master Database</span>
+            <h3 class="metric-value">
+              {{ (masterSummary()?.total_base_count || 0) + (masterSummary()?.total_non_base_count || 0) | number }}
+            </h3>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Main Table Card Container: Branch Allocation Requests -->
+    <div class="table-card margin-top-sm">
       <div class="table-header-bar">
         <div class="search-box">
-          <input 
-            type="text" 
-            placeholder="Search" 
-            [ngModel]="searchQuery()" 
-            (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+          <input
+            type="text"
+            placeholder="Search request ID, branch, category, status..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
           />
           <button type="button" class="search-btn" title="Search">
             <span class="material-symbols-outlined">search</span>
@@ -45,152 +97,168 @@
         </div>
       </div>
 
-      <!-- Data Table Responsive Wrapper -->
+      <!-- Data Table -->
       <div class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Req ID</th>
               <th>Branch</th>
-              <th>Requested On</th>
-              <th>Request</th>
-              <th>Base</th>
-              <th>Response On</th>
-              <th>Response</th>
+              <th>Category</th>
+              <th>Requested Qty</th>
+              <th>Approved Qty</th>
               <th>Requested By</th>
+              <th>Requested Date</th>
+              <th>Approved Date</th>
               <th>Status</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            @for (item of paginatedRecords(); track item.requestId) {
+            @if (isLoading()) {
               <tr>
-                <td class="font-medium">{{ item.requestId }}</td>
-                <td class="font-semibold branch-name">{{ item.branch }}</td>
-                <td class="text-muted">{{ item.requestedDate }}</td>
-                <td class="font-medium">{{ item.requestTask }}</td>
-                <td>{{ item.base }}</td>
-                <td class="text-muted">{{ item.responseDate || '' }}</td>
-                <td class="font-medium">{{ item.responseTask || '' }}</td>
-                <td class="requested-by-text">{{ item.requestedBy }}</td>
-                <td>
-                  <span 
-                    class="status-text"
-                    [class.status-progressing]="item.status === 'Progressing'"
-                    [class.status-approved]="item.status === 'Approved'"
-                    [class.status-cancelled]="item.status === 'Cancelled'"
-                  >
-                    {{ item.status }}
-                  </span>
+                <td colspan="10" class="loading-table-state">
+                  <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                  <p class="loading-title">Fetching branch allocation requests...</p>
                 </td>
-                <td class="actions-cell">
-                  @if (item.status === 'Progressing') {
-                    <div class="action-btn-pair">
-                      <button 
-                        type="button" 
-                        class="btn-action-icon btn-approve-icon" 
-                        (click)="onApprove(item)" 
-                        title="Approve Request"
-                      >
-                        <span class="material-symbols-outlined">check</span>
-                      </button>
-                      <button 
-                        type="button" 
-                        class="btn-action-icon btn-cancel-icon" 
-                        (click)="onCancel(item)" 
-                        title="Reject Request"
-                      >
-                        <span class="material-symbols-outlined">close</span>
-                      </button>
-                    </div>
-                  } @else if (item.status === 'Approved') {
-                    <button 
-                      type="button" 
-                      class="btn-action-icon btn-download-icon" 
-                      (click)="onDownload(item)" 
-                      title="Download Base Report"
+              </tr>
+            } @else {
+              @for (item of paginatedRecords(); track item.id) {
+                <tr>
+                  <td class="font-medium">#{{ item.id }}</td>
+                  <td class="font-semibold branch-name">{{ item.branchName }}</td>
+                  <td>
+                    <span
+                      class="category-badge"
+                      [class.cat-base]="item.category === 'BASE'"
+                      [class.cat-nonbase]="item.category === 'NON_BASE'"
                     >
-                      <span class="material-symbols-outlined">download</span>
-                    </button>
-                  } @else {
-                    <span class="cancelled-tag">Cancelled</span>
-                  }
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="10" class="empty-state-cell">
-                  <span class="material-symbols-outlined empty-icon">assignment_late</span>
-                  <p>No task records found</p>
-                </td>
-              </tr>
+                      {{ item.category === 'BASE' ? 'Base' : 'Non Base' }}
+                    </span>
+                  </td>
+                  <td class="font-bold">{{ item.requestedQuantity | number }}</td>
+                  <td class="font-bold text-success">{{ item.approvedQuantity ? (item.approvedQuantity | number) : '-' }}</td>
+                  <td class="requested-by-text">{{ item.requestedByName || 'TL' }}</td>
+                  <td class="text-muted">{{ item.createdAt ? (item.createdAt | date:'shortDate') : '-' }}</td>
+                  <td class="text-muted">{{ item.approvedAt ? (item.approvedAt | date:'shortDate') : '-' }}</td>
+                  <td>
+                    <span
+                      class="status-text"
+                      [class.status-progressing]="item.status === 'PENDING'"
+                      [class.status-approved]="item.status === 'APPROVED'"
+                      [class.status-cancelled]="item.status === 'REJECTED'"
+                    >
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td class="actions-cell">
+                    @if (item.status === 'PENDING') {
+                      <div class="action-btn-pair">
+                        <button
+                          type="button"
+                          class="btn-action-icon btn-approve-icon"
+                          (click)="onApproveRequest(item)"
+                          title="Approve Request"
+                        >
+                          <span class="material-symbols-outlined">check</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action-icon btn-cancel-icon"
+                          (click)="onRejectRequest(item)"
+                          title="Reject Request"
+                        >
+                          <span class="material-symbols-outlined">close</span>
+                        </button>
+                      </div>
+                    } @else {
+                      <span class="text-muted-sm">-</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="9" class="empty-state-cell">
+                    <span class="material-symbols-outlined empty-icon">assignment_late</span>
+                    <p>No allocation requests found</p>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
       </div>
 
-      <!-- Pagination Footer Bar -->
-      <div class="pagination-footer">
-        <div class="pagination-btn-group">
-          @for (page of pagesArray(); track page) {
-            <button 
-              type="button" 
-              class="page-btn" 
-              [class.active]="currentPage() === page"
-              (click)="setPage(page)"
-            >
-              {{ page }}
-            </button>
-          }
-          @if (totalPages() > 1) {
-            <button 
-              type="button" 
-              class="page-btn" 
-              [disabled]="currentPage() === totalPages()"
-              (click)="nextPage()"
-            >
-              Next
-            </button>
-            <button 
-              type="button" 
-              class="page-btn" 
-              [disabled]="currentPage() === totalPages()"
-              (click)="lastPage()"
-            >
-              Last
-            </button>
-          }
+      <!-- Pagination Footer -->
+      @if (filteredRecords().length > 0) {
+        <div class="pagination-footer">
+          <div class="pagination-btn-group">
+            @for (page of pagesArray(); track page) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="currentPage() === page"
+                (click)="setPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            @if (totalPages() > 1) {
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="currentPage() === totalPages()"
+                (click)="nextPage()"
+              >
+                Next
+              </button>
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="currentPage() === totalPages()"
+                (click)="lastPage()"
+              >
+                Last
+              </button>
+            }
+          </div>
         </div>
-      </div>
-
+      }
     </div>
   </main>
 
   <!-- ==========================================
-       MODAL 1: BASE UPLOAD MODAL
+       MODAL 1: EXCEL UPLOAD MODAL (ADMIN)
        ========================================== -->
   @if (isUploadModalOpen()) {
     <div class="modal-backdrop" (click)="closeUploadModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
-        <!-- Modal Top Title Header -->
         <div class="modal-title-header">
-          <div class="modal-title-left">
-            <h2>Base Upload</h2>
-          </div>
+          <h2>Master Base Excel Upload</h2>
           <button type="button" class="modal-close-btn" (click)="closeUploadModal()" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <!-- Inner Content Box -->
         <div class="modal-body-box">
           <div class="box-header-bar">
-            <h3>Select Excel File</h3>
-            <span class="subtext">Allowed extensions (xls, xlsx)</span>
+            <h3>Select Category & Excel File</h3>
+            <span class="subtext">Duplicates will be skipped automatically</span>
           </div>
 
           <div class="box-content-area">
-            <div class="file-upload-row">
+            <div class="form-group">
+              <label>Data Category *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="uploadCategory()" (ngModelChange)="uploadCategory.set($event)">
+                  <option value="BASE">Base</option>
+                  <option value="NON_BASE">Non Base</option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <div class="file-upload-row margin-top-sm">
               <label class="btn-file-choose">
                 Choose file
                 <input type="file" accept=".xls,.xlsx" (change)="onFileChange($event)" hidden />
@@ -199,11 +267,13 @@
             </div>
 
             <div class="modal-actions-footer">
-              <button type="button" class="btn-modal-submit" (click)="onSubmitUpload()">
-                Submit
-              </button>
-              <button type="button" class="btn-modal-reset" (click)="onResetUpload()">
-                Reset
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting()"
+                (click)="onSubmitUpload()"
+              >
+                {{ isSubmitting() ? 'Uploading...' : 'Submit Upload' }}
               </button>
             </div>
           </div>
@@ -213,72 +283,112 @@
   }
 
   <!-- ==========================================
-       MODAL 2: SUBMIT TASK MODAL
+       MODAL 2: ASSIGN BASE DATA TO BRANCH (ADMIN)
        ========================================== -->
-  @if (isSubmitModalOpen()) {
-    <div class="modal-backdrop" (click)="closeSubmitModal()">
+  @if (isAssignBranchModalOpen()) {
+    <div class="modal-backdrop" (click)="closeAssignBranchModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
-        <!-- Modal Top Title Header -->
         <div class="modal-title-header">
-          <div class="modal-title-left">
-            <span class="material-symbols-outlined modal-header-icon">groups</span>
-            <h2>Submit Task</h2>
-          </div>
-          <button type="button" class="modal-close-btn" (click)="closeSubmitModal()" title="Close">
+          <h2>Assign Base Data to Branch</h2>
+          <button type="button" class="modal-close-btn" (click)="closeAssignBranchModal()" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <!-- Inner Content Box -->
         <div class="modal-body-box">
           <div class="box-header-bar">
-            <h3>Enter Task Details</h3>
+            <h3>Select Target Branch, Category & Quantity</h3>
           </div>
 
           <div class="box-content-area">
-            <div class="form-grid-2col">
-              <div class="form-group">
-                <label>Branch Name</label>
-                <div class="select-wrapper">
-                  <select [ngModel]="submitBranch()" (ngModelChange)="submitBranch.set($event)">
-                    <option value="" disabled selected>Select Branch</option>
-                    @for (b of branchesList; track b) {
-                      <option [value]="b">{{ b }}</option>
-                    }
-                  </select>
-                  <span class="material-symbols-outlined select-arrow">expand_more</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>Call Type</label>
-                <div class="select-wrapper">
-                  <select [ngModel]="submitCallType()" (ngModelChange)="submitCallType.set($event)">
-                    <option value="" disabled selected>Select Base</option>
-                    <option value="Base (0)">Base (0)</option>
-                    <option value="Non Base (38700)">Non Base (38700)</option>
-                  </select>
-                  <span class="material-symbols-outlined select-arrow">expand_more</span>
-                </div>
+            <div class="form-group">
+              <label>Select Target Branch *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="assignBranchId()" (ngModelChange)="assignBranchId.set($event)">
+                  <option value="" disabled selected>Select Branch</option>
+                  @for (b of branchesList(); track b.id) {
+                    <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
               </div>
             </div>
 
-            <div class="form-group margin-top-md">
-              <label>Task Count</label>
-              <input 
-                type="number" 
-                placeholder="Enter count (e.g. 5000)" 
-                [ngModel]="submitTaskCount()" 
-                (ngModelChange)="submitTaskCount.set($event)"
+            <div class="form-group margin-top-sm">
+              <label>Data Category *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="assignBranchCategory()" (ngModelChange)="assignBranchCategory.set($event)">
+                  <option value="BASE">
+                    Base ({{ (masterSummary()?.unallocated_base_count || 0) | number }})
+                  </option>
+                  <option value="NON_BASE">
+                    Non Base ({{ (masterSummary()?.unallocated_non_base_count || 0) | number }})
+                  </option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Assignment Quantity *</label>
+              <input
+                type="number"
+                placeholder="e.g. 2000"
+                [ngModel]="assignBranchQuantity()"
+                (ngModelChange)="assignBranchQuantity.set($event)"
               />
             </div>
 
             <div class="modal-actions-footer">
-              <button type="button" class="btn-modal-submit" (click)="onSubmitTaskForm()">
-                Submit
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting()"
+                (click)="onSubmitAssignBranch()"
+              >
+                {{ isSubmitting() ? 'Assigning...' : 'Assign Data to Branch' }}
               </button>
-              <button type="button" class="btn-modal-reset" (click)="onResetSubmitTask()">
-                Reset
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==========================================
+       MODAL 3: FLUSH UNALLOCATED CONFIRMATION (ADMIN)
+       ========================================== -->
+  @if (isFlushConfirmModalOpen()) {
+    <div class="modal-backdrop" (click)="closeFlushModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-title-header">
+          <h2 class="text-danger">Flush Master Unallocated Pool</h2>
+          <button type="button" class="modal-close-btn" (click)="closeFlushModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box border-danger">
+          <div class="box-content-area">
+            <p class="flush-warning-text">
+              Are you sure you want to clear/flush all unallocated numbers from the Master Pool?
+            </p>
+            <p class="flush-subtext">
+              This will delete unallocated master records prior to uploading fresh data.
+              <strong>Numbers already allocated to branches will remain untouched.</strong>
+            </p>
+
+            <div class="modal-actions-footer">
+              <button
+                type="button"
+                class="btn-modal-danger"
+                [disabled]="isSubmitting()"
+                (click)="onConfirmFlushUnallocated()"
+              >
+                {{ isSubmitting() ? 'Flushing...' : 'Yes, Flush Master Data' }}
+              </button>
+              <button type="button" class="btn-modal-reset" (click)="closeFlushModal()">
+                Cancel
               </button>
             </div>
           </div>
@@ -287,3 +397,5 @@
     </div>
   }
 </div>
+
+

@@ -7,9 +7,11 @@ import { ManagersComponent } from './components/managers/managers.component';
 import { TelecallersComponent } from './components/telecallers/telecallers.component';
 import { AttendanceComponent } from './components/attendance/attendance.component';
 import { ApproveAssignComponent } from './components/approve-assign/approve-assign.component';
+import { TlDataManagementComponent } from './components/tl-data-management/tl-data-management.component';
 import { BranchDocumentsComponent } from './components/branch-documents/branch-documents.component';
 import { ExpenseDetailsComponent } from './components/expense-details/expense-details.component';
 import { ExpenseReportComponent } from './components/expense-report/expense-report.component';
+import { TelecallerWorkstationComponent } from './components/telecaller-workstation/telecaller-workstation.component';
 import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
 
@@ -17,7 +19,7 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
-    canActivate: [loginGuard]
+    canActivate: [loginGuard],
   },
   {
     path: '',
@@ -26,58 +28,73 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        component: DashboardComponent
+        component: DashboardComponent,
       },
       {
         path: 'branches',
         component: BranchesComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'managers',
         component: ManagersComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'telecallers',
         component: TelecallersComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'attendance',
         component: AttendanceComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'approve-assign',
         component: ApproveAssignComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'tl-data-management',
+        component: TlDataManagementComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'workstation',
+        component: TelecallerWorkstationComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'work-details',
+        component: TelecallerWorkstationComponent,
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'branch-documents',
         component: BranchDocumentsComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'expense-details',
         component: ExpenseDetailsComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: 'expense-report',
         component: ExpenseReportComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard],
       },
       {
         path: '',
         redirectTo: 'dashboard',
-        pathMatch: 'full'
-      }
-    ]
+        pathMatch: 'full',
+      },
+    ],
   },
 
   {
     path: '**',
-    redirectTo: 'dashboard'
-  }
+    redirectTo: 'dashboard',
+  },
 ];

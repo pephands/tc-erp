@@ -1,5 +1,5 @@
 <main class="dashboard-container">
-  <!-- Role Welcome Banner -->
+  <!-- Role Welcome Banner (Maintained as requested) -->
   <div class="welcome-card shadow-card">
     <div class="welcome-card-body">
       <div class="welcome-avatar-wrapper">
@@ -33,553 +33,502 @@
     </div>
   </div>
 
-  <!-- MODERN ATTENDANCE CHECK-IN SECTION -->
-  <div class="attendance-card shadow-card">
-    <div class="attendance-card-header">
-      <div class="header-left">
-        <div class="icon-chip attendance-chip">
-          <span class="material-symbols-outlined">how_to_reg</span>
-        </div>
-        <div>
-          <h3 class="card-title">Attendance Check-In</h3>
-          <p class="card-subtitle">Mark your daily shift attendance and view live status</p>
-        </div>
-      </div>
+  <!-- Dashboard 2-Section Main Grid Layout -->
+  <div class="dashboard-main-grid">
 
-      <!-- Live Digital Clock Badge -->
-      <div class="live-clock-badge">
-        <span class="material-symbols-outlined clock-icon">schedule</span>
-        <div class="clock-text-wrap">
-          <span class="clock-time">{{ currentTimeString() }}</span>
-          <span class="clock-date">{{ currentDateString() }}</span>
-        </div>
-      </div>
+    <!-- ==================== LEFT SECTION: RICH OPERATIONAL METRICS ==================== -->
+    <div class="left-section">
+      @switch (primaryRole) {
+        @case ('ADMIN') {
+          <!-- System Summary Banner Card -->
+          <div class="summary-hero-card shadow-card">
+            <div class="hero-header-row">
+              <div>
+                <span class="hero-tag">System Overview</span>
+                <h3 class="hero-title">System Attendance & Operations</h3>
+              </div>
+              <div class="attendance-progress-pill">
+                <span class="pct-val">{{ dashboardMetrics()?.admin?.present_percentage || 0 }}%</span>
+                <span class="pct-lbl">Present Today</span>
+              </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-bar-track">
+              <div
+                class="progress-bar-fill"
+                [style.width.%]="dashboardMetrics()?.admin?.present_percentage || 0"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Admin Metric Cards Grid -->
+          <div class="metrics-cards-grid">
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-blue">
+                <span class="material-symbols-outlined">domain</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Branches</span>
+                <h3 class="dash-metric-value">{{ (dashboardMetrics()?.admin?.total_branches || 0) | number }}</h3>
+                <span class="dash-metric-sub">Active locations</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-indigo">
+                <span class="material-symbols-outlined">groups</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Strength</span>
+                <h3 class="dash-metric-value">{{ (dashboardMetrics()?.admin?.total_strength || 0) | number }}</h3>
+                <span class="dash-metric-sub">Registered employees</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-emerald">
+                <span class="material-symbols-outlined">person_check</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Present</span>
+                <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.admin?.total_present || 0) | number }}</h3>
+                <span class="dash-metric-sub">Checked in today</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-rose">
+                <span class="material-symbols-outlined">person_off</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Absent</span>
+                <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.admin?.total_absent || 0) | number }}</h3>
+                <span class="dash-metric-sub">Not checked in</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-purple">
+                <span class="material-symbols-outlined">home_work</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total WFH</span>
+                <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.admin?.total_wfh || 0) | number }}</h3>
+                <span class="dash-metric-sub">Remote check-ins</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-amber">
+                <span class="material-symbols-outlined">assignment</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">No. of Data Assigned to Branches</span>
+                <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.admin?.data_assigned_to_branches || 0) | number }}</h3>
+                <span class="dash-metric-sub">Allocated numbers</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card col-span-full">
+              <div class="dash-metric-icon icon-teal">
+                <span class="material-symbols-outlined">phone_callback</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Number of Calls Completed Today</span>
+                <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.admin?.calls_completed_today || 0) | number }}</h3>
+                <span class="dash-metric-sub">System-wide call logs recorded today</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        @case ('TL') {
+          <!-- Branch Summary Hero Card -->
+          <div class="summary-hero-card shadow-card">
+            <div class="hero-header-row">
+              <div>
+                <span class="hero-tag">Branch Overview</span>
+                <h3 class="hero-title">{{ dashboardMetrics()?.tl?.branch_name || 'My Branch' }}</h3>
+              </div>
+              <div class="attendance-progress-pill">
+                <span class="pct-val">{{ dashboardMetrics()?.tl?.branch_present_percentage || 0 }}%</span>
+                <span class="pct-lbl">Branch Attendance</span>
+              </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-bar-track">
+              <div
+                class="progress-bar-fill"
+                [style.width.%]="dashboardMetrics()?.tl?.branch_present_percentage || 0"
+              ></div>
+            </div>
+          </div>
+
+          <!-- TL Metric Cards Grid -->
+          <div class="metrics-cards-grid">
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-indigo">
+                <span class="material-symbols-outlined">groups</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Branch Strength</span>
+                <h3 class="dash-metric-value">{{ (dashboardMetrics()?.tl?.branch_strength || 0) | number }}</h3>
+                <span class="dash-metric-sub">Branch employees</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-emerald">
+                <span class="material-symbols-outlined">person_check</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Present in Branch</span>
+                <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.tl?.branch_present || 0) | number }}</h3>
+                <span class="dash-metric-sub">Checked in today</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-rose">
+                <span class="material-symbols-outlined">person_off</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Absent in Branch</span>
+                <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.tl?.branch_absent || 0) | number }}</h3>
+                <span class="dash-metric-sub">Not checked in</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-purple">
+                <span class="material-symbols-outlined">home_work</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total WFH in Branch</span>
+                <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.tl?.branch_wfh || 0) | number }}</h3>
+                <span class="dash-metric-sub">Working remotely</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-amber">
+                <span class="material-symbols-outlined">assignment</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">No. of Data Assigned to this Branch</span>
+                <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.tl?.data_assigned_to_branch || 0) | number }}</h3>
+                <span class="dash-metric-sub">Branch donor pool</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-teal">
+                <span class="material-symbols-outlined">phone_callback</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Number of Calls Completed Today</span>
+                <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.tl?.branch_calls_completed_today || 0) | number }}</h3>
+                <span class="dash-metric-sub">Calls logged in branch today</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        @case ('TC') {
+          <div class="summary-hero-card shadow-card">
+            <div class="hero-header-row">
+              <div>
+                <span class="hero-tag">Workstation Status</span>
+                <h3 class="hero-title">My Telecalling Performance</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="metrics-cards-grid tc-grid">
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-amber">
+                <span class="material-symbols-outlined">assignment_ind</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Calls Assigned for Me</span>
+                <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.tc?.tc_calls_assigned || 0) | number }}</h3>
+                <span class="dash-metric-sub">Active pending queue</span>
+              </div>
+            </div>
+
+            <div class="dash-metric-card shadow-card">
+              <div class="dash-metric-icon icon-teal">
+                <span class="material-symbols-outlined">phone_in_talk</span>
+              </div>
+              <div class="dash-metric-info">
+                <span class="dash-metric-label">Total Calls Completed for Me</span>
+                <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.tc?.tc_calls_completed || 0) | number }}</h3>
+                <span class="dash-metric-sub">Calls recorded today</span>
+              </div>
+            </div>
+          </div>
+        }
+      }
     </div>
 
-    @if (statusState() === 'REJECTED') {
-      <div class="status-banner banner-danger">
-        <span class="material-symbols-outlined banner-icon">cancel</span>
-        <div class="banner-content">
-          <strong>Attendance Check-In Rejected</strong>
-          <p>{{ rejectionReason() || 'Verification failed. Please contact your manager.' }}</p>
-        </div>
-      </div>
-    }
+    <!-- ==================== RIGHT SECTION: SQUARE CARDS ==================== -->
+    <div class="right-section">
 
-    @if (statusState() === 'COMPLETED') {
-      <div class="status-banner banner-success">
-        <span class="material-symbols-outlined banner-icon">task_alt</span>
-        <div class="banner-content">
-          <strong>Shift Completed</strong>
-          <p>You have successfully checked out for today. You can now log out.</p>
+      <!-- ATTENDANCE BOX (SQUARE CARD) -->
+      <div class="square-box-card attendance-square-card shadow-card">
+        <div class="card-header-bar">
+          <div class="header-title-group">
+            <div class="icon-chip attendance-chip">
+              <span class="material-symbols-outlined">how_to_reg</span>
+            </div>
+            <div>
+              <h3 class="card-title">Attendance Check-In</h3>
+              <p class="card-sub">Daily shift attendance</p>
+            </div>
+          </div>
+          <!-- Live Clock -->
+          <div class="live-clock-pill">
+            <span class="material-symbols-outlined clock-icon">schedule</span>
+            <span class="clock-time">{{ currentTimeString() }}</span>
+          </div>
         </div>
-      </div>
-    }
 
-    <!-- Modern Shift & Status Details Cards (3-Column Layout) -->
-    <div class="attendance-summary-grid">
-      <!-- Status Card -->
-      <div class="summary-tile">
-        <div class="tile-header">
-          <span class="material-symbols-outlined tile-icon">verified</span>
-          <span class="tile-label">Attendance Status</span>
+        @if (statusState() === 'REJECTED') {
+          <div class="status-banner banner-danger">
+            <span class="material-symbols-outlined banner-icon">cancel</span>
+            <div class="banner-content">
+              <strong>Check-In Rejected</strong>
+              <p>{{ rejectionReason() || 'Verification failed.' }}</p>
+            </div>
+          </div>
+        }
+
+        @if (statusState() === 'COMPLETED') {
+          <div class="status-banner banner-success">
+            <span class="material-symbols-outlined banner-icon">task_alt</span>
+            <div class="banner-content">
+              <strong>Shift Completed</strong>
+              <p>Checked out for today.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Attendance Summary Tiles -->
+        <div class="attendance-tiles-row">
+          <div class="summary-tile">
+            <span class="tile-label">Status</span>
+            <span
+              class="status-pill"
+              [class.pill-idle]="statusState() === 'IDLE'"
+              [class.pill-locating]="statusState() === 'LOCATING' || statusState() === 'SUBMITTING'"
+              [class.pill-marked]="statusState() === 'MARKED'"
+              [class.pill-rejected]="statusState() === 'REJECTED'"
+            >
+              @switch (statusState()) {
+                @case ('IDLE') { Not Checked In }
+                @case ('LOCATING') { Verifying... }
+                @case ('SUBMITTING') { Checking In... }
+                @case ('MARKED') { {{ isWfhMarked() ? 'WFH Marked' : 'Present' }} }
+                @case ('COMPLETED') { Completed }
+                @case ('REJECTED') { Rejected }
+              }
+            </span>
+          </div>
+
+          <div class="summary-tile">
+            <span class="tile-label">In Time</span>
+            <span class="tile-val">{{ checkInTime() || '-- : --' }}</span>
+          </div>
+
+          <div class="summary-tile">
+            <span class="tile-label">Out Time</span>
+            <span class="tile-val">{{ checkOutTime() || '-- : --' }}</span>
+          </div>
         </div>
-        <div class="tile-body">
-          <span
-            class="status-pill"
-            [class.pill-idle]="statusState() === 'IDLE'"
-            [class.pill-locating]="statusState() === 'LOCATING' || statusState() === 'SUBMITTING'"
-            [class.pill-marked]="statusState() === 'MARKED'"
-            [class.pill-rejected]="statusState() === 'REJECTED'"
-          >
-            @switch (statusState()) {
-              @case ('IDLE') {
-                Not Checked In
-              }
-              @case ('LOCATING') {
-                Verifying Device...
-              }
-              @case ('SUBMITTING') {
-                Checking In...
-              }
-              @case ('MARKED') {
-                @if (isWfhMarked()) {
-                  <span class="wfh-status-text">
-                    <span class="material-symbols-outlined wfh-pill-icon">home_work</span>
-                    WFH Marked
-                  </span>
-                } @else {
-                  Present & Marked
-                }
-              }
-              @case ('COMPLETED') {
-                Shift Completed
-              }
-              @case ('REJECTED') {
-                Rejected
-              }
+
+        <!-- Attendance CTA Button -->
+        <div class="attendance-actions-area">
+          @if (statusState() === 'IDLE') {
+            @if (!isWfhRequired()) {
+              <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
+                <span class="material-symbols-outlined cta-icon">fingerprint</span>
+                <span>Mark Attendance</span>
+              </button>
             }
-          </span>
-        </div>
-      </div>
 
-      <!-- Check-In Time Card -->
-      <div class="summary-tile">
-        <div class="tile-header">
-          <span class="material-symbols-outlined tile-icon">login</span>
-          <span class="tile-label">Check-In Time</span>
-        </div>
-        <div class="tile-body">
-          <span class="tile-main-value">{{ checkInTime() || '-- : --' }}</span>
-        </div>
-      </div>
-
-      <!-- Check-Out Time Card -->
-      <div class="summary-tile">
-        <div class="tile-header">
-          <span class="material-symbols-outlined tile-icon">logout</span>
-          <span class="tile-label">Check-Out Time</span>
-        </div>
-        <div class="tile-body">
-          <span class="tile-main-value">{{ checkOutTime() || '-- : --' }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- CTA Buttons Row -->
-    <div class="attendance-cta-wrapper">
-      @if (statusState() === 'IDLE') {
-        <div class="checkin-box-container">
-          
-          @if (!isWfhRequired()) {
-            <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
-              <span class="material-symbols-outlined cta-icon">fingerprint</span>
-              <div class="cta-text-group">
-                <span class="cta-primary-text">Mark Attendance</span>
-                <span class="cta-secondary-text">Click to verify and check in for today's shift</span>
-              </div>
-            </button>
-          }
-
-          @if (isWfhRequired()) {
-            <div class="wfh-request-container">
-              <div class="status-banner banner-warning" style="margin-bottom: 15px;">
-                <span class="material-symbols-outlined banner-icon">location_off</span>
-                <div class="banner-content">
-                  <strong>Off-site Location Detected</strong>
-                  <p>You cannot check in directly. If you are working remotely, request a WFH check-in.</p>
+            @if (isWfhRequired()) {
+              <div class="wfh-request-container">
+                <div class="status-banner banner-warning">
+                  <span class="material-symbols-outlined banner-icon">location_off</span>
+                  <p>Off-site location detected.</p>
                 </div>
-              </div>
 
-              @if (!isWfhMode()) {
-                <button type="button" class="btn-retry-cta wfh-request-btn" (click)="onRequestWfh()">
-                  <span class="material-symbols-outlined">home_work</span>
-                  <span>Request WFH Passcode</span>
-                </button>
-              }
+                @if (!isWfhMode()) {
+                  <button type="button" class="btn-retry-cta wfh-request-btn" (click)="onRequestWfh()">
+                    <span class="material-symbols-outlined">home_work</span>
+                    <span>Request WFH Passcode</span>
+                  </button>
+                }
 
-              @if (isWfhMode()) {
-                <div class="wfh-passcode-box">
-                  <div class="passcode-header">
-                    <span class="material-symbols-outlined key-icon">vpn_key</span>
-                    <span class="passcode-title">Enter Today's 6-Character WFH Passcode</span>
-                  </div>
-                  <div class="passcode-input-row">
+                @if (isWfhMode()) {
+                  <div class="wfh-passcode-box">
                     <input
                       type="text"
                       class="passcode-input"
                       maxlength="8"
-                      [(ngModel)]="wfhPasscode"
-                      placeholder="e.g. 7K2M9P"
-                      autocomplete="off"
+                      [ngModel]="wfhPasscode()"
+                      (ngModelChange)="wfhPasscode.set($event)"
+                      placeholder="Enter 6-char Passcode"
                     />
+                    <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
+                      <span class="material-symbols-outlined">home_work</span>
+                      <span>Mark WFH Attendance</span>
+                    </button>
                   </div>
-                  <span class="passcode-helper">
-                    <span class="material-symbols-outlined info-icon">info</span>
-                    Please contact your Team Leader to generate your passcode. Valid for today only.
-                  </span>
-                </div>
+                }
 
-                <button type="button" class="btn-checkin-cta" (click)="onCheckIn()">
-                  <span class="material-symbols-outlined cta-icon">home_work</span>
-                  <div class="cta-text-group">
-                    <span class="cta-primary-text">Mark Attendance (WFH)</span>
-                    <span class="cta-secondary-text">Capture remote IP & GPS with authorized passcode</span>
-                  </div>
+                <button type="button" class="btn-retry-cta mt-2" (click)="onRetry()">
+                  <span>Cancel & Retry Normal Check-in</span>
                 </button>
-              }
-              
-              <button type="button" class="btn-retry-cta mt-3" style="margin-top: 15px; background: transparent; border: 1px solid #ddd; color: var(--text-secondary);" (click)="onRetry()">
-                <span class="material-symbols-outlined">arrow_back</span>
-                <span>Cancel & Retry Normal Check-in</span>
+              </div>
+            }
+          }
+
+          @if (statusState() === 'LOCATING' || statusState() === 'SUBMITTING') {
+            <button type="button" class="btn-checkin-cta loading" disabled>
+              <div class="btn-spinner"></div>
+              <span>Verifying...</span>
+            </button>
+          }
+
+          @if (statusState() === 'MARKED') {
+            @if (!checkOutTime()) {
+              <button type="button" class="btn-checkout-cta" (click)="onCheckOut()">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Check Out</span>
               </button>
-            </div>
+            } @else {
+              <span class="checkout-tag">Shift Completed</span>
+            }
           }
-        </div>
-      }
 
-      @if (statusState() === 'LOCATING' || statusState() === 'SUBMITTING') {
-        <button type="button" class="btn-checkin-cta loading" disabled>
-          <div class="btn-spinner"></div>
-          <div class="cta-text-group">
-            <span class="cta-primary-text">Verifying Credentials...</span>
-            <span class="cta-secondary-text">Authenticating background request</span>
-          </div>
-        </button>
-      }
-
-      @if (statusState() === 'MARKED') {
-        <div class="action-pair">
-          <div class="checked-in-badge">
-            <span class="material-symbols-outlined">task_alt</span>
-            <span>Checked In at {{ checkInTime() }} {{ isWfhMarked() ? '(WFH)' : '' }}</span>
-          </div>
-
-          @if (!checkOutTime()) {
-            <button type="button" class="btn-checkout-cta" (click)="onCheckOut()">
-              <span class="material-symbols-outlined">logout</span>
-              <span>Check Out</span>
+          @if (statusState() === 'REJECTED') {
+            <button type="button" class="btn-retry-cta" (click)="onRetry()">
+              <span class="material-symbols-outlined">refresh</span>
+              <span>Retry Check-In</span>
             </button>
-          } @else {
-            <span class="checkout-tag">Shift Completed (Checked out at {{ checkOutTime() }})</span>
           }
+        </div>
+      </div>
+
+      <!-- WFH PASSCODE BOX (SQUARE CARD - ADMIN & TL) -->
+      @if (primaryRole === 'ADMIN' || primaryRole === 'TL') {
+        <div class="square-box-card wfh-square-card shadow-card">
+          <div class="card-header-bar">
+            <div class="header-title-group">
+              <div class="icon-chip wfh-chip">
+                <span class="material-symbols-outlined">vpn_key</span>
+              </div>
+              <div>
+                <h3 class="card-title">WFH Passcode</h3>
+                <p class="card-sub">Generate 1-day remote check-in passcode</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="wfh-generator-body">
+            <!-- Filter by Branch (Admin only) -->
+            @if (primaryRole === 'ADMIN') {
+              <div class="form-group-sm">
+                <label>Filter by Branch</label>
+                <select class="modern-select-sm" [ngModel]="selectedBranch()" (ngModelChange)="selectedBranch.set($event); onFilterChange()">
+                  <option [ngValue]="null">All Branches</option>
+                  @for (branch of branches(); track branch.id) {
+                    <option [ngValue]="branch.id">{{ branch.name }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            <div class="form-group-sm">
+              <label>Select Staff Member</label>
+              <select class="modern-select-sm" [ngModel]="selectedStaffId()" (ngModelChange)="selectedStaffId.set($event)">
+                <option [ngValue]="null">-- Choose Staff Member --</option>
+                @for (staff of staffUsers(); track staff.id) {
+                  <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
+                }
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="btn-generate-sm"
+              [disabled]="!selectedStaffId() || isGeneratingPasscode()"
+              (click)="onGeneratePasscode()"
+            >
+              @if (isGeneratingPasscode()) {
+                <span>Generating...</span>
+              } @else {
+                <span class="material-symbols-outlined">key</span>
+                <span>Generate WFH Code</span>
+              }
+            </button>
+
+            @if (lastGeneratedPasscode()) {
+              <div class="generated-alert-sm">
+                <div class="alert-info">
+                  <span class="user-label">{{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.username }}</span>
+                  <code class="code-badge-sm">{{ lastGeneratedPasscode()?.passcode }}</code>
+                </div>
+                <button
+                  type="button"
+                  class="btn-copy-sm"
+                  (click)="copyPasscode(lastGeneratedPasscode()!.passcode)"
+                >
+                  {{ copiedCode() === lastGeneratedPasscode()?.passcode ? 'Copied!' : 'Copy' }}
+                </button>
+              </div>
+            }
+
+            <!-- Passcodes Table -->
+            <div class="passcodes-list-section">
+              <h4 class="mini-table-title">Today's Issued Codes ({{ todayPasscodes().length }})</h4>
+              <div class="mini-table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Staff</th>
+                      <th>Code</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of todayPasscodes(); track item.id) {
+                      <tr>
+                        <td class="staff-cell">{{ item.user_details?.full_name || item.user_details?.username }}</td>
+                        <td><code>{{ item.passcode }}</code></td>
+                        <td>
+                          <span class="mini-badge" [class.used]="item.is_used" [class.active]="!item.is_used">
+                            {{ item.is_used ? 'Used' : 'Active' }}
+                          </span>
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="3" class="no-data-sm">No passcodes generated today</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       }
 
-      @if (statusState() === 'REJECTED') {
-        <button type="button" class="btn-retry-cta" (click)="onRetry()">
-          <span class="material-symbols-outlined">refresh</span>
-          <span>Retry Attendance Check-In</span>
-        </button>
-      }
     </div>
-  </div>
 
-  <!-- Role-Based Dashboard Section -->
-  <div class="dashboard-role-section">
-    @switch (primaryRole) {
-      @case ('ADMIN') {
-        <!-- WFH Passcode Management Card for Admin -->
-        <div class="wfh-admin-card shadow-card">
-          <div class="wfh-card-header">
-            <div class="icon-chip wfh-chip">
-              <span class="material-symbols-outlined">key</span>
-            </div>
-            <div>
-              <h3 class="wfh-card-title">Daily WFH Passcode Generator</h3>
-              <p class="wfh-card-subtitle">Generate single-use, 1-day remote check-in passcodes for telecallers</p>
-            </div>
-          </div>
-
-          <div class="wfh-generator-container">
-            <div class="wfh-filters-row">
-              <div class="select-group">
-                <label class="input-label">Filter by Branch</label>
-                <div class="select-wrapper">
-                  <span class="material-symbols-outlined select-icon">domain</span>
-                  <select class="filter-select modern-input" [(ngModel)]="selectedBranch" (change)="onFilterChange()">
-                    <option [ngValue]="null">All Branches</option>
-                    @for (branch of branches(); track branch.id) {
-                      <option [ngValue]="branch.id">{{ branch.name }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-              
-              <div class="select-group">
-                <label class="input-label">Filter by Role</label>
-                <div class="select-wrapper">
-                  <span class="material-symbols-outlined select-icon">badge</span>
-                  <select class="filter-select modern-input" [(ngModel)]="selectedRole" (change)="onFilterChange()">
-                    <option [ngValue]="null">All Roles</option>
-                    @for (role of availableRoles(); track role.code) {
-                      <option [ngValue]="role.code">{{ role.name }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="wfh-action-row">
-              <div class="select-group flex-1">
-                <label for="adminStaffSelect" class="input-label">Select Staff Member</label>
-                <div class="select-wrapper">
-                  <span class="material-symbols-outlined select-icon">person</span>
-                  <select id="adminStaffSelect" class="staff-select modern-input" [(ngModel)]="selectedStaffId">
-                    <option [ngValue]="null">-- Choose Staff Member --</option>
-                    @for (staff of staffUsers(); track staff.id) {
-                      <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
-                    }
-                  </select>
-                </div>
-              </div>
-
-            <button
-              type="button"
-              class="btn-generate-code"
-              [disabled]="!selectedStaffId() || isGeneratingPasscode()"
-              (click)="onGeneratePasscode()"
-            >
-              @if (isGeneratingPasscode()) {
-                <div class="btn-spinner-sm"></div>
-                <span>Generating...</span>
-              } @else {
-                <span class="material-symbols-outlined">generating_tokens</span>
-                <span>Generate Today's Code</span>
-              }
-            </button>
-            </div>
-          </div>
-
-          @if (lastGeneratedPasscode()) {
-            <div class="generated-passcode-alert">
-              <div class="alert-left">
-                <span class="material-symbols-outlined alert-icon">check_circle</span>
-                <div>
-                  <span class="alert-title">WFH Passcode for {{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.username }}</span>
-                  <span class="alert-sub">Valid for 1 check-in today ({{ lastGeneratedPasscode()?.date }})</span>
-                </div>
-              </div>
-              <div class="alert-right">
-                <span class="passcode-display">{{ lastGeneratedPasscode()?.passcode }}</span>
-                <button
-                  type="button"
-                  class="btn-copy-code"
-                  (click)="copyPasscode(lastGeneratedPasscode()!.passcode)"
-                  title="Copy to clipboard"
-                >
-                  <span class="material-symbols-outlined">content_copy</span>
-                  <span>{{ copiedCode() === lastGeneratedPasscode()?.passcode ? 'Copied!' : 'Copy Code' }}</span>
-                </button>
-              </div>
-            </div>
-          }
-
-          <!-- Today's Active Passcodes List -->
-          <div class="passcodes-table-section">
-            <h4 class="table-title">Today's Issued WFH Passcodes ({{ todayPasscodes().length }})</h4>
-            @if (todayPasscodes().length === 0) {
-              <p class="no-passcodes-text">No WFH passcodes generated yet for today.</p>
-            } @else {
-              <div class="passcodes-table-wrap">
-                <table class="passcodes-table">
-                  <thead>
-                    <tr>
-                      <th>Staff Member</th>
-                      <th>Passcode</th>
-                      <th>Status</th>
-                      <th>Created By</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (item of todayPasscodes(); track item.id) {
-                      <tr>
-                        <td class="user-cell">
-                          <strong>{{ item.user_details?.full_name || item.user_details?.username }}</strong>
-                          <span class="user-sub">{{ item.user_details?.username }}</span>
-                        </td>
-                        <td>
-                          <code class="code-badge">{{ item.passcode }}</code>
-                        </td>
-                        <td>
-                          @if (item.is_used) {
-                            <span class="status-badge used-badge">
-                              <span class="material-symbols-outlined badge-icon">done_all</span>
-                              Used
-                            </span>
-                          } @else {
-                            <span class="status-badge active-badge">
-                              <span class="material-symbols-outlined badge-icon">lock_open</span>
-                              Active (Unused)
-                            </span>
-                          }
-                        </td>
-                        <td>{{ item.created_by_details?.full_name || item.created_by_details?.username || 'System' }}</td>
-                        <td>
-                          <button
-                            type="button"
-                            class="btn-table-copy"
-                            [disabled]="item.is_used"
-                            (click)="copyPasscode(item.passcode)"
-                            title="Copy passcode"
-                          >
-                            <span class="material-symbols-outlined">content_copy</span>
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @case ('TL') {
-        <!-- WFH Passcode Management Card for TL -->
-        <div class="wfh-admin-card shadow-card">
-          <div class="wfh-card-header">
-            <div class="icon-chip tl-chip">
-              <span class="material-symbols-outlined">supervisor_account</span>
-            </div>
-            <div>
-              <h3 class="wfh-card-title">Team Leader WFH Authorization</h3>
-              <p class="wfh-card-subtitle">Generate single-use 1-day remote passcodes for team members in your branch</p>
-            </div>
-          </div>
-
-          <div class="wfh-generator-container">
-            <div class="wfh-filters-row">
-              <div class="select-group">
-                <label class="input-label">Filter by Role</label>
-                <div class="select-wrapper">
-                  <span class="material-symbols-outlined select-icon">badge</span>
-                  <select class="filter-select modern-input" [(ngModel)]="selectedRole" (change)="onFilterChange()">
-                    <option [ngValue]="null">All Roles</option>
-                    @for (role of availableRoles(); track role.code) {
-                      <option [ngValue]="role.code">{{ role.name }}</option>
-                    }
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="wfh-action-row">
-              <div class="select-group flex-1">
-                <label for="tlStaffSelect" class="input-label">Select Team Member</label>
-                <div class="select-wrapper">
-                  <span class="material-symbols-outlined select-icon">person</span>
-                  <select id="tlStaffSelect" class="staff-select modern-input" [(ngModel)]="selectedStaffId">
-                    <option [ngValue]="null">-- Choose Team Member --</option>
-                    @for (staff of staffUsers(); track staff.id) {
-                      <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
-                    }
-                  </select>
-                </div>
-              </div>
-
-            <button
-              type="button"
-              class="btn-generate-code"
-              [disabled]="!selectedStaffId() || isGeneratingPasscode()"
-              (click)="onGeneratePasscode()"
-            >
-              @if (isGeneratingPasscode()) {
-                <div class="btn-spinner-sm"></div>
-                <span>Generating...</span>
-              } @else {
-                <span class="material-symbols-outlined">generating_tokens</span>
-                <span>Generate Today's Code</span>
-              }
-            </button>
-            </div>
-          </div>
-
-          @if (lastGeneratedPasscode()) {
-            <div class="generated-passcode-alert">
-              <div class="alert-left">
-                <span class="material-symbols-outlined alert-icon">check_circle</span>
-                <div>
-                  <span class="alert-title">WFH Passcode for {{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.username }}</span>
-                  <span class="alert-sub">Valid for 1 check-in today ({{ lastGeneratedPasscode()?.date }})</span>
-                </div>
-              </div>
-              <div class="alert-right">
-                <span class="passcode-display">{{ lastGeneratedPasscode()?.passcode }}</span>
-                <button
-                  type="button"
-                  class="btn-copy-code"
-                  (click)="copyPasscode(lastGeneratedPasscode()!.passcode)"
-                  title="Copy to clipboard"
-                >
-                  <span class="material-symbols-outlined">content_copy</span>
-                  <span>{{ copiedCode() === lastGeneratedPasscode()?.passcode ? 'Copied!' : 'Copy Code' }}</span>
-                </button>
-              </div>
-            </div>
-          }
-
-          <!-- Today's Active Passcodes List -->
-          <div class="passcodes-table-section">
-            <h4 class="table-title">Today's Issued WFH Passcodes ({{ todayPasscodes().length }})</h4>
-            @if (todayPasscodes().length === 0) {
-              <p class="no-passcodes-text">No WFH passcodes generated yet for today.</p>
-            } @else {
-              <div class="passcodes-table-wrap">
-                <table class="passcodes-table">
-                  <thead>
-                    <tr>
-                      <th>Staff Member</th>
-                      <th>Passcode</th>
-                      <th>Status</th>
-                      <th>Created By</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (item of todayPasscodes(); track item.id) {
-                      <tr>
-                        <td class="user-cell">
-                          <strong>{{ item.user_details?.full_name || item.user_details?.username }}</strong>
-                          <span class="user-sub">{{ item.user_details?.username }}</span>
-                        </td>
-                        <td>
-                          <code class="code-badge">{{ item.passcode }}</code>
-                        </td>
-                        <td>
-                          @if (item.is_used) {
-                            <span class="status-badge used-badge">
-                              <span class="material-symbols-outlined badge-icon">done_all</span>
-                              Used
-                            </span>
-                          } @else {
-                            <span class="status-badge active-badge">
-                              <span class="material-symbols-outlined badge-icon">lock_open</span>
-                              Active (Unused)
-                            </span>
-                          }
-                        </td>
-                        <td>{{ item.created_by_details?.full_name || item.created_by_details?.username || 'System' }}</td>
-                        <td>
-                          <button
-                            type="button"
-                            class="btn-table-copy"
-                            [disabled]="item.is_used"
-                            (click)="copyPasscode(item.passcode)"
-                            title="Copy passcode"
-                          >
-                            <span class="material-symbols-outlined">content_copy</span>
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @case ('TC') {
-        <div class="section-card">
-          <div class="section-card-header">
-            <div class="icon-chip tc-chip">
-              <span class="material-symbols-outlined">support_agent</span>
-            </div>
-            <div>
-              <h3>Telecaller Workspace</h3>
-              <p>Call task queues, daily call history, and receipt details will appear here.</p>
-            </div>
-          </div>
-          <div class="empty-placeholder-box">
-            <span class="material-symbols-outlined box-icon">call</span>
-            <p>Telecaller operational workspace is ready for module components.</p>
-          </div>
-        </div>
-      }
-    }
   </div>
 </main>

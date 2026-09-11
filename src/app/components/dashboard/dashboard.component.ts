@@ -11,6 +11,9 @@ import { WFHPasscodeService, WFHPasscodeRecord } from '../../services/wfh-passco
 import { UserListService } from '../../services/user-list.service';
 import { BranchListService } from '../../services/branch-list.service';
 
+import { HttpClient } from '@angular/common/http';
+import { Endpoint } from '../../http/endpoint';
+
 export type CheckInStatusState = 'IDLE' | 'LOCATING' | 'SUBMITTING' | 'MARKED' | 'REJECTED' | 'COMPLETED';
 
 @Component({
@@ -21,6 +24,8 @@ export type CheckInStatusState = 'IDLE' | 'LOCATING' | 'SUBMITTING' | 'MARKED' |
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  private http = inject(HttpClient);
+  private endpoint = inject(Endpoint);
   private authService = inject(AuthService);
   private checkInService = inject(AttendanceCheckInService);
   private checkOutService = inject(AttendanceCheckOutService);
@@ -32,6 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   currentUser = this.authService.currentUser;
   userRoles = this.authService.userRoles;
+  dashboardMetrics = signal<any>(null);
 
   get primaryRole(): string {
     const roles = this.userRoles();
@@ -82,12 +88,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.startLiveClock();
     this.fetchInitialDeviceInfo();
     this.syncAttendanceState();
+    this.loadDashboardMetrics();
 
     if (this.primaryRole === 'ADMIN' || this.primaryRole === 'TL') {
       this.loadBranches();
       this.loadStaffUsers();
       this.loadTodayPasscodes();
     }
+  }
+
+  loadDashboardMetrics(): void {
+    const url = this.endpoint.dashboardSummary;
+    const token = this.authService.currentSession()?.token;
+    const headers: { [header: string]: string } = token ? { Authorization: `Token ${token}` } : {};
+    this.http.get<any>(url, { headers }).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'success' && res.data) {
+          this.dashboardMetrics.set(res.data);
+        }
+      },
+      error: (err: any) => console.error('Error loading dashboard metrics:', err)
+    });
   }
 
   loadBranches(): void {
@@ -117,13 +138,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const branchId = this.selectedBranch();
     const roleCode = this.selectedRole();
     
-    this.userListService.getUsers(branchId, roleCode).subscribe({
+    this.userListService.getUsers(branchId, roleCode, 1, 500).subscribe({
       next: (res: any) => {
-        const users = Array.isArray(res) ? res : (res?.data || []);
-        this.staffUsers.set(users.filter((u: any) => u.is_active));
+        const list = Array.isArray(res) ? res : (res?.results || res?.data || []);
+        this.staffUsers.set(list.filter((u: any) => u.is_active));
         this.selectedStaffId.set(null); // Reset selection when list updates
       },
-      error: () => {}
+      error: (err: any) => {
+        console.error('Error loading staff users:', err);
+      }
     });
   }
 

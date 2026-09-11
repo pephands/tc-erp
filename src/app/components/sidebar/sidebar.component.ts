@@ -129,7 +129,7 @@ export class SidebarComponent implements OnInit {
       label: 'TeleCallers',
       icon: 'support_agent',
       category: 'Team',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN', 'TL'],
       route: '/telecallers',
     },
     {
@@ -145,8 +145,24 @@ export class SidebarComponent implements OnInit {
       label: 'Approve/Assign Base',
       icon: 'assignment_ind',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN'],
       route: '/approve-assign',
+    },
+    {
+      id: 'tl_data_management',
+      label: 'Branch Data Management',
+      icon: 'domain',
+      category: 'Operations',
+      allowedRoles: ['TL'],
+      route: '/tl-data-management',
+    },
+    {
+      id: 'workstation',
+      label: 'Workstation',
+      icon: 'work',
+      category: 'Operations',
+      allowedRoles: ['TC'],
+      route: '/workstation',
     },
     {
       id: 'branch_details',
@@ -372,6 +388,7 @@ export class SidebarComponent implements OnInit {
       icon: 'work_history',
       category: 'Operations',
       allowedRoles: ['ADMIN', 'TL', 'TC'],
+      route: '/work-details',
     },
   ];
 
@@ -443,6 +460,9 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/telecallers')) return 'telecallers';
     if (url.includes('/attendance')) return 'attendance';
     if (url.includes('/approve-assign')) return 'approve_assign';
+    if (url.includes('/tl-data-management')) return 'tl_data_management';
+    if (url.includes('/work-details') || url.includes('/telecaller-workstation'))
+      return 'work_details';
     if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';
