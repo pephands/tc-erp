@@ -1,0 +1,372 @@
+.expense-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg-app);
+  min-height: 100%;
+}
+
+/* Header */
+.action-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-heading {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.section-subheading {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+/* Metrics Grid Cards */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metric-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.metric-icon-box .material-symbols-outlined {
+  font-size: 26px;
+}
+
+.total-bg {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+}
+
+.branches-bg {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+}
+
+.vouchers-bg {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.metric-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+/* Glassmorphic Filter Card */
+.filter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-icon {
+  color: #ea580c;
+  font-size: 20px;
+}
+
+.filter-title {
+  font-size: 0.925rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.active-filter-badge {
+  background: #fef3c7;
+  color: #d97706;
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  margin-left: auto;
+}
+
+.filter-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-field label {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.invisible-label {
+  visibility: hidden;
+}
+
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.65rem;
+  color: var(--text-dim);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.select-wrapper input {
+  width: 100%;
+  padding: 0.5rem 0.65rem 0.5rem 2.2rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.select-wrapper input:focus {
+  border-color: #ea580c;
+}
+
+.btn-reset-filters {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-reset-filters:hover {
+  background: #e7e5e4;
+}
+
+/* Data Table Card */
+.table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-header-title {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: #fafaf9;
+}
+
+.title-icon {
+  color: #ea580c;
+  font-size: 22px;
+}
+
+.table-header-title h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.summary-table th {
+  background: #f5f5f4;
+  color: #44403c;
+  font-weight: 700;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.summary-table td {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.summary-table tbody tr:hover {
+  background: var(--bg-card-subtle);
+}
+
+.col-code {
+  color: #ea580c;
+  width: 130px;
+}
+
+.col-name {
+  color: #1c1917;
+}
+
+.col-count {
+  width: 140px;
+  color: var(--text-muted);
+}
+
+.col-amount {
+  width: 220px;
+}
+
+.text-accent {
+  color: #ea580c;
+}
+
+.col-share {
+  width: 220px;
+}
+
+.share-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progress-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: #e7e5e4;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ea580c, #f97316);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.share-percentage {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 45px;
+}
+
+.grand-total-row {
+  background: #fff7ed;
+  border-top: 2px solid #fdba74;
+}
+
+.grand-total-row td {
+  padding: 1rem 1.25rem;
+  color: #9a3412;
+  font-size: 0.925rem;
+}
+
+.total-amount-cell {
+  font-size: 1.05rem;
+  color: #c2410c;
+}
+
+.loading-table-state, .empty-table-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.loading-spinner {
+  font-size: 36px;
+  color: #ea580c;
+}
+
+.empty-icon {
+  font-size: 40px;
+  color: #a8a29e;
+}
+
+.empty-title {
+  font-weight: 700;
+  color: #44403c;
+  margin-top: 0.5rem;
+}
+
+.empty-subtitle {
+  font-size: 0.825rem;
+  color: #78716c;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}

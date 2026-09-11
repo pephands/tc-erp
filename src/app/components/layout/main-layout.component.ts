@@ -61,6 +61,14 @@ export class MainLayoutComponent {
       this.pageTitle.set('Branch Document Details');
       this.pageIcon.set('folder_shared');
       this.parentTitle.set('Branch Details');
+    } else if (url.includes('/expense-details')) {
+      this.pageTitle.set('Expense Details');
+      this.pageIcon.set('receipt_long');
+      this.parentTitle.set('Branch Details');
+    } else if (url.includes('/expense-report')) {
+      this.pageTitle.set('Expense Report');
+      this.pageIcon.set('bar_chart');
+      this.parentTitle.set('Branch Details');
     } else {
       this.pageTitle.set('Dashboard');
       this.pageIcon.set('dashboard');

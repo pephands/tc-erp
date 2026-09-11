@@ -8,6 +8,8 @@ import { TelecallersComponent } from './components/telecallers/telecallers.compo
 import { AttendanceComponent } from './components/attendance/attendance.component';
 import { ApproveAssignComponent } from './components/approve-assign/approve-assign.component';
 import { BranchDocumentsComponent } from './components/branch-documents/branch-documents.component';
+import { ExpenseDetailsComponent } from './components/expense-details/expense-details.component';
+import { ExpenseReportComponent } from './components/expense-report/expense-report.component';
 import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
 
@@ -57,12 +59,23 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard]
       },
       {
+        path: 'expense-details',
+        component: ExpenseDetailsComponent,
+        canActivate: [deviceAuthGuard]
+      },
+      {
+        path: 'expense-report',
+        component: ExpenseReportComponent,
+        canActivate: [deviceAuthGuard]
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'
       }
     ]
   },
+
   {
     path: '**',
     redirectTo: 'dashboard'

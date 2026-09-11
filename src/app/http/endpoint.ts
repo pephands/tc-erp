@@ -34,6 +34,19 @@ export class Endpoint {
     return this.baseUrl + 'branches/documents/';
   }
 
+  get branchExpenses(): string {
+    return this.baseUrl + 'branches/expenses/';
+  }
+
+  get branchExpenseExport(): string {
+    return this.baseUrl + 'branches/expenses/export/';
+  }
+
+  get branchExpenseSummary(): string {
+    return this.baseUrl + 'branches/expenses/summary/';
+  }
+
+
 
   // Attendance Check-In / Check-Out
   get attendanceCheckIn(): string {

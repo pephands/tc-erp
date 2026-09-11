@@ -1,0 +1,391 @@
+<main class="expense-container">
+  @if (showToast()) {
+    <div class="toast-notification shadow-card">
+      <span class="material-symbols-outlined check-icon">check_circle</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Top Action & Page Header Row -->
+  <div class="action-header-bar">
+    <div class="header-title-section">
+      <h2 class="section-heading">Expense Details</h2>
+      <p class="section-subheading">
+        Maintain branch operational expenses, bills, vouchers, and download financial reports.
+      </p>
+    </div>
+
+    <div class="top-action-buttons">
+      @if (canCreateExpense) {
+        <button type="button" class="btn-primary-action" (click)="onOpenCreateModal()">
+          <span class="material-symbols-outlined">add_circle</span>
+          <span>Add Expense</span>
+        </button>
+      }
+
+      @if (canDownloadExpense) {
+        <button
+          type="button"
+          class="btn-secondary-action"
+          [disabled]="isExporting()"
+          (click)="onDownloadExpensesExcel()"
+        >
+          <span class="material-symbols-outlined" [class.spin-icon]="isExporting()">
+            {{ isExporting() ? 'progress_activity' : 'download' }}
+          </span>
+          <span>{{ isExporting() ? 'Exporting...' : 'Download Expense Report' }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Unified Glassmorphic Filter Toolbar Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-card-header">
+      <span class="material-symbols-outlined filter-icon">filter_alt</span>
+      <span class="filter-title">Filter Expense Records</span>
+      @if (isFilterApplied()) {
+        <span class="active-filter-badge">Filter Active</span>
+      }
+    </div>
+
+    <div class="filter-controls-grid">
+      <!-- Filter 1: Branch Selection (Admin / Manager only) -->
+      @if (!isTl) {
+        <div class="filter-field">
+          <label for="branchSelect">Branch</label>
+          <div class="select-wrapper">
+            <span class="material-symbols-outlined input-icon">domain</span>
+            <select
+              id="branchSelect"
+              [ngModel]="selectedBranchFilter()"
+              (ngModelChange)="onBranchFilterChange($event)"
+            >
+              <option value="" selected>Select Branch (All)</option>
+              @for (b of branchesList(); track b.id) {
+                <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Filter 2: Single Date Picker -->
+      <div class="filter-field">
+        <label for="singleDateInput">Specific Date</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">today</span>
+          <input
+            type="date"
+            id="singleDateInput"
+            [ngModel]="singleDate()"
+            (ngModelChange)="onSingleDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Filter 3: Start Date Picker -->
+      <div class="filter-field">
+        <label for="startDateInput">Start Date</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input
+            type="date"
+            id="startDateInput"
+            [ngModel]="startDate()"
+            (ngModelChange)="onStartDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Filter 4: End Date Picker -->
+      <div class="filter-field">
+        <label for="endDateInput">End Date</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input
+            type="date"
+            id="endDateInput"
+            [ngModel]="endDate()"
+            (ngModelChange)="onEndDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Reset Filters Action -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button
+          type="button"
+          class="btn-reset-filters"
+          (click)="onResetFilters()"
+          title="Reset Filters"
+        >
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset Filters</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table Card Container -->
+  <div class="table-card">
+    <!-- Table Search Toolbar (Top Right) -->
+    <div class="table-toolbar">
+      <div class="table-search-field">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input
+          type="text"
+          placeholder="Search expense, remarks, branch..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Expense Data Table -->
+    <div class="table-responsive">
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Expense Date</th>
+            <th>Expense Name</th>
+            <th>Amount (₹)</th>
+            <th>Branch Name</th>
+            <th>Remarks</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="7" class="loading-table-state">
+                <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                <p class="loading-title">Fetching live expense records...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (item of paginatedExpenses(); track item.id) {
+              <tr>
+                <td class="col-id font-medium">{{ item.id }}</td>
+                <td class="col-date">{{ item.date }}</td>
+                <td class="col-name font-semibold">{{ item.expenseName }}</td>
+                <td class="col-amount font-bold text-success">₹ {{ item.amount | number:'1.2-2' }}</td>
+                <td class="col-branch">{{ item.branchName }}</td>
+                <td class="col-remarks text-muted">{{ item.remarks || '-' }}</td>
+                <td class="actions-cell">
+                  <div class="action-btn-trio">
+                    <button
+                      type="button"
+                      class="btn-action-icon btn-view"
+                      (click)="onViewFile(item)"
+                      title="View Receipt/File"
+                    >
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+
+                    @if (canCreateExpense) {
+                      <button
+                        type="button"
+                        class="btn-action-icon btn-edit"
+                        (click)="onOpenEditModal(item)"
+                        title="Edit Expense"
+                      >
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn-action-icon btn-delete"
+                        (click)="onDeleteExpense(item)"
+                        title="Delete Expense"
+                      >
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-table-state">
+                  <span class="material-symbols-outlined empty-icon">receipt_long</span>
+                  <p class="empty-title">No Expense Records Found</p>
+                  <p class="empty-subtitle">Try adjusting your date range or branch filter.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    @if (filteredExpenses().length > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-controls">
+          <button
+            type="button"
+            class="page-btn nav-btn"
+            [disabled]="currentPage() === 1"
+            (click)="prevPage()"
+          >
+            Prev
+          </button>
+
+          @for (p of pagesArray(); track p) {
+            <button
+              type="button"
+              class="page-btn"
+              [class.active]="currentPage() === p"
+              (click)="setPage(p)"
+            >
+              {{ p }}
+            </button>
+          }
+
+          <button
+            type="button"
+            class="page-btn nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+
+          <button
+            type="button"
+            class="page-btn nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="lastPage()"
+          >
+            Last
+          </button>
+        </div>
+
+        <div class="pagination-info">
+          Showing {{ paginatedExpenses().length }} of {{ filteredExpenses().length }} expense records
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ==========================================
+       MODAL: CREATE / EDIT EXPENSE DETAILS
+       ========================================== -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <!-- Modal Top Title Header -->
+        <div class="modal-title-header">
+          <h2>{{ modalMode() === 'create' ? 'Add Expense Details' : 'Edit Expense Details' }}</h2>
+          <button type="button" class="modal-close-btn" (click)="closeModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Inner Box Card -->
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Expense Information</h3>
+            <span class="subtext">Enter date, expense name, amount, branch and upload receipt file</span>
+          </div>
+
+          <div class="box-content-area">
+            <!-- Form Grid Row 1 -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Expense Date *</label>
+                <input
+                  type="date"
+                  [ngModel]="inputDate()"
+                  (ngModelChange)="inputDate.set($event)"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <label>Amount (₹) *</label>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  [ngModel]="inputAmount()"
+                  (ngModelChange)="inputAmount.set($event)"
+                />
+              </div>
+            </div>
+
+            <!-- Form Group: Expense Name -->
+            <div class="form-group margin-top-sm">
+              <label>Expense Name *</label>
+              <input
+                type="text"
+                placeholder="e.g. Office Stationery, Internet Bill..."
+                [ngModel]="inputExpenseName()"
+                (ngModelChange)="inputExpenseName.set($event)"
+              />
+            </div>
+
+            <!-- Form Group: Branch Selection -->
+            <div class="form-group margin-top-sm">
+              <label>Branch Name *</label>
+              <div class="select-wrapper">
+                <select
+                  [ngModel]="inputBranchId()"
+                  (ngModelChange)="inputBranchId.set($event)"
+                  [disabled]="isTl"
+                >
+                  <option value="" disabled selected>Select Branch</option>
+                  @for (b of branchesList(); track b.id) {
+                    <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Form Group: Remarks -->
+            <div class="form-group margin-top-sm">
+              <label>Remarks / Notes</label>
+              <textarea
+                rows="2"
+                placeholder="Enter remarks or payment details..."
+                [ngModel]="inputRemarks()"
+                (ngModelChange)="inputRemarks.set($event)"
+              ></textarea>
+            </div>
+
+            <!-- File Upload Row -->
+            <div class="form-group margin-top-sm">
+              <label>Attach Bill / Receipt / Screenshot</label>
+              <div class="file-upload-row">
+                <label class="btn-file-choose">
+                  Choose file
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx" (change)="onFileChange($event)" hidden />
+                </label>
+                <span class="file-chosen-name">{{ uploadFileName() }}</span>
+              </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="modal-actions-footer">
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting()"
+                (click)="onSubmitExpense()"
+              >
+                {{ isSubmitting() ? 'Saving...' : 'Submit' }}
+              </button>
+
+              <button type="button" class="btn-modal-reset" (click)="onResetForm()">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</main>

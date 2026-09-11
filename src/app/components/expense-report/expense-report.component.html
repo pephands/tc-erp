@@ -1,0 +1,187 @@
+<main class="expense-container">
+  <!-- Top Page Header Row -->
+  <div class="action-header-bar">
+    <div class="header-title-section">
+      <h2 class="section-heading">Consolidated Expense Report</h2>
+      <p class="section-subheading">
+        Consolidated branch-wise expense breakdown and overall expenditure totals for executive analysis.
+      </p>
+    </div>
+  </div>
+
+  <!-- Key Metrics Summary Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card shadow-card">
+      <div class="metric-icon-box total-bg">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Grand Total Expenses</span>
+        <h3 class="metric-value">₹ {{ grandTotalAmount() | number:'1.2-2' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-card shadow-card">
+      <div class="metric-icon-box branches-bg">
+        <span class="material-symbols-outlined">domain</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Branches Reporting</span>
+        <h3 class="metric-value">{{ branchSummaries().length }} Branches</h3>
+      </div>
+    </div>
+
+    <div class="metric-card shadow-card">
+      <div class="metric-icon-box vouchers-bg">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Total Expense Entries</span>
+        <h3 class="metric-value">{{ totalExpensesCount() }} Entries</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date & Date-Range Filter Toolbar Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-card-header">
+      <span class="material-symbols-outlined filter-icon">filter_alt</span>
+      <span class="filter-title">Filter Expense Period</span>
+      @if (isFilterApplied()) {
+        <span class="active-filter-badge">Filter Active</span>
+      }
+    </div>
+
+    <div class="filter-controls-grid">
+      <!-- Filter 1: Single Date Picker -->
+      <div class="filter-field">
+        <label for="singleDateInput">Specific Date</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">today</span>
+          <input
+            type="date"
+            id="singleDateInput"
+            [ngModel]="singleDate()"
+            (ngModelChange)="onSingleDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Filter 2: Start Date Picker -->
+      <div class="filter-field">
+        <label for="startDateInput">Start Date</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input
+            type="date"
+            id="startDateInput"
+            [ngModel]="startDate()"
+            (ngModelChange)="onStartDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Filter 3: End Date Picker -->
+      <div class="filter-field">
+        <label for="endDateInput">End Date</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input
+            type="date"
+            id="endDateInput"
+            [ngModel]="endDate()"
+            (ngModelChange)="onEndDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Reset Filters Action -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button
+          type="button"
+          class="btn-reset-filters"
+          (click)="onResetFilters()"
+          title="Reset Filters"
+        >
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset Filters</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consolidated Branch Expense Table -->
+  <div class="table-card shadow-card">
+    <div class="table-header-title">
+      <span class="material-symbols-outlined title-icon">analytics</span>
+      <h3>Branch Consolidated Expense Summary</h3>
+    </div>
+
+    <div class="table-responsive">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Branch Code</th>
+            <th>Branch Name</th>
+            <th class="text-center">Entries Count</th>
+            <th class="text-right">Consolidated Expense (₹)</th>
+            <th>Expenditure Share (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="5" class="loading-table-state">
+                <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                <p class="loading-title">Calculating consolidated branch totals...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (b of branchSummaries(); track b.branch_id) {
+              <tr>
+                <td class="col-code font-bold">{{ b.branch_code }}</td>
+                <td class="col-name font-semibold">{{ b.branch_name }}</td>
+                <td class="col-count text-center">{{ b.total_count }} entries</td>
+                <td class="col-amount text-right font-bold text-accent">
+                  ₹ {{ b.total_amount | number:'1.2-2' }}
+                </td>
+                <td class="col-share">
+                  <div class="share-container">
+                    <div class="progress-bar-bg">
+                      <div
+                        class="progress-bar-fill"
+                        [style.width.%]="calculatePercentage(b.total_amount)"
+                      ></div>
+                    </div>
+                    <span class="share-percentage">
+                      {{ calculatePercentage(b.total_amount) | number:'1.1-1' }}%
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-table-state">
+                  <span class="material-symbols-outlined empty-icon">assessment</span>
+                  <p class="empty-title">No Branch Expense Data Available</p>
+                  <p class="empty-subtitle">Adjust your date filter to view branch summaries.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+        @if (!isLoading() && branchSummaries().length > 0) {
+          <tfoot>
+            <tr class="grand-total-row">
+              <td colspan="2" class="font-bold">Grand Total Across All Branches</td>
+              <td class="text-center font-bold">{{ totalExpensesCount() }} entries</td>
+              <td class="text-right font-bold total-amount-cell">₹ {{ grandTotalAmount() | number:'1.2-2' }}</td>
+              <td class="font-bold text-center">100%</td>
+            </tr>
+          </tfoot>
+        }
+      </table>
+    </div>
+  </div>
+</main>
