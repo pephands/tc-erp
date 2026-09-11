@@ -30,6 +30,11 @@ export class Endpoint {
     return this.baseUrl + 'branches/';
   }
 
+  get branchDocuments(): string {
+    return this.baseUrl + 'branches/documents/';
+  }
+
+
   // Attendance Check-In / Check-Out
   get attendanceCheckIn(): string {
     return this.baseUrl + 'attendance/check-in/';

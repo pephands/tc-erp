@@ -599,3 +599,14 @@
   background: #f1f5f9;
   color: #0f172a;
 }
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+

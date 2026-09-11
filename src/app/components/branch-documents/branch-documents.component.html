@@ -9,9 +9,9 @@
       <div class="left-filter-group">
         <div class="branch-select-wrapper">
           <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event)">
-            <option value="" disabled selected>Select Branch</option>
-            @for (b of branchesList; track b) {
-              <option [value]="b">{{ b }}</option>
+            <option value="" selected>Select Branch (All)</option>
+            @for (b of branchesList(); track b.id) {
+              <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
             }
           </select>
           <span class="material-symbols-outlined select-arrow">expand_more</span>
@@ -41,9 +41,9 @@
             type="text" 
             placeholder="Document Nam..." 
             [ngModel]="searchQuery()" 
-            (ngModelChange)="searchQuery.set($event); currentPage.set(1)" 
+            (ngModelChange)="searchQuery.set($event); currentPage.set(1); onFilterSubmit()" 
           />
-          <button type="button" class="search-btn" title="Search">
+          <button type="button" class="search-btn" title="Search" (click)="onFilterSubmit()">
             <span class="material-symbols-outlined">search</span>
           </button>
         </div>
@@ -57,109 +57,119 @@
               <th>ID</th>
               <th>Created Date</th>
               <th>Document Name</th>
-              <th>Document File name</th>
               <th>Branch name</th>
               <th>Expiry Date</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            @for (item of paginatedDocuments(); track item.id) {
+            @if (isLoading()) {
               <tr>
-                <td class="font-medium cell-id">{{ item.id }}</td>
-                <td class="text-muted">{{ item.createdDate }}</td>
-                <td class="font-semibold doc-name">{{ item.documentName }}</td>
-                <td class="file-name">{{ item.fileName }}</td>
-                <td class="branch-name">{{ item.branchName }}</td>
-                <td class="text-muted expiry-date">{{ item.expiryDate }}</td>
-                <td class="actions-cell">
-                  <div class="action-btn-trio">
-                    <button 
-                      type="button" 
-                      class="btn-action-icon btn-view" 
-                      (click)="onViewDocument(item)" 
-                      title="View Document"
-                    >
-                      <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="btn-action-icon btn-edit" 
-                      (click)="onEditDocument(item)" 
-                      title="Edit Document"
-                    >
-                      <span class="material-symbols-outlined">edit</span>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="btn-action-icon btn-delete" 
-                      (click)="onDeleteDocument(item)" 
-                      title="Delete Document"
-                    >
-                      <span class="material-symbols-outlined">delete</span>
-                    </button>
-                  </div>
+                <td colspan="6" class="empty-state-cell">
+                  <span class="material-symbols-outlined empty-icon spin-icon">progress_activity</span>
+                  <p>Loading branch documents...</p>
                 </td>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="7" class="empty-state-cell">
-                  <span class="material-symbols-outlined empty-icon">folder_off</span>
-                  <p>No document records found</p>
-                </td>
-              </tr>
+            } @else {
+              @for (item of paginatedDocuments(); track item.id) {
+                <tr>
+                  <td class="font-medium cell-id">{{ item.id }}</td>
+                  <td class="text-muted">{{ item.createdDate }}</td>
+                  <td class="font-semibold doc-name">{{ item.documentName }}</td>
+                  <td class="branch-name">{{ item.branchName }}</td>
+                  <td class="text-muted expiry-date">{{ item.expiryDate || '-' }}</td>
+                  <td class="actions-cell">
+                    <div class="action-btn-trio">
+                      <button 
+                        type="button" 
+                        class="btn-action-icon btn-view" 
+                        (click)="onViewDocument(item)" 
+                        title="View Document"
+                      >
+                        <span class="material-symbols-outlined">visibility</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        class="btn-action-icon btn-edit" 
+                        (click)="onEditDocument(item)" 
+                        title="Edit Document"
+                      >
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        class="btn-action-icon btn-delete" 
+                        (click)="onDeleteDocument(item)" 
+                        title="Delete Document"
+                      >
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="empty-state-cell">
+                    <span class="material-symbols-outlined empty-icon">folder_off</span>
+                    <p>No document records found</p>
+                  </td>
+                </tr>
+              }
             }
+
           </tbody>
         </table>
       </div>
 
       <!-- Pagination Footer Bar -->
-      <div class="pagination-footer">
-        <div class="pagination-btn-group">
-          @for (page of pagesArray(); track page) {
-            <button 
-              type="button" 
-              class="page-btn" 
-              [class.active]="currentPage() === page"
-              (click)="setPage(page)"
-            >
-              {{ page }}
-            </button>
-          }
-          @if (totalPages() > 1) {
-            <button 
-              type="button" 
-              class="page-btn" 
-              [disabled]="currentPage() === totalPages()"
-              (click)="nextPage()"
-            >
-              Next
-            </button>
-            <button 
-              type="button" 
-              class="page-btn" 
-              [disabled]="currentPage() === totalPages()"
-              (click)="lastPage()"
-            >
-              Last
-            </button>
-          }
+      @if (filteredDocuments().length > 0) {
+        <div class="pagination-footer">
+          <div class="pagination-btn-group">
+            @for (page of pagesArray(); track page) {
+              <button 
+                type="button" 
+                class="page-btn" 
+                [class.active]="currentPage() === page"
+                (click)="setPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            @if (totalPages() > 1) {
+              <button 
+                type="button" 
+                class="page-btn" 
+                [disabled]="currentPage() === totalPages()"
+                (click)="nextPage()"
+              >
+                Next
+              </button>
+              <button 
+                type="button" 
+                class="page-btn" 
+                [disabled]="currentPage() === totalPages()"
+                (click)="lastPage()"
+              >
+                Last
+              </button>
+            }
+          </div>
         </div>
-      </div>
+      }
 
     </div>
 
   </main>
 
   <!-- ==========================================
-       MODAL: UPLOAD BRANCH DOCUMENTS DETAILS
+       MODAL: UPLOAD / EDIT BRANCH DOCUMENTS DETAILS
        ========================================== -->
   @if (isUploadModalOpen()) {
     <div class="modal-backdrop" (click)="closeUploadModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
         <!-- Modal Top Title Header -->
         <div class="modal-title-header">
-          <h2>Upload Branch Documents details</h2>
+          <h2>{{ modalMode() === 'create' ? 'Upload Branch Documents details' : 'Edit Branch Document details' }}</h2>
           <button type="button" class="modal-close-btn" (click)="closeUploadModal()" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
@@ -168,8 +178,8 @@
         <!-- Inner Box Card -->
         <div class="modal-body-box">
           <div class="box-header-bar">
-            <h3>Select PDF File</h3>
-            <span class="subtext">Allowed extensions (PDF)</span>
+            <h3>Select File</h3>
+            <span class="subtext">Allowed extensions (PDF, images, doc)</span>
           </div>
 
           <div class="box-content-area">
@@ -177,7 +187,7 @@
             <div class="file-upload-row">
               <label class="btn-file-choose">
                 Choose file
-                <input type="file" accept=".pdf" (change)="onFileChange($event)" hidden />
+                <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" (change)="onFileChange($event)" hidden />
               </label>
               <span class="file-chosen-name">{{ uploadFileName() }}</span>
             </div>
@@ -206,12 +216,10 @@
             <div class="form-group margin-top-sm">
               <label>Branch Name</label>
               <div class="select-wrapper">
-                <select [ngModel]="inputBranchName()" (ngModelChange)="inputBranchName.set($event)">
+                <select [ngModel]="inputBranchId()" (ngModelChange)="inputBranchId.set($event)">
                   <option value="" disabled selected>Select Branch</option>
-                  @for (b of branchesList; track b) {
-                    @if (b !== 'All Branches') {
-                      <option [value]="b">{{ b }}</option>
-                    }
+                  @for (b of branchesList(); track b.id) {
+                    <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
                   }
                 </select>
                 <span class="material-symbols-outlined select-arrow">expand_more</span>
@@ -220,8 +228,13 @@
 
             <!-- Modal Action Buttons (Bottom Left) -->
             <div class="modal-actions-footer">
-              <button type="button" class="btn-modal-submit" (click)="onSubmitDocument()">
-                Submit
+              <button 
+                type="button" 
+                class="btn-modal-submit" 
+                [disabled]="isSubmitting()" 
+                (click)="onSubmitDocument()"
+              >
+                {{ isSubmitting() ? 'Submitting...' : 'Submit' }}
               </button>
               <button type="button" class="btn-modal-reset" (click)="onResetForm()">
                 Reset
