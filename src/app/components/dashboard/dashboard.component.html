@@ -36,236 +36,377 @@
   <!-- Dashboard 2-Section Main Grid Layout -->
   <div class="dashboard-main-grid">
 
-    <!-- ==================== LEFT SECTION: RICH OPERATIONAL METRICS ==================== -->
+    <!-- ==================== LEFT SECTION: CATEGORY GROUPED CARDS ==================== -->
     <div class="left-section">
       @switch (primaryRole) {
         @case ('ADMIN') {
-          <!-- System Summary Banner Card -->
-          <div class="summary-hero-card shadow-card">
-            <div class="hero-header-row">
-              <div>
-                <span class="hero-tag">System Overview</span>
-                <h3 class="hero-title">System Attendance & Operations</h3>
+          <!-- CATEGORY 1 CARD: ATTENDANCE & WORKFORCE ANALYTICS -->
+          <div class="category-group-card shadow-card">
+            <div class="category-header-bar">
+              <div class="header-title-group">
+                <div class="category-icon-chip chip-attendance">
+                  <span class="material-symbols-outlined">how_to_reg</span>
+                </div>
+                <div>
+                  <h3 class="category-title">Attendance & Workforce Analytics</h3>
+                  <p class="category-sub">Live employee presence across all locations</p>
+                </div>
               </div>
               <div class="attendance-progress-pill">
                 <span class="pct-val">{{ dashboardMetrics()?.admin?.present_percentage || 0 }}%</span>
-                <span class="pct-lbl">Present Today</span>
+                <span class="pct-lbl">System Present</span>
               </div>
             </div>
-            
-            <!-- Progress Bar -->
-            <div class="progress-bar-track">
-              <div
-                class="progress-bar-fill"
-                [style.width.%]="dashboardMetrics()?.admin?.present_percentage || 0"
-              ></div>
+
+            <!-- System Attendance Progress Bar -->
+            <div class="hero-progress-box">
+              <div class="progress-info-row">
+                <span class="progress-lbl">Daily Attendance Ratio</span>
+                <span class="progress-val">{{ dashboardMetrics()?.admin?.total_present || 0 }} / {{ dashboardMetrics()?.admin?.total_strength || 0 }} Staff</span>
+              </div>
+              <div class="progress-bar-track">
+                <div
+                  class="progress-bar-fill"
+                  [style.width.%]="dashboardMetrics()?.admin?.present_percentage || 0"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Attendance Metric Cards Sub-Grid (5 Square Cards in 1 Row) -->
+            <div class="metrics-cards-grid grid-5-col">
+              <div class="dash-metric-card card-blue">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-blue">
+                    <span class="material-symbols-outlined">domain</span>
+                  </div>
+                  <span class="card-micro-tag tag-blue">Locations</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value">{{ (dashboardMetrics()?.admin?.total_branches || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Branches</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Active locations</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-indigo">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-indigo">
+                    <span class="material-symbols-outlined">groups</span>
+                  </div>
+                  <span class="card-micro-tag tag-indigo">Employees</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value">{{ (dashboardMetrics()?.admin?.total_strength || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Strength</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Registered workforce</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-emerald">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-emerald">
+                    <span class="material-symbols-outlined">person_check</span>
+                  </div>
+                  <span class="card-micro-tag tag-emerald">Checked In</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.admin?.total_present || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Present</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Checked in today</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-rose">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-rose">
+                    <span class="material-symbols-outlined">person_off</span>
+                  </div>
+                  <span class="card-micro-tag tag-rose">Absent</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.admin?.total_absent || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Absent</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Not checked in</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-purple">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-purple">
+                    <span class="material-symbols-outlined">home_work</span>
+                  </div>
+                  <span class="card-micro-tag tag-purple">Remote</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.admin?.total_wfh || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total WFH</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Remote check-ins</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Admin Metric Cards Grid -->
-          <div class="metrics-cards-grid">
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-blue">
-                <span class="material-symbols-outlined">domain</span>
+          <!-- CATEGORY 2 CARD: TELECALLING & OPERATIONS -->
+          <div class="category-group-card shadow-card">
+            <div class="category-header-bar">
+              <div class="header-title-group">
+                <div class="category-icon-chip chip-telecalling">
+                  <span class="material-symbols-outlined">headset_mic</span>
+                </div>
+                <div>
+                  <h3 class="category-title">Telecalling & Donor Operations</h3>
+                  <p class="category-sub">Lead distribution & daily call activity</p>
+                </div>
               </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Branches</span>
-                <h3 class="dash-metric-value">{{ (dashboardMetrics()?.admin?.total_branches || 0) | number }}</h3>
-                <span class="dash-metric-sub">Active locations</span>
-              </div>
+              <span class="category-badge badge-telecalling">Active Operations</span>
             </div>
 
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-indigo">
-                <span class="material-symbols-outlined">groups</span>
+            <!-- Telecalling Metric Cards Sub-Grid (Square Cards) -->
+            <div class="metrics-cards-grid grid-2-col">
+              <div class="dash-metric-card card-amber">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-amber">
+                    <span class="material-symbols-outlined">assignment</span>
+                  </div>
+                  <span class="card-micro-tag tag-amber">Allocated</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.admin?.data_assigned_to_branches || 0) | number }}</h3>
+                  <span class="dash-metric-label">Data Assigned to Branches</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Allocated numbers pool</span>
+                </div>
               </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Strength</span>
-                <h3 class="dash-metric-value">{{ (dashboardMetrics()?.admin?.total_strength || 0) | number }}</h3>
-                <span class="dash-metric-sub">Registered employees</span>
-              </div>
-            </div>
 
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-emerald">
-                <span class="material-symbols-outlined">person_check</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Present</span>
-                <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.admin?.total_present || 0) | number }}</h3>
-                <span class="dash-metric-sub">Checked in today</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-rose">
-                <span class="material-symbols-outlined">person_off</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Absent</span>
-                <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.admin?.total_absent || 0) | number }}</h3>
-                <span class="dash-metric-sub">Not checked in</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-purple">
-                <span class="material-symbols-outlined">home_work</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total WFH</span>
-                <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.admin?.total_wfh || 0) | number }}</h3>
-                <span class="dash-metric-sub">Remote check-ins</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-amber">
-                <span class="material-symbols-outlined">assignment</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">No. of Data Assigned to Branches</span>
-                <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.admin?.data_assigned_to_branches || 0) | number }}</h3>
-                <span class="dash-metric-sub">Allocated numbers</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card col-span-full">
-              <div class="dash-metric-icon icon-teal">
-                <span class="material-symbols-outlined">phone_callback</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Number of Calls Completed Today</span>
-                <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.admin?.calls_completed_today || 0) | number }}</h3>
-                <span class="dash-metric-sub">System-wide call logs recorded today</span>
+              <div class="dash-metric-card card-teal">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-teal">
+                    <span class="material-symbols-outlined">phone_callback</span>
+                  </div>
+                  <span class="card-micro-tag tag-teal">Completed</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.admin?.calls_completed_today || 0) | number }}</h3>
+                  <span class="dash-metric-label">Calls Completed Today</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">System-wide calls logged</span>
+                </div>
               </div>
             </div>
           </div>
         }
 
         @case ('TL') {
-          <!-- Branch Summary Hero Card -->
-          <div class="summary-hero-card shadow-card">
-            <div class="hero-header-row">
-              <div>
-                <span class="hero-tag">Branch Overview</span>
-                <h3 class="hero-title">{{ dashboardMetrics()?.tl?.branch_name || 'My Branch' }}</h3>
+          <!-- CATEGORY 1 CARD: BRANCH ATTENDANCE ANALYTICS -->
+          <div class="category-group-card shadow-card">
+            <div class="category-header-bar">
+              <div class="header-title-group">
+                <div class="category-icon-chip chip-attendance">
+                  <span class="material-symbols-outlined">how_to_reg</span>
+                </div>
+                <div>
+                  <h3 class="category-title">Branch Attendance Analytics</h3>
+                  <p class="category-sub">{{ dashboardMetrics()?.tl?.branch_name || 'My Branch' }} presence</p>
+                </div>
               </div>
               <div class="attendance-progress-pill">
                 <span class="pct-val">{{ dashboardMetrics()?.tl?.branch_present_percentage || 0 }}%</span>
-                <span class="pct-lbl">Branch Attendance</span>
+                <span class="pct-lbl">Branch Present</span>
               </div>
             </div>
-            
-            <!-- Progress Bar -->
-            <div class="progress-bar-track">
-              <div
-                class="progress-bar-fill"
-                [style.width.%]="dashboardMetrics()?.tl?.branch_present_percentage || 0"
-              ></div>
+
+            <!-- Branch Attendance Progress Bar -->
+            <div class="hero-progress-box">
+              <div class="progress-info-row">
+                <span class="progress-lbl">Branch Attendance Ratio</span>
+                <span class="progress-val">{{ dashboardMetrics()?.tl?.branch_present || 0 }} / {{ dashboardMetrics()?.tl?.branch_strength || 0 }} Members</span>
+              </div>
+              <div class="progress-bar-track">
+                <div
+                  class="progress-bar-fill"
+                  [style.width.%]="dashboardMetrics()?.tl?.branch_present_percentage || 0"
+                ></div>
+              </div>
+            </div>
+
+            <!-- TL Attendance Metrics Sub-Grid (4 Square Cards in 1 Row) -->
+            <div class="metrics-cards-grid grid-4-col">
+              <div class="dash-metric-card card-indigo">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-indigo">
+                    <span class="material-symbols-outlined">groups</span>
+                  </div>
+                  <span class="card-micro-tag tag-indigo">Branch</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value">{{ (dashboardMetrics()?.tl?.branch_strength || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Branch Strength</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Branch employees</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-emerald">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-emerald">
+                    <span class="material-symbols-outlined">person_check</span>
+                  </div>
+                  <span class="card-micro-tag tag-emerald">Present</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.tl?.branch_present || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Present in Branch</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Checked in today</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-rose">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-rose">
+                    <span class="material-symbols-outlined">person_off</span>
+                  </div>
+                  <span class="card-micro-tag tag-rose">Absent</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.tl?.branch_absent || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Absent in Branch</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Not checked in</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-purple">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-purple">
+                    <span class="material-symbols-outlined">home_work</span>
+                  </div>
+                  <span class="card-micro-tag tag-purple">WFH</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.tl?.branch_wfh || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total WFH in Branch</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Working remotely</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- TL Metric Cards Grid -->
-          <div class="metrics-cards-grid">
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-indigo">
-                <span class="material-symbols-outlined">groups</span>
+          <!-- CATEGORY 2 CARD: BRANCH TELECALLING OPERATIONS -->
+          <div class="category-group-card shadow-card">
+            <div class="category-header-bar">
+              <div class="header-title-group">
+                <div class="category-icon-chip chip-telecalling">
+                  <span class="material-symbols-outlined">headset_mic</span>
+                </div>
+                <div>
+                  <h3 class="category-title">Branch Telecalling Operations</h3>
+                  <p class="category-sub">Donor allocations & daily calling progress</p>
+                </div>
               </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Branch Strength</span>
-                <h3 class="dash-metric-value">{{ (dashboardMetrics()?.tl?.branch_strength || 0) | number }}</h3>
-                <span class="dash-metric-sub">Branch employees</span>
-              </div>
+              <span class="category-badge badge-telecalling">Branch Queue</span>
             </div>
 
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-emerald">
-                <span class="material-symbols-outlined">person_check</span>
+            <!-- TL Telecalling Metrics Sub-Grid (Square Cards) -->
+            <div class="metrics-cards-grid grid-2-col">
+              <div class="dash-metric-card card-amber">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-amber">
+                    <span class="material-symbols-outlined">assignment</span>
+                  </div>
+                  <span class="card-micro-tag tag-amber">Allocated</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.tl?.data_assigned_to_branch || 0) | number }}</h3>
+                  <span class="dash-metric-label">Data Assigned to Branch</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Branch donor pool</span>
+                </div>
               </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Present in Branch</span>
-                <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.tl?.branch_present || 0) | number }}</h3>
-                <span class="dash-metric-sub">Checked in today</span>
-              </div>
-            </div>
 
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-rose">
-                <span class="material-symbols-outlined">person_off</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Absent in Branch</span>
-                <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.tl?.branch_absent || 0) | number }}</h3>
-                <span class="dash-metric-sub">Not checked in</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-purple">
-                <span class="material-symbols-outlined">home_work</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total WFH in Branch</span>
-                <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.tl?.branch_wfh || 0) | number }}</h3>
-                <span class="dash-metric-sub">Working remotely</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-amber">
-                <span class="material-symbols-outlined">assignment</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">No. of Data Assigned to this Branch</span>
-                <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.tl?.data_assigned_to_branch || 0) | number }}</h3>
-                <span class="dash-metric-sub">Branch donor pool</span>
-              </div>
-            </div>
-
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-teal">
-                <span class="material-symbols-outlined">phone_callback</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Number of Calls Completed Today</span>
-                <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.tl?.branch_calls_completed_today || 0) | number }}</h3>
-                <span class="dash-metric-sub">Calls logged in branch today</span>
+              <div class="dash-metric-card card-teal">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-teal">
+                    <span class="material-symbols-outlined">phone_callback</span>
+                  </div>
+                  <span class="card-micro-tag tag-teal">Completed</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.tl?.branch_calls_completed_today || 0) | number }}</h3>
+                  <span class="dash-metric-label">Calls Completed Today</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Calls logged in branch</span>
+                </div>
               </div>
             </div>
           </div>
         }
 
         @case ('TC') {
-          <div class="summary-hero-card shadow-card">
-            <div class="hero-header-row">
-              <div>
-                <span class="hero-tag">Workstation Status</span>
-                <h3 class="hero-title">My Telecalling Performance</h3>
-              </div>
-            </div>
-          </div>
-
-          <div class="metrics-cards-grid tc-grid">
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-amber">
-                <span class="material-symbols-outlined">assignment_ind</span>
-              </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Calls Assigned for Me</span>
-                <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.tc?.tc_calls_assigned || 0) | number }}</h3>
-                <span class="dash-metric-sub">Active pending queue</span>
+          <!-- CATEGORY CARD: TELECALLER WORKSTATION PERFORMANCE -->
+          <div class="category-group-card shadow-card">
+            <div class="category-header-bar">
+              <div class="header-title-group">
+                <div class="category-icon-chip chip-telecalling">
+                  <span class="material-symbols-outlined">headset_mic</span>
+                </div>
+                <div>
+                  <h3 class="category-title">Workstation Performance</h3>
+                  <p class="category-sub">My personal telecalling stats</p>
+                </div>
               </div>
             </div>
 
-            <div class="dash-metric-card shadow-card">
-              <div class="dash-metric-icon icon-teal">
-                <span class="material-symbols-outlined">phone_in_talk</span>
+            <div class="metrics-cards-grid grid-2-col">
+              <div class="dash-metric-card card-amber">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-amber">
+                    <span class="material-symbols-outlined">assignment_ind</span>
+                  </div>
+                  <span class="card-micro-tag tag-amber">Queue</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-amber">{{ (dashboardMetrics()?.tc?.tc_calls_assigned || 0) | number }}</h3>
+                  <span class="dash-metric-label">Calls Assigned for Me</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Active pending queue</span>
+                </div>
               </div>
-              <div class="dash-metric-info">
-                <span class="dash-metric-label">Total Calls Completed for Me</span>
-                <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.tc?.tc_calls_completed || 0) | number }}</h3>
-                <span class="dash-metric-sub">Calls recorded today</span>
+
+              <div class="dash-metric-card card-teal">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-teal">
+                    <span class="material-symbols-outlined">phone_in_talk</span>
+                  </div>
+                  <span class="card-micro-tag tag-teal">Log</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-teal">{{ (dashboardMetrics()?.tc?.tc_calls_completed || 0) | number }}</h3>
+                  <span class="dash-metric-label">Calls Completed for Me</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Calls recorded today</span>
+                </div>
               </div>
             </div>
           </div>
