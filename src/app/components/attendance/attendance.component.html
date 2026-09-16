@@ -11,7 +11,11 @@
     <div class="header-title-section">
       <h2 class="section-heading">Attendance Details</h2>
       <p class="section-subheading">
-        Track daily telecaller attendance, login times, work status, and branch logs.
+        @if (isTcUser) {
+          Track your personal daily attendance, login times, and shift status.
+        } @else {
+          Track daily telecaller attendance, login times, work status, and branch logs.
+        }
       </p>
     </div>
 
@@ -40,7 +44,7 @@
 
     <div class="filter-controls-grid">
       <!-- Filter 1: Branch Selection (Admin / Manager only) -->
-      @if (!isTlUser) {
+      @if (isAdminOrManager) {
         <div class="filter-field">
           <label for="branchSelect">Branch</label>
           <div class="select-wrapper">
@@ -50,7 +54,7 @@
               [ngModel]="selectedBranch()"
               (ngModelChange)="onBranchChange($event)"
             >
-              <option value="" selected>Select Branch</option>
+              <option value="" selected>All Branches</option>
               @for (b of branches(); track b.id) {
                 <option [value]="b.name">{{ b.name }}</option>
               }
@@ -127,15 +131,19 @@
         <thead>
           <tr>
             <th>Branch Name</th>
-            <th>TC Details</th>
+            @if (!isTcUser) {
+              <th>TC Details</th>
+            }
             <th>Attendance Date</th>
+            <th>In Time</th>
+            <th>Out Time</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="4" class="loading-table-state">
+              <td [attr.colspan]="isTcUser ? 5 : 6" class="loading-table-state">
                 <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
                 <p class="loading-title">Fetching live attendance records...</p>
               </td>
@@ -144,8 +152,12 @@
             @for (item of paginatedAttendance(); track item.id) {
               <tr>
                 <td class="col-branch">{{ item.branchName }}</td>
-                <td class="col-tc-details">{{ item.tcDetails }}</td>
+                @if (!isTcUser) {
+                  <td class="col-tc-details">{{ item.tcDetails }}</td>
+                }
                 <td class="col-date">{{ item.attendanceDate }}</td>
+                <td class="col-time">{{ item.inTime }}</td>
+                <td class="col-time">{{ item.outTime }}</td>
                 <td class="col-status">
                   <span
                     class="status-badge"
@@ -159,10 +171,10 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="4" class="empty-table-state">
+                <td [attr.colspan]="isTcUser ? 5 : 6" class="empty-table-state">
                   <span class="material-symbols-outlined empty-icon">event_busy</span>
                   <p class="empty-title">No Attendance Records Found</p>
-                  <p class="empty-subtitle">Try adjusting your branch selection or date range.</p>
+                  <p class="empty-subtitle">Try adjusting your date range.</p>
                 </td>
               </tr>
             }

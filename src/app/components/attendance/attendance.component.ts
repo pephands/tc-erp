@@ -18,9 +18,18 @@ export class AttendanceComponent implements OnInit {
   private attendanceService = inject(AttendanceService);
   private authService = inject(AuthService);
 
+  get isAdminOrManager(): boolean {
+    const roles = this.authService.userRoles();
+    return roles.includes('ADMIN') || roles.includes('MANAGER');
+  }
+
   get isTlUser(): boolean {
     const roles = this.authService.userRoles();
-    return roles.includes('TL') && !roles.includes('ADMIN') && !roles.includes('MANAGER');
+    return roles.includes('TL') && !this.isAdminOrManager;
+  }
+
+  get isTcUser(): boolean {
+    return !this.isAdminOrManager && !this.isTlUser;
   }
 
   get userBranchName(): string {
@@ -67,7 +76,7 @@ export class AttendanceComponent implements OnInit {
 
   fetchAttendanceFromApi(isManualRefresh: boolean = false): void {
     this.isLoading.set(true);
-    const branch = this.isTlUser ? (this.userBranchName || this.selectedBranch()) : this.selectedBranch();
+    const branch = this.isTlUser ? (this.userBranchName || this.selectedBranch()) : (this.isAdminOrManager ? this.selectedBranch() : '');
     const start = this.startDate();
     const end = this.endDate();
     const search = this.searchQuery().trim();
@@ -108,6 +117,20 @@ export class AttendanceComponent implements OnInit {
     }, 3500);
   }
 
+  private formatTime(timeStr: string): string {
+    if (!timeStr) return '-- : --';
+    if (timeStr.includes(':')) {
+      const parts = timeStr.split(':');
+      const hours = parseInt(parts[0], 10);
+      const mins = parts[1];
+      if (isNaN(hours)) return timeStr;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const h12 = hours % 12 || 12;
+      return `${h12}:${mins} ${ampm}`;
+    }
+    return timeStr;
+  }
+
   private mapApiToAttendanceRecord(item: any): AttendanceRecord {
     const user = item.user_details || {};
     const tcId = user.username || (user.id ? String(user.id) : (item.user ? String(item.user) : ''));
@@ -132,8 +155,8 @@ export class AttendanceComponent implements OnInit {
       tcDetails,
       attendanceDate: item.date || item.attendance_date || '',
       status,
-      inTime: item.in_time || '',
-      outTime: item.out_time || '',
+      inTime: this.formatTime(item.in_time),
+      outTime: this.formatTime(item.out_time),
     };
   }
 
@@ -180,7 +203,7 @@ export class AttendanceComponent implements OnInit {
 
   onDownloadAttendanceData(): void {
     this.isExporting.set(true);
-    const branch = this.isTlUser ? (this.userBranchName || this.selectedBranch()) : this.selectedBranch();
+    const branch = this.isTlUser ? (this.userBranchName || this.selectedBranch()) : (this.isAdminOrManager ? this.selectedBranch() : '');
     const start = this.startDate();
     const end = this.endDate();
     const search = this.searchQuery().trim();
@@ -235,7 +258,7 @@ export class AttendanceComponent implements OnInit {
   }
 
   private updateFilterAppliedState(): void {
-    const isBranchFiltered = this.isTlUser ? false : !!this.selectedBranch();
+    const isBranchFiltered = this.isAdminOrManager ? !!this.selectedBranch() : false;
     this.isFilterApplied.set(!!(isBranchFiltered || this.startDate() || this.endDate() || this.searchQuery()));
   }
 
