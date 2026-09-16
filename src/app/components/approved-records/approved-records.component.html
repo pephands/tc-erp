@@ -1,0 +1,157 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">verified</span>
+      <div>
+        <h2 class="page-title">Approved Online Payment Records</h2>
+        <p class="page-sub">View all your verified and approved online donation receipts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-controls-grid">
+      <!-- Search -->
+      <div class="filter-field search-field">
+        <label for="searchApprovedInput">Search Approved Records</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">search</span>
+          <input
+            type="text"
+            id="searchApprovedInput"
+            placeholder="Search donor name, mobile, ref ID..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Start Date -->
+      <div class="filter-field">
+        <label for="startDateApprovedInput">Start Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input
+            type="date"
+            id="startDateApprovedInput"
+            [ngModel]="startDate()"
+            (ngModelChange)="onStartDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- End Date -->
+      <div class="filter-field">
+        <label for="endDateApprovedInput">End Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input
+            type="date"
+            id="endDateApprovedInput"
+            [ngModel]="endDate()"
+            (ngModelChange)="onEndDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approved Table Card -->
+  <div class="table-card shadow-card">
+    <div class="table-responsive">
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Approved Date</th>
+            <th>Donation Date</th>
+            <th>Mobile Number</th>
+            <th>Donor Name</th>
+            <th>Amount</th>
+            <th>Ref Id</th>
+            <th>Mode of Payment</th>
+            <th>Donor Type</th>
+            <th>Remarks</th>
+            <th>Status</th>
+            <th>Proof File</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="11" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Loading approved records...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (rec of records(); track rec.id) {
+              <tr>
+                <td class="col-date">{{ rec.approved_at ? (rec.approved_at | date:'yyyy-MM-dd HH:mm') : (rec.created_at | date:'yyyy-MM-dd') }}</td>
+                <td class="col-date">{{ rec.payment_date }}</td>
+                <td class="col-mobile">{{ rec.mobile_number }}</td>
+                <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+                <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
+                <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
+                <td><span class="tag-pill">{{ rec.mode_of_payment }}</span></td>
+                <td><span class="donor-type-tag">{{ rec.donor_type }}</span></td>
+                <td class="col-remarks" [title]="rec.remarks || ''">{{ rec.remarks || '-' }}</td>
+                <td class="col-status">
+                  <span class="status-badge badge-approved">
+                    Approved
+                  </span>
+                </td>
+                <td class="col-file">
+                  @if (rec.payment_proof_url) {
+                    <a [href]="rec.payment_proof_url" target="_blank" class="btn-file-link" title="View payment proof">
+                      <span class="material-symbols-outlined">image</span>
+                      <span>Proof</span>
+                    </a>
+                  } @else {
+                    <span class="no-file-text">No File</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="11" class="empty-state">
+                  <span class="material-symbols-outlined empty-icon">verified_user</span>
+                  <p class="empty-title">No Approved Records Found</p>
+                  <p class="empty-sub">Once TL verifies your submitted records, they will appear here.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (records().length > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total approved records)
+        </div>
+
+        <div class="pagination-controls">
+          <button type="button" class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">
+            Prev
+          </button>
+          <button type="button" class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</main>

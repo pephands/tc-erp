@@ -1,0 +1,266 @@
+<div class="modal-backdrop" (click)="onClose()">
+  <div class="modal-container shadow-card" (click)="$event.stopPropagation()">
+    <!-- Modal Title Bar -->
+    <div class="modal-header-bar">
+      <div class="modal-title-group">
+        <span class="material-symbols-outlined modal-icon">groups</span>
+        <h2 class="modal-title">Add new Online Payment Details</h2>
+      </div>
+      <button type="button" class="btn-close-icon" (click)="onClose()" title="Close Modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Form Body -->
+    <div class="modal-body">
+      <div class="form-section-banner">
+        <h3 class="section-title">Enter Online Payment Details</h3>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-banner">
+          <span class="material-symbols-outlined">error</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <div class="two-column-grid">
+        <!-- LEFT COLUMN -->
+        <div class="grid-column">
+          <!-- 1. Payment Date -->
+          <div class="form-group">
+            <label for="paymentDate">Payment Date <span class="required-star">*</span></label>
+            <input
+              type="date"
+              id="paymentDate"
+              class="form-control"
+              [ngModel]="paymentDate()"
+              (ngModelChange)="paymentDate.set($event)"
+            />
+          </div>
+
+          <!-- 2. Alternate Mobile Number -->
+          <div class="form-group">
+            <label for="altMobileNumber">Alternate Mobile Number</label>
+            <input
+              type="text"
+              id="altMobileNumber"
+              class="form-control"
+              placeholder="Enter alternate mobile number"
+              [ngModel]="altMobileNumber()"
+              (ngModelChange)="altMobileNumber.set($event)"
+            />
+          </div>
+
+          <!-- 3. Amount -->
+          <div class="form-group">
+            <label for="amount">Amount <span class="required-star">*</span></label>
+            <input
+              type="number"
+              id="amount"
+              class="form-control"
+              placeholder="Enter amount"
+              [ngModel]="amount()"
+              (ngModelChange)="amount.set($event)"
+            />
+          </div>
+
+          <!-- 4. Mode of Payment -->
+          <div class="form-group">
+            <label for="modeOfPayment">Mode of Payment</label>
+            <select
+              id="modeOfPayment"
+              class="form-control"
+              [ngModel]="modeOfPayment()"
+              (ngModelChange)="modeOfPayment.set($event)"
+            >
+              <option value="Gpay">Gpay</option>
+              <option value="PhonePe">PhonePe</option>
+              <option value="Paytm">Paytm</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI">UPI</option>
+              <option value="Netbanking">Netbanking</option>
+              <option value="Cash">Cash</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- 5. Donor Types -->
+          <div class="form-group">
+            <label for="donorType">Donor Types</label>
+            <select
+              id="donorType"
+              class="form-control"
+              [ngModel]="donorType()"
+              (ngModelChange)="donorType.set($event)"
+            >
+              <option value="New">New</option>
+              <option value="Existing">Existing</option>
+              <option value="Repeat">Repeat</option>
+            </select>
+          </div>
+
+          <!-- 6. PAN Number -->
+          <div class="form-group">
+            <label for="panNumber">PAN Number</label>
+            <input
+              type="text"
+              id="panNumber"
+              class="form-control uppercase-input"
+              placeholder="Enter PAN number"
+              maxlength="10"
+              [ngModel]="panNumber()"
+              (ngModelChange)="panNumber.set($event)"
+            />
+          </div>
+
+          <!-- 7. Correction Name -->
+          <div class="form-group">
+            <label for="correctionName">Correction Name</label>
+            <input
+              type="text"
+              id="correctionName"
+              class="form-control"
+              placeholder="Enter correction name"
+              [ngModel]="correctionName()"
+              (ngModelChange)="correctionName.set($event)"
+            />
+          </div>
+
+          <!-- 8. Address -->
+          <div class="form-group">
+            <label for="address">Address</label>
+            <textarea
+              id="address"
+              class="form-control textarea-control"
+              rows="3"
+              placeholder="Enter full address"
+              [ngModel]="address()"
+              (ngModelChange)="address.set($event)"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="grid-column">
+          <!-- 1. Mobile Number -->
+          <div class="form-group">
+            <label for="mobileNumber">Mobile Number <span class="required-star">*</span></label>
+            <input
+              type="text"
+              id="mobileNumber"
+              class="form-control"
+              placeholder="Enter mobile number"
+              [ngModel]="mobileNumber()"
+              (ngModelChange)="mobileNumber.set($event)"
+            />
+          </div>
+
+          <!-- 2. Donor Name -->
+          <div class="form-group">
+            <label for="donorName">Donor Name <span class="required-star">*</span></label>
+            <input
+              type="text"
+              id="donorName"
+              class="form-control"
+              placeholder="Enter donor name"
+              [ngModel]="donorName()"
+              (ngModelChange)="donorName.set($event)"
+            />
+          </div>
+
+          <!-- 3. Reference Id -->
+          <div class="form-group">
+            <label for="referenceId">Reference Id</label>
+            <input
+              type="text"
+              id="referenceId"
+              class="form-control"
+              placeholder="Enter reference ID"
+              [ngModel]="referenceId()"
+              (ngModelChange)="referenceId.set($event)"
+            />
+          </div>
+
+          <!-- 4. Slab -->
+          <div class="form-group">
+            <label for="slab">Slab</label>
+            <input
+              type="text"
+              id="slab"
+              class="form-control"
+              placeholder="Enter slab"
+              [ngModel]="slab()"
+              (ngModelChange)="slab.set($event)"
+            />
+          </div>
+
+          <!-- 5. Select Payment Proof Image -->
+          <div class="form-group">
+            <label for="promotionImage">Select Payment Proof Screenshot</label>
+            <span class="file-allowed-hint">Allowed extensions (jpg, png, gif, pdf)</span>
+            <div class="file-input-wrapper">
+              <input
+                type="file"
+                id="promotionImage"
+                accept=".jpg,.jpeg,.png,.gif,.pdf"
+                (change)="onFileSelected($event)"
+              />
+            </div>
+          </div>
+
+          <!-- 6. Remarks -->
+          <div class="form-group">
+            <label for="remarks">Remarks</label>
+            <textarea
+              id="remarks"
+              class="form-control textarea-control"
+              rows="3"
+              placeholder="Enter remarks"
+              [ngModel]="remarks()"
+              (ngModelChange)="remarks.set($event)"
+            ></textarea>
+          </div>
+
+          <!-- 7. DOB -->
+          <div class="form-group">
+            <label for="dob">DOB (DD/MM/YYYY)</label>
+            <input
+              type="date"
+              id="dob"
+              class="form-control"
+              [ngModel]="dob()"
+              (ngModelChange)="dob.set($event)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Action Footer -->
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn-submit-orange"
+        [disabled]="isSubmitting()"
+        (click)="onSubmit()"
+      >
+        @if (isSubmitting()) {
+          <span class="material-symbols-outlined spin-icon">progress_activity</span>
+          <span>Submitting...</span>
+        } @else {
+          <span>Submit</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="btn-reset-grey"
+        [disabled]="isSubmitting()"
+        (click)="onReset()"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+</div>

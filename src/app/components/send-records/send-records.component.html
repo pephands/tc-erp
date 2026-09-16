@@ -1,0 +1,216 @@
+<main class="page-container">
+  @if (showToast()) {
+    <div class="toast-notification shadow-card">
+      <span class="material-symbols-outlined check-icon">check_circle</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Header Action Bar (Matching Image 1) -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">groups</span>
+      <h2 class="page-title">Online Payment Details</h2>
+    </div>
+
+    <button type="button" class="btn-add-payment-orange" (click)="onOpenAddModal()">
+      <span class="material-symbols-outlined">add</span>
+      <span>Add Online Payment</span>
+    </button>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-controls-grid">
+      <!-- Search Input -->
+      <div class="filter-field search-field">
+        <label for="searchInput">Search Records</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">search</span>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search donor name, mobile, ref ID..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Start Date -->
+      <div class="filter-field">
+        <label for="startDateInput">Start Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input
+            type="date"
+            id="startDateInput"
+            [ngModel]="startDate()"
+            (ngModelChange)="onStartDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- End Date -->
+      <div class="filter-field">
+        <label for="endDateInput">End Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input
+            type="date"
+            id="endDateInput"
+            [ngModel]="endDate()"
+            (ngModelChange)="onEndDateChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Reset Action -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Container (Matching Image 1 Table Headers) -->
+  <div class="table-card shadow-card">
+    <div class="table-responsive">
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Created Date</th>
+            <th>Donation Date</th>
+            <th>Mobile Number</th>
+            <th>Donor Name</th>
+            <th>Amount</th>
+            <th>Ref Id</th>
+            <th>Mode of Payment</th>
+            <th>Donor Type</th>
+            <th>Remarks</th>
+            <th>Status</th>
+            <th>Uploaded File</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="12" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Fetching online payment details...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (rec of records(); track rec.id) {
+              <tr>
+                <td class="col-date">{{ rec.created_at | date: 'yyyy-MM-dd' }}</td>
+                <td class="col-date">{{ rec.payment_date }}</td>
+                <td class="col-mobile">{{ rec.mobile_number }}</td>
+                <td class="col-name">
+                  <strong>{{ rec.donor_name }}</strong>
+                </td>
+                <td class="col-amount">₹{{ rec.amount | number: '1.2-2' }}</td>
+                <td class="col-ref">
+                  <code>{{ rec.reference_id }}</code>
+                </td>
+                <td>
+                  <span class="tag-pill">{{ rec.mode_of_payment }}</span>
+                </td>
+                <td>
+                  <span class="donor-type-tag">{{ rec.donor_type }}</span>
+                </td>
+                <td class="col-remarks" [title]="rec.remarks || ''">{{ rec.remarks || '-' }}</td>
+                <td class="col-status">
+                  <span
+                    class="status-badge"
+                    [class.badge-pending]="rec.status === 'PENDING'"
+                    [class.badge-approved]="rec.status === 'APPROVED'"
+                    [class.badge-rejected]="rec.status === 'REJECTED'"
+                  >
+                    {{
+                      rec.status === 'PENDING'
+                        ? 'Pending TL Review'
+                        : rec.status === 'APPROVED'
+                          ? 'Approved'
+                          : 'Rejected'
+                    }}
+                  </span>
+                </td>
+                <td class="col-file">
+                  @if (rec.payment_proof_url) {
+                    <a
+                      [href]="rec.payment_proof_url"
+                      target="_blank"
+                      class="btn-file-link"
+                      title="View payment proof"
+                    >
+                      <span class="material-symbols-outlined">image</span>
+                      <span>Proof</span>
+                    </a>
+                  } @else {
+                    <span class="no-file-text">No File</span>
+                  }
+                </td>
+                <td class="col-actions">
+                  <span class="action-info-chip" [title]="'Ref: ' + rec.reference_id">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="12" class="empty-state">
+                  <span class="material-symbols-outlined empty-icon">receipt_long</span>
+                  <p class="empty-title">No Online Payment Records Found</p>
+                  <p class="empty-sub">
+                    Click "+ Add Online Payment" to record a new payment entry.
+                  </p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (records().length > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total records)
+        </div>
+
+        <div class="pagination-controls">
+          <button
+            type="button"
+            class="page-btn"
+            [disabled]="currentPage() === 1"
+            (click)="prevPage()"
+          >
+            Prev
+          </button>
+          <button
+            type="button"
+            class="page-btn"
+            [disabled]="currentPage() >= totalPages()"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</main>
+
+<!-- Add Online Payment Modal -->
+@if (showModal()) {
+  <app-add-online-payment-modal
+    (close)="onCloseModal()"
+    (submitted)="onPaymentSubmitted()"
+  ></app-add-online-payment-modal>
+}

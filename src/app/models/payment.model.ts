@@ -1,0 +1,31 @@
+export interface OnlinePaymentRecord {
+  id: number;
+  telecaller: number;
+  telecaller_name?: string;
+  telecaller_username?: string;
+  branch: number;
+  branch_name?: string;
+  payment_date: string;
+  mobile_number: string;
+  alt_mobile_number?: string;
+  donor_name: string;
+  amount: number | string;
+  reference_id: string;
+  mode_of_payment: string;
+  slab: string;
+  donor_type: string;
+  pan_number?: string;
+  correction_name?: string;
+  address?: string;
+  dob?: string;
+  remarks?: string;
+  payment_proof?: string;
+  payment_proof_url?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | string;
+  status_display?: string;
+  approved_by?: number;
+  approved_at?: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at: string;
+}

@@ -121,4 +121,9 @@ export class Endpoint {
   get telecallingCallLog(): string {
     return this.baseUrl + 'telecalling/call-log/';
   }
+
+  // Payments Domain
+  get paymentRecords(): string {
+    return this.baseUrl + 'payments/records/';
+  }
 }
