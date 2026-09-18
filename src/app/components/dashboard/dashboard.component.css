@@ -542,6 +542,39 @@
   gap: 0.6rem;
 }
 
+.wfh-passcode-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.passcode-input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.passcode-input:focus {
+  border-color: #ea580c;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+}
+
+.passcode-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
 .btn-checkin-cta {
   width: 100%;
   display: inline-flex;

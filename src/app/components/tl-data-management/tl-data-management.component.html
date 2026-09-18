@@ -67,7 +67,21 @@
       </div>
     }
 
-    <!-- Main Table Card Container: Request History -->
+    <!-- Tabs -->
+    <div class="tabs-container margin-top-sm">
+      <button class="tab-btn" [class.active-tab]="currentTab() === 'REQUESTS'" (click)="setTab('REQUESTS')">
+        Branch Requests
+      </button>
+      <button class="tab-btn" [class.active-tab]="currentTab() === 'HISTORY'" (click)="setTab('HISTORY')">
+        Allocation History
+      </button>
+      <button class="tab-btn" [class.active-tab]="currentTab() === 'SUMMARY'" (click)="setTab('SUMMARY')">
+        Allocation Summary
+      </button>
+    </div>
+
+    <!-- REQUESTS TAB -->
+    @if (currentTab() === 'REQUESTS') {
     <div class="table-card margin-top-sm">
       <div class="table-header-bar">
         <h3 class="table-title">Branch Allocation Requests History</h3>
@@ -178,7 +192,7 @@
                 type="button"
                 class="page-btn"
                 [disabled]="currentPage() === totalPages()"
-                (click)="lastPage()"
+                (click)="setPage(totalPages())"
               >
                 Last
               </button>
@@ -187,6 +201,122 @@
         </div>
       }
     </div>
+    }
+
+    <!-- HISTORY TAB -->
+    @if (currentTab() === 'HISTORY') {
+    <div class="table-card margin-top-sm">
+      <div class="table-header-bar flex-column">
+        <div class="header-top">
+          <h3 class="table-title">Telecaller Allocation History</h3>
+          <button type="button" class="btn-toolbar btn-outline" (click)="onDownloadHistory()">
+            <span class="material-symbols-outlined">download</span> Download CSV
+          </button>
+        </div>
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Start Date</label>
+            <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event); onFilterChange()" class="form-input" />
+          </div>
+          <div class="filter-group">
+            <label>End Date</label>
+            <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event); onFilterChange()" class="form-input" />
+          </div>
+          <div class="filter-group">
+            <label>Telecaller</label>
+            <select class="form-input" [ngModel]="selectedTelecallerFilter()" (ngModelChange)="selectedTelecallerFilter.set($event); onFilterChange()">
+              <option value="">All Telecallers</option>
+              @for (tc of telecallersList(); track tc.id) {
+                <option [value]="tc.id">{{ tc.full_name || tc.username }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Branch</th>
+              <th>Assigned By</th>
+              <th>Telecaller</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of allocationHistory(); track item.id) {
+              <tr>
+                <td class="text-muted">{{ item.created_at | date:'short' }}</td>
+                <td class="font-semibold">{{ item.branch_name }}</td>
+                <td>{{ item.assigned_by_name || 'Admin' }}</td>
+                <td class="font-bold text-primary">{{ item.telecaller_name }}</td>
+                <td class="font-bold">{{ item.assigned_count | number }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-state-cell">
+                  <span class="material-symbols-outlined empty-icon">history</span>
+                  <p>No allocation history found</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- SUMMARY TAB -->
+    @if (currentTab() === 'SUMMARY') {
+    <div class="table-card margin-top-sm">
+      <div class="table-header-bar flex-column">
+        <div class="header-top">
+          <h3 class="table-title">Telecaller Allocation Summary</h3>
+          <button type="button" class="btn-toolbar btn-outline" (click)="onDownloadSummary()">
+            <span class="material-symbols-outlined">download</span> Download CSV
+          </button>
+        </div>
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Start Date</label>
+            <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event); onFilterChange()" class="form-input" />
+          </div>
+          <div class="filter-group">
+            <label>End Date</label>
+            <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event); onFilterChange()" class="form-input" />
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Telecaller</th>
+              <th>Times Allocated</th>
+              <th>Total Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of allocationSummary(); track item.telecaller_id) {
+              <tr>
+                <td class="font-bold text-primary">{{ item.telecaller_name }}</td>
+                <td class="font-semibold">{{ item.times_allocated | number }}</td>
+                <td class="font-bold text-success">{{ item.total_quantity | number }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="empty-state-cell">
+                  <span class="material-symbols-outlined empty-icon">pie_chart</span>
+                  <p>No allocation summary available</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
   </main>
 
   <!-- ==========================================

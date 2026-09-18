@@ -66,16 +66,27 @@ export class TelecallingService extends BaseHttpService {
     );
   }
 
-  fetchAllocationRequests(): Observable<BranchAllocationRequestRecord[]> {
+  fetchAllocationRequests(params?: any): Observable<any> {
     return this.httpClient
-      .get(this.endPoint.telecallingRequests, { headers: this.headers })
+      .get(this.endPoint.telecallingRequests, { headers: this.headers, params })
       .pipe(
         map((res: any) => {
           let items: any[] = [];
-          if (res && res.status === 'success' && res.data) {
+          let count = 0;
+          if (res && res.results) {
+            items = res.results;
+            count = res.count || items.length;
+          } else if (res && res.status === 'success' && res.data) {
             items = Array.isArray(res.data) ? res.data : [res.data];
+            count = items.length;
+          } else if (Array.isArray(res)) {
+            items = res;
+            count = items.length;
           }
-          return items.map((item: any) => deserializeAllocationRequest(item));
+          return {
+            count,
+            results: items.map((item: any) => deserializeAllocationRequest(item))
+          };
         })
       );
   }
@@ -225,6 +236,36 @@ export class TelecallingService extends BaseHttpService {
         }));
       })
     );
+  }
+
+  fetchTCAllocationHistory(params?: any): Observable<any> {
+    return this.httpClient.get(this.endPoint.telecallingAllocationHistory, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  fetchTCAllocationSummary(params?: any): Observable<any> {
+    return this.httpClient.get(this.endPoint.telecallingAllocationSummary, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  downloadTCAllocationHistory(params?: any): Observable<Blob> {
+    return this.httpClient.get(this.endPoint.telecallingAllocationHistory, {
+      headers: this.headers,
+      params: { ...params, export: 'true' },
+      responseType: 'blob'
+    });
+  }
+
+  downloadTCAllocationSummary(params?: any): Observable<Blob> {
+    return this.httpClient.get(this.endPoint.telecallingAllocationSummary, {
+      headers: this.headers,
+      params: { ...params, export: 'true' },
+      responseType: 'blob'
+    });
   }
 }
 

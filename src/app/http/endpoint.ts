@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment.development';
 })
 export class Endpoint {
   baseUrl: string = 'http://127.0.0.1:8000/';
+  // baseUrl: string = 'https://f428-183-82-242-159.ngrok-free.app/';
 
   // user authentication
 
@@ -119,11 +120,26 @@ export class Endpoint {
   }
 
   get telecallingCallLog(): string {
-    return this.baseUrl + 'telecalling/call-log/';
+    return `${this.baseUrl}telecalling/call-log/`;
+  }
+  get telecallingAllocationHistory(): string {
+    return `${this.baseUrl}telecalling/allocations/history/`;
+  }
+  get telecallingAllocationSummary(): string {
+    return `${this.baseUrl}telecalling/allocations/summary/`;
   }
 
   // Payments Domain
   get paymentRecords(): string {
     return this.baseUrl + 'payments/records/';
+  }
+
+  // Whatsapp
+  get whatsappAccounts(): string {
+    return this.baseUrl + 'whatsapp/accounts/';
+  }
+
+  get whatsappCampaigns(): string {
+    return this.baseUrl + 'whatsapp/campaigns/';
   }
 }

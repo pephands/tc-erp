@@ -25,8 +25,8 @@ export class AttendanceService extends BaseHttpService {
     return this.endPoint.attendanceList;
   }
 
-  getAttendanceRecords(branch?: string, startDate?: string, endDate?: string, search?: string): Observable<any> {
-    let url = `${this.endpoint}?`;
+  getAttendanceRecords(branch?: string, startDate?: string, endDate?: string, search?: string, page: number = 1, pageSize: number = 10): Observable<any> {
+    let url = `${this.endpoint}?page=${page}&page_size=${pageSize}&`;
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (startDate) url += `start_date=${encodeURIComponent(startDate)}&`;
     if (endDate) url += `end_date=${encodeURIComponent(endDate)}&`;

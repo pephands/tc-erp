@@ -130,6 +130,7 @@
       <table class="attendance-table">
         <thead>
           <tr>
+            <th>S.No</th>
             <th>Branch Name</th>
             @if (!isTcUser) {
               <th>TC Details</th>
@@ -138,6 +139,9 @@
             <th>In Time</th>
             <th>Out Time</th>
             <th>Status</th>
+            @if (isAdminOrManager) {
+              <th>Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -149,8 +153,9 @@
               </td>
             </tr>
           } @else {
-            @for (item of paginatedAttendance(); track item.id) {
+            @for (item of paginatedAttendance(); track item.id; let i = $index) {
               <tr>
+                <td class="col-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
                 <td class="col-branch">{{ item.branchName }}</td>
                 @if (!isTcUser) {
                   <td class="col-tc-details">{{ item.tcDetails }}</td>
@@ -168,6 +173,13 @@
                     {{ item.status }}
                   </span>
                 </td>
+                @if (isAdminOrManager) {
+                  <td class="col-actions">
+                    <button type="button" class="btn-icon-only" (click)="openDetailModal(item)" title="View Details">
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                  </td>
+                }
               </tr>
             } @empty {
               <tr>
@@ -184,7 +196,7 @@
     </div>
 
     <!-- Pagination Controls (1 2 3 4 5 6 Next Last) -->
-    @if (filteredAttendance().length > 0) {
+    @if (filteredAttendanceLength() > 0) {
       <div class="pagination-bar">
         <div class="pagination-controls">
           <button
@@ -227,10 +239,26 @@
         </div>
 
         <div class="pagination-info">
-          Showing {{ paginatedAttendance().length }} of {{ filteredAttendance().length }} attendance
+          Showing {{ paginatedAttendance().length }} of {{ filteredAttendanceLength() }} attendance
           records
+          <span style="margin-left: 15px;">
+            Per page: 
+            <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); currentPage.set(1); fetchAttendanceFromApi()" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="50">50</option>
+            </select>
+          </span>
         </div>
       </div>
     }
   </div>
 </main>
+
+@if (isDetailModalOpen()) {
+  <app-attendance-detail-modal
+    [attendance]="selectedAttendance()"
+    (closeModal)="closeDetailModal()">
+  </app-attendance-detail-modal>
+}

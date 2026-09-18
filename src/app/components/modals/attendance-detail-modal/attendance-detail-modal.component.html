@@ -1,0 +1,118 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Attendance Detail</h2>
+      <button type="button" class="btn-close" (click)="onClose()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="date-header">
+        {{ dateFormatted }}
+      </div>
+      
+      <div class="details-grid">
+        <div class="detail-group">
+          <div class="detail-label">Agent</div>
+          <div class="detail-value agent-name">{{ agentName }}</div>
+          <div class="detail-subvalue">{{ agentId }}</div>
+        </div>
+        
+        <div class="detail-group status-group">
+          <div class="detail-label">Type / Status</div>
+          <div class="badges-wrapper">
+            <span class="badge badge-type">{{ workMode }}</span>
+            <span class="badge badge-status" [class.status-present]="status === 'Present'" [class.status-absent]="status === 'Absent'" [class.status-wfh]="status === 'WFH'">{{ status }}</span>
+          </div>
+        </div>
+        
+        <div class="detail-group">
+          <div class="detail-label">Branch</div>
+          <div class="detail-value">{{ branchName }}</div>
+        </div>
+        
+        <div class="detail-group">
+          <div class="detail-label">Total Duration</div>
+          <div class="detail-value">{{ totalDuration }}</div>
+        </div>
+        
+        <div class="detail-group">
+          <div class="detail-label">Check-in Time</div>
+          <div class="detail-value">{{ checkInTime }}</div>
+        </div>
+        
+        <div class="detail-group">
+          <div class="detail-label">Check-out Time</div>
+          <div class="detail-value">{{ checkOutTime }}</div>
+        </div>
+      </div>
+      
+      <hr class="divider" />
+      
+      <div class="location-section">
+        <div class="location-title">
+          <span class="material-symbols-outlined location-icon">location_on</span>
+          <span>Location at check-in</span>
+        </div>
+        
+        @if (hasLocation) {
+          <div class="location-card">
+            <div class="address-details">
+              Coordinates: {{ latitude }}, {{ longitude }}
+            </div>
+            <a [href]="mapUrl" target="_blank" class="map-link">
+              Open in Google Maps <span class="material-symbols-outlined link-icon">open_in_new</span>
+            </a>
+          </div>
+          
+          <div class="map-container">
+            <iframe 
+              width="100%" 
+              height="200" 
+              frameborder="0" 
+              style="border:0; border-radius: 8px;"
+              [src]="mapEmbedUrl"
+              allowfullscreen>
+            </iframe>
+          </div>
+        } @else {
+          <div class="no-location">
+            No check-in location data available.
+          </div>
+        }
+      </div>
+
+      @if (hasLocationOut) {
+        <hr class="divider" />
+        
+        <div class="location-section">
+          <div class="location-title">
+            <span class="material-symbols-outlined location-icon" style="color: #ef4444;">location_off</span>
+            <span>Location at check-out</span>
+          </div>
+          
+          <div class="location-card">
+            <div class="address-details">
+              Coordinates: {{ latitudeOut }}, {{ longitudeOut }}
+            </div>
+            <a [href]="mapUrlOut" target="_blank" class="map-link">
+              Open in Google Maps <span class="material-symbols-outlined link-icon">open_in_new</span>
+            </a>
+          </div>
+          
+          <div class="map-container">
+            <iframe 
+              width="100%" 
+              height="200" 
+              frameborder="0" 
+              style="border:0; border-radius: 8px;"
+              [src]="mapEmbedUrlOut"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

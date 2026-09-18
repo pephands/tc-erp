@@ -1,0 +1,21 @@
+<div class="modal-overlay" (click)="closeModal.emit()">
+  <div class="modal-container map-modal-container" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-titles">
+        <h2 class="modal-title">Overall Map View</h2>
+        <p class="modal-subtitle">Displaying check-in locations for {{ attendanceRecords.length }} records</p>
+      </div>
+      <button type="button" class="btn-close" (click)="closeModal.emit()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body map-body">
+      <div class="map-wrapper">
+        <div #mapContainer id="overall-map"></div>
+      </div>
+    </div>
+  </div>
+</div>

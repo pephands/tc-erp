@@ -11,7 +11,10 @@ import { TlDataManagementComponent } from './components/tl-data-management/tl-da
 import { BranchDocumentsComponent } from './components/branch-documents/branch-documents.component';
 import { ExpenseDetailsComponent } from './components/expense-details/expense-details.component';
 import { ExpenseReportComponent } from './components/expense-report/expense-report.component';
+import { WhatsappCampaignsComponent } from './components/whatsapp-campaigns/whatsapp-campaigns.component';
+import { WhatsappAccountsComponent } from './components/whatsapp-accounts/whatsapp-accounts.component';
 import { SendRecordsComponent } from './components/send-records/send-records.component';
+import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
 import { ApprovedRecordsComponent } from './components/approved-records/approved-records.component';
 import { TelecallerWorkstationComponent } from './components/telecaller-workstation/telecaller-workstation.component';
 import { authGuard, loginGuard } from './guards/auth.guard';
@@ -93,8 +96,23 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       {
+        path: 'received-records',
+        component: ReceivedRecordsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
         path: 'approved-records',
         component: ApprovedRecordsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'whatsapp-accounts',
+        component: WhatsappAccountsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'whatsapp-campaigns',
+        component: WhatsappCampaignsComponent,
         canActivate: [deviceAuthGuard],
       },
       {

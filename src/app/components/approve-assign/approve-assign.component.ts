@@ -19,6 +19,7 @@ export class ApproveAssignComponent implements OnInit {
 
   // Data signals
   requestsList = signal<BranchAllocationRequestRecord[]>([]);
+  totalRequests = signal<number>(0);
   masterSummary = signal<MasterSummaryData | null>(null);
   branchesList = signal<any[]>([]);
 
@@ -86,9 +87,19 @@ export class ApproveAssignComponent implements OnInit {
   }
 
   fetchRequests(): void {
-    this.service.fetchAllocationRequests().subscribe({
+    let params: any = {
+      page: this.currentPage().toString(),
+      per_page: this.pageSize().toString()
+    };
+    
+    if (this.searchQuery()) {
+      params['search'] = this.searchQuery();
+    }
+
+    this.service.fetchAllocationRequests(params).subscribe({
       next: (data) => {
-        this.requestsList.set(data);
+        this.requestsList.set(data.results);
+        this.totalRequests.set(data.count);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -98,33 +109,20 @@ export class ApproveAssignComponent implements OnInit {
     });
   }
 
-  // Filtered & Paginated records
-  filteredRecords = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const list = this.requestsList();
-
-    if (!query) return list;
-
-    return list.filter(
-      (r) =>
-        String(r.id).includes(query) ||
-        (r.branchName && r.branchName.toLowerCase().includes(query)) ||
-        (r.requestedByName && r.requestedByName.toLowerCase().includes(query)) ||
-        r.category.toLowerCase().includes(query) ||
-        r.status.toLowerCase().includes(query)
-    );
-  });
+  // Handle page changes
+  onPageChange(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.loadData();
+    }
+  }
 
   paginatedRecords = computed(() => {
-    const list = this.filteredRecords();
-    const page = this.currentPage();
-    const size = this.pageSize();
-    const startIndex = (page - 1) * size;
-    return list.slice(startIndex, startIndex + size);
+    return this.requestsList();
   });
 
   totalPages = computed(() => {
-    return Math.ceil(this.filteredRecords().length / this.pageSize()) || 1;
+    return Math.ceil(this.totalRequests() / this.pageSize()) || 1;
   });
 
   pagesArray = computed(() => {
