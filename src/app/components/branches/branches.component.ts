@@ -24,6 +24,7 @@ export class BranchesComponent implements OnInit {
   // Pagination & Filter state
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
+  totalItems = signal<number>(0);
   searchQuery = signal<string>('');
 
   // Modals state
@@ -41,28 +42,14 @@ export class BranchesComponent implements OnInit {
   allBranches = signal<Branch[]>([]);
   isLoading = signal<boolean>(false);
 
-  // Filtered branches based on search query
-  filteredBranches = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    if (!query) return this.allBranches();
-
-    return this.allBranches().filter(b => 
-      b.name.toLowerCase().includes(query) ||
-      b.code.toLowerCase().includes(query) ||
-      (b.phone && b.phone.includes(query)) ||
-      (b.email && b.email.toLowerCase().includes(query)) ||
-      (b.address && b.address.toLowerCase().includes(query))
-    );
-  });
+  // Filtered branches length (from backend total count)
+  filteredBranchesLength = computed(() => this.totalItems());
 
   // Total pages
-  totalPages = computed(() => Math.ceil(this.filteredBranches().length / this.pageSize()) || 1);
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()) || 1);
 
-  // Paginated branches for current page
-  paginatedBranches = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.filteredBranches().slice(start, start + this.pageSize());
-  });
+  // Paginated branches (now directly from backend)
+  paginatedBranches = computed(() => this.allBranches());
 
   // Page Numbers Array for Pagination Buttons (1, 2, 3...)
   pageNumbers = computed(() => {
@@ -79,12 +66,23 @@ export class BranchesComponent implements OnInit {
 
   loadBranches(): void {
     this.isLoading.set(true);
-    this.branchService.getData().subscribe({
+    const search = this.searchQuery().trim();
+    this.branchService.getData(this.currentPage(), this.pageSize(), search).subscribe({
       next: (res: any) => {
-        if (res.status === 'success' || (Array.isArray(res) || res.data)) {
-            const data = Array.isArray(res) ? res : (res.data || []);
-            this.allBranches.set(data);
+        let data: Branch[] = [];
+        if (res && res.status === 'success' && res.data) {
+          data = Array.isArray(res.data) ? res.data : [res.data];
+          if (res.count !== undefined) {
+             this.totalItems.set(res.count);
+          } else {
+             this.totalItems.set(data.length);
+          }
+        } else if (Array.isArray(res)) {
+          data = res;
+          this.totalItems.set(data.length);
         }
+        
+        this.allBranches.set(data);
         this.isLoading.set(false);
       },
       error: () => {
@@ -97,19 +95,33 @@ export class BranchesComponent implements OnInit {
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
+      this.loadBranches();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(p => p + 1);
+      this.loadBranches();
     }
   }
 
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.update(p => p - 1);
+      this.loadBranches();
     }
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize.set(newSize);
+    this.currentPage.set(1);
+    this.loadBranches();
+  }
+
+  onSearchChange(): void {
+    this.currentPage.set(1);
+    this.loadBranches();
   }
 
   openEditModal(branch: Branch): void {

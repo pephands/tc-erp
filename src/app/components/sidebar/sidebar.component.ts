@@ -293,18 +293,32 @@ export class SidebarComponent implements OnInit {
       category: 'Communication',
       allowedRoles: ['ADMIN', 'TL', 'TC'],
       submenus: [
+        // {
+        //   id: 'whatsapp_greentick',
+        //   label: 'Whatsapp GreenTick',
+        //   icon: 'verified',
+        //   allowedRoles: ['ADMIN', 'TL', 'TC'],
+        // },
         {
-          id: 'whatsapp_greentick',
-          label: 'Whatsapp GreenTick',
-          icon: 'verified',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          id: 'whatsapp_accounts',
+          label: 'WhatsApp Accounts',
+          icon: 'link',
+          allowedRoles: ['ADMIN'],
+          route: '/whatsapp-accounts',
         },
         {
-          id: 'send_whatsapp_10be',
-          label: 'Send Whatsapp(Form 10BE)',
-          icon: 'send',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          id: 'whatsapp_campaigns',
+          label: 'WhatsApp Campaigns',
+          icon: 'campaign',
+          allowedRoles: ['ADMIN'],
+          route: '/whatsapp-campaigns',
         },
+        // {
+        //   id: 'send_whatsapp_10be',
+        //   label: 'Send Whatsapp(Form 10BE)',
+        //   icon: 'send',
+        //   allowedRoles: ['ADMIN', 'TL', 'TC'],
+        // },
       ],
     },
     {
@@ -312,7 +326,7 @@ export class SidebarComponent implements OnInit {
       label: 'Online Received Status',
       icon: 'sync_alt',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL'],
+      allowedRoles: ['ADMIN'],
     },
     {
       id: 'receipts',
@@ -448,15 +462,15 @@ export class SidebarComponent implements OnInit {
       .map((item) => {
         const validSubmenus = item.submenus
           ? item.submenus.filter((sub) => {
-              if (
-                sub.allowedRoles &&
-                userRoles.length > 0 &&
-                !sub.allowedRoles.some((r) => userRoles.includes(r))
-              ) {
-                return false;
-              }
-              return true;
-            })
+            if (
+              sub.allowedRoles &&
+              userRoles.length > 0 &&
+              !sub.allowedRoles.some((r) => userRoles.includes(r))
+            ) {
+              return false;
+            }
+            return true;
+          })
           : undefined;
 
         return {
@@ -490,6 +504,8 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';
+    if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
+    if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
     if (url.includes('/dashboard')) return 'dashboard';
     return 'dashboard';
   }

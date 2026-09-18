@@ -1,0 +1,43 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Edit' : 'Add' }} WhatsApp Account</h2>
+      <button type="button" class="btn-close" (click)="onClose()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="onSubmit()" #accountForm="ngForm">
+        <div class="form-group">
+          <label>Branch *</label>
+          <select name="branch" [(ngModel)]="formBranch" required class="form-control">
+            <option value="">Select Branch</option>
+            <option *ngFor="let b of branches()" [value]="b.id">{{ b.name }} ({{ b.code }})</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Platform Name *</label>
+          <select name="platform" [(ngModel)]="formPlatform" required class="form-control">
+            <option value="askeva">AskEva</option>
+            <option value="vih">VIH</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>WhatsApp Number *</label>
+          <input type="text" name="number" [(ngModel)]="formNumber" required class="form-control" placeholder="e.g. 9190424XXXXX">
+        </div>
+        <div class="form-group">
+          <label>API Key / Token *</label>
+          <input type="text" name="apikey" [(ngModel)]="formApiKey" required class="form-control">
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="onClose()" [disabled]="isSubmitting()">Cancel</button>
+          <button type="submit" class="btn-save" [disabled]="!accountForm.valid || isSubmitting()">
+            {{ isSubmitting() ? 'Saving...' : (isEditMode ? 'Update Account' : 'Save Account') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

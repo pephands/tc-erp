@@ -1,0 +1,173 @@
+<main class="branches-container">
+
+  <!-- Header Action Bar -->
+  <div class="action-header-bar">
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search campaigns..." 
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+      />
+    </div>
+
+    <div class="filter-group">
+      <select class="filter-select" [ngModel]="filterBranch()" (ngModelChange)="filterBranch.set($event); currentPage.set(1)">
+        <option value="">All Branches</option>
+        <option *ngFor="let b of branches()" [value]="b.id">{{ b.name }}</option>
+      </select>
+
+      <select class="filter-select" [ngModel]="filterTemplateType()" (ngModelChange)="filterTemplateType.set($event); currentPage.set(1)">
+        <option value="">All Template Types</option>
+        <option value="TEXT">Text</option>
+        <option value="IMAGE">Image</option>
+        <option value="VIDEO">Video</option>
+        <option value="DOCUMENT">Document</option>
+      </select>
+
+      <select class="filter-select" [ngModel]="filterIsActive()" (ngModelChange)="filterIsActive.set($event); currentPage.set(1)">
+        <option value="">All Statuses</option>
+        <option value="true">Active Only</option>
+        <option value="false">Inactive Only</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn-add-branch" (click)="openAddModal()">
+      <span class="material-symbols-outlined">add</span>
+      <span>Add Campaign</span>
+    </button>
+  </div>
+
+  <!-- Data Table Card Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th>S.No.</th>
+            <th>Branch Name</th>
+            <th>Campaign Name</th>
+            <th>Template Name (Meta)</th>
+            <th>Type</th>
+            <th>Dynamic</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="8" class="no-data">
+                <div class="btn-spinner" style="display:inline-block; border-color:var(--text-color); border-top-color:transparent;"></div>
+                <p>Loading campaigns...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (campaign of paginatedCampaigns(); track campaign.id; let i = $index) {
+              <tr>
+                <td class="col-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+                <td class="col-name">{{ campaign.branch_name }}</td>
+                <td class="col-short">{{ campaign.campaign_name }}</td>
+                <td class="col-name">{{ campaign.meta_template_name }}</td>
+                <td class="col-phone">{{ campaign.template_type }}</td>
+                <td class="col-email">
+                  <span class="badge" [class.bg-success]="campaign.is_dynamic" [class.bg-secondary]="!campaign.is_dynamic">
+                    {{ campaign.is_dynamic ? 'Yes' : 'No' }}
+                  </span>
+                </td>
+                <td class="col-hide">
+                  <span class="hide-badge" [class.is-true]="!campaign.is_active">
+                    {{ campaign.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+              <td class="col-actions">
+                <div class="action-btn-group">
+                    <button 
+                      type="button" 
+                      class="btn-edit" 
+                      (click)="testCampaign(campaign)"
+                      title="Test Campaign"
+                      style="color: var(--primary-color, #2563eb); background: #eff6ff;"
+                    >
+                      <span class="material-symbols-outlined">send</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-edit" 
+                      (click)="openEditModal(campaign)"
+                      title="Edit Campaign"
+                    >
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-delete" 
+                      (click)="deleteCampaign(campaign)"
+                      title="Delete Campaign"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="no-data">
+                <span class="material-symbols-outlined">campaign</span>
+                <p>No campaign records found.</p>
+              </td>
+            </tr>
+          }
+        }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing {{ paginatedCampaigns().length }} of {{ filteredCampaigns().length }} campaigns
+      </div>
+
+      <div class="pagination-controls">
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === 1"
+          (click)="prevPage()"
+        >
+          Prev
+        </button>
+
+        @for (p of pageNumbers(); track p) {
+          <button 
+            type="button" 
+            class="page-btn" 
+            [class.active]="currentPage() === p"
+            (click)="setPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+@if (isModalOpen()) {
+  <app-add-whatsapp-campaign-modal 
+    [campaignToEdit]="selectedCampaignForEdit()"
+    (closeModal)="closeModal()" 
+    (campaignAdded)="onCampaignAdded()">
+  </app-add-whatsapp-campaign-modal>
+}

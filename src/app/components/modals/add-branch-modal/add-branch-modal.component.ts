@@ -47,7 +47,7 @@ export class AddBranchModalComponent implements OnInit {
   // Map URL
   getMapUrl(): SafeResourceUrl | null {
     if (this.formLat === null || this.formLng === null || isNaN(this.formLat) || isNaN(this.formLng)) return null;
-    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${this.formLng - 0.01},${this.formLat - 0.01},${this.formLng + 0.01},${this.formLat + 0.01}&layer=mapnik&marker=${this.formLat},${this.formLng}`;
+    const url = `https://maps.google.com/maps?q=${this.formLat},${this.formLng}&z=15&output=embed`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 

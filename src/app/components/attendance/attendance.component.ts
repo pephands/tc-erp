@@ -5,11 +5,12 @@ import { BranchListService } from '../../services/branch-list.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { AuthService } from '../../services/auth.service';
 import { AttendanceRecord } from '../../models/attendance.model';
+import { AttendanceDetailModalComponent } from '../modals/attendance-detail-modal/attendance-detail-modal.component';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AttendanceDetailModalComponent],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
 })
@@ -48,10 +49,15 @@ export class AttendanceComponent implements OnInit {
   refreshToastMessage = signal<string>('');
   showToast = signal<boolean>(false);
 
+  // Modal State
+  isDetailModalOpen = signal<boolean>(false);
+  selectedAttendance = signal<AttendanceRecord | null>(null);
+
   // Search & Pagination state
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
+  totalItems = signal<number>(0);
 
   // Master data for filters
   branches = signal<any[]>([]);
@@ -82,13 +88,19 @@ export class AttendanceComponent implements OnInit {
     const search = this.searchQuery().trim();
 
 
-    this.attendanceService.getAttendanceRecords(branch, start, end, search).subscribe({
+    this.attendanceService.getAttendanceRecords(branch, start, end, search, this.currentPage(), this.pageSize()).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         if (res && res.status === 'success' && res.data) {
           items = Array.isArray(res.data) ? res.data : [res.data];
+          if (res.count !== undefined) {
+             this.totalItems.set(res.count);
+          } else {
+             this.totalItems.set(items.length);
+          }
         } else if (Array.isArray(res)) {
           items = res;
+          this.totalItems.set(items.length);
         }
 
         const mappedRecords: AttendanceRecord[] = items.map((item: any) => this.mapApiToAttendanceRecord(item));
@@ -157,35 +169,21 @@ export class AttendanceComponent implements OnInit {
       status,
       inTime: this.formatTime(item.in_time),
       outTime: this.formatTime(item.out_time),
+      originalItem: item, // attach original raw item
     };
   }
 
   // Attendance Records from service
   allAttendance = this.attendanceService.attendanceRecords;
 
-  // Filtered Attendance List (Client-side search refinement)
-  filteredAttendance = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-
-    return this.allAttendance().filter(item => {
-      if (query) {
-        const fullSearchStr = `${item.branchName} ${item.tcDetails} ${item.tcId} ${item.tcName} ${item.status} ${item.attendanceDate}`.toLowerCase();
-        if (!fullSearchStr.includes(query)) {
-          return false;
-        }
-      }
-      return true;
-    });
-  });
+  // Filtered Attendance List (Replaced with backend total count)
+  filteredAttendanceLength = computed(() => this.totalItems());
 
   // Total pages
-  totalPages = computed(() => Math.ceil(this.filteredAttendance().length / this.pageSize()) || 1);
+  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()) || 1);
 
-  // Paginated attendance list
-  paginatedAttendance = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.filteredAttendance().slice(start, start + this.pageSize());
-  });
+  // Paginated attendance list (now directly from backend)
+  paginatedAttendance = computed(() => this.allAttendance());
 
   // Page Numbers Array
   pageNumbers = computed(() => {
@@ -272,27 +270,42 @@ export class AttendanceComponent implements OnInit {
     this.fetchAttendanceFromApi();
   }
 
+  // Modal Handlers
+  openDetailModal(item: AttendanceRecord): void {
+    this.selectedAttendance.set(item);
+    this.isDetailModalOpen.set(true);
+  }
+
+  closeDetailModal(): void {
+    this.isDetailModalOpen.set(false);
+    this.selectedAttendance.set(null);
+  }
+
 
   // Pagination Handlers
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
+      this.fetchAttendanceFromApi();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(p => p + 1);
+      this.fetchAttendanceFromApi();
     }
   }
 
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.update(p => p - 1);
+      this.fetchAttendanceFromApi();
     }
   }
 
   lastPage(): void {
     this.currentPage.set(this.totalPages());
+    this.fetchAttendanceFromApi();
   }
 }

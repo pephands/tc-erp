@@ -24,6 +24,16 @@ export class TlDataManagementComponent implements OnInit {
   masterSummary = signal<MasterSummaryData | null>(null);
   requestsList = signal<BranchAllocationRequestRecord[]>([]);
   telecallersList = signal<TelecallerUserOption[]>([]);
+  
+  // New features
+  currentTab = signal<'REQUESTS' | 'HISTORY' | 'SUMMARY'>('REQUESTS');
+  allocationHistory = signal<any[]>([]);
+  allocationSummary = signal<any[]>([]);
+  
+  // Filters for new features
+  startDate = signal<string>('');
+  endDate = signal<string>('');
+  selectedTelecallerFilter = signal<string>('');
 
   // Loading & State flags
   isLoading = signal<boolean>(false);
@@ -149,13 +159,96 @@ export class TlDataManagementComponent implements OnInit {
     // Load Request History
     this.service.fetchAllocationRequests().subscribe({
       next: (data) => {
-        this.requestsList.set(data);
+        this.requestsList.set(data.results);
         this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Error fetching requests:', err);
         this.isLoading.set(false);
       },
+    });
+    
+    // Load History and Summary initially
+    this.loadAllocationHistory();
+    this.loadAllocationSummary();
+  }
+
+  setTab(tab: 'REQUESTS' | 'HISTORY' | 'SUMMARY') {
+    this.currentTab.set(tab);
+  }
+
+  getFilterParams(): any {
+    const params: any = {};
+    if (this.startDate()) params.start_date = this.startDate();
+    if (this.endDate()) params.end_date = this.endDate();
+    return params;
+  }
+
+  loadAllocationHistory(): void {
+    const params = this.getFilterParams();
+    if (this.selectedTelecallerFilter()) {
+      params.telecaller_id = this.selectedTelecallerFilter();
+    }
+    
+    this.service.fetchTCAllocationHistory(params).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'success') {
+          this.allocationHistory.set(res.data);
+        } else if (res && res.results) {
+          this.allocationHistory.set(res.results);
+        }
+      },
+      error: (err) => console.error('Error fetching allocation history:', err),
+    });
+  }
+
+  loadAllocationSummary(): void {
+    const params = this.getFilterParams();
+    this.service.fetchTCAllocationSummary(params).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'success') {
+          this.allocationSummary.set(res.data);
+        }
+      },
+      error: (err) => console.error('Error fetching allocation summary:', err),
+    });
+  }
+
+  onFilterChange(): void {
+    this.loadAllocationHistory();
+    this.loadAllocationSummary();
+  }
+
+  onDownloadHistory(): void {
+    const params = this.getFilterParams();
+    if (this.selectedTelecallerFilter()) {
+      params.telecaller_id = this.selectedTelecallerFilter();
+    }
+    this.service.downloadTCAllocationHistory(params).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'allocation_history.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Error downloading history:', err)
+    });
+  }
+
+  onDownloadSummary(): void {
+    const params = this.getFilterParams();
+    this.service.downloadTCAllocationSummary(params).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'allocation_summary.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Error downloading summary:', err)
     });
   }
 

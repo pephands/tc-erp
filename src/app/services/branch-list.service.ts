@@ -22,7 +22,10 @@ export class BranchListService extends BaseHttpService {
     return this.endPoint.branches;
   }
 
-  getData(): Observable<any> {
-    return this.httpGetMethod();
+  getData(page: number = 1, pageSize: number = 10, search?: string): Observable<any> {
+    let url = `${this.endpoint}?page=${page}&page_size=${pageSize}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
+    return this.httpClient.get(url, { headers: this.headers });
   }
 }

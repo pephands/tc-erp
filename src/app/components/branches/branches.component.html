@@ -8,7 +8,7 @@
         type="text" 
         placeholder="Search branches by name, code, phone, email, address..." 
         [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+        (ngModelChange)="searchQuery.set($event); onSearchChange()"
       />
     </div>
 
@@ -106,7 +106,16 @@
     <!-- Pagination Controls -->
     <div class="pagination-bar">
       <div class="pagination-info">
-        Showing {{ paginatedBranches().length }} of {{ filteredBranches().length }} branches
+        Showing {{ paginatedBranches().length }} of {{ filteredBranchesLength() }} branches
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
       </div>
 
       <div class="pagination-controls">

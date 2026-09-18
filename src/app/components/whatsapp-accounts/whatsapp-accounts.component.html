@@ -1,0 +1,136 @@
+<main class="branches-container">
+
+  <!-- Header Action Bar -->
+  <div class="action-header-bar">
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search accounts by number, platform..." 
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+      />
+    </div>
+
+    <button type="button" class="btn-add-branch" (click)="openAddAccountModal()" style="background-color: var(--secondary-color, #10b981);">
+      <span class="material-symbols-outlined">add_link</span>
+      <span>Add Account</span>
+    </button>
+  </div>
+
+  <!-- Data Table Card Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Branch Name</th>
+            <th>Platform Name</th>
+            <th>WhatsApp Number</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="6" class="no-data">
+                <div class="btn-spinner" style="display:inline-block; border-color:var(--text-color); border-top-color:transparent;"></div>
+                <p>Loading accounts...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (account of paginatedAccounts(); track account.id; let i = $index) {
+              <tr>
+                <td class="col-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+                <td class="col-name">{{ account.branch_name }}</td>
+                <td class="col-short">{{ account.platform_name | uppercase }}</td>
+                <td class="col-phone">{{ account.whatsapp_number }}</td>
+                <td class="col-hide">
+                  <span class="hide-badge" [class.is-true]="!account.is_active">
+                    {{ account.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+              <td class="col-actions">
+                <div class="action-btn-group">
+                    <button 
+                      type="button" 
+                      class="btn-edit" 
+                      (click)="openEditAccountModal(account)"
+                      title="Edit Account"
+                    >
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="no-data">
+                <span class="material-symbols-outlined">link_off</span>
+                <p>No account records found.</p>
+              </td>
+            </tr>
+          }
+        }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing {{ paginatedAccounts().length }} of {{ filteredAccounts().length }} accounts
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); currentPage.set(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
+      </div>
+
+      <div class="pagination-controls">
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === 1"
+          (click)="prevPage()"
+        >
+          Prev
+        </button>
+
+        @for (p of pageNumbers(); track p) {
+          <button 
+            type="button" 
+            class="page-btn" 
+            [class.active]="currentPage() === p"
+            (click)="setPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+
+        <button 
+          type="button" 
+          class="page-btn nav-btn" 
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+@if (isAccountModalOpen()) {
+  <app-add-whatsapp-account-modal 
+    [accountData]="selectedAccount()"
+    (closeModal)="closeAccountModal()"
+    (accountAdded)="onAccountAdded()">
+  </app-add-whatsapp-account-modal>
+}
