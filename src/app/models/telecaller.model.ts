@@ -21,4 +21,5 @@ export interface Telecaller {
   loginTime: string;
   logOffTime: string;
   hasAadhar: boolean;
+  aadharImage?: string;
 }

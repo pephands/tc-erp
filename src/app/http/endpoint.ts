@@ -120,13 +120,13 @@ export class Endpoint {
   }
 
   get telecallingCallLog(): string {
-    return `${this.baseUrl}telecalling/call-log/`;
+    return this.baseUrl + 'telecalling/call-log/';
   }
   get telecallingAllocationHistory(): string {
-    return `${this.baseUrl}telecalling/allocations/history/`;
+    return this.baseUrl + 'telecalling/allocations/history/';
   }
   get telecallingAllocationSummary(): string {
-    return `${this.baseUrl}telecalling/allocations/summary/`;
+    return this.baseUrl + 'telecalling/allocations/summary/';
   }
 
   // Payments Domain
@@ -141,5 +141,9 @@ export class Endpoint {
 
   get whatsappCampaigns(): string {
     return this.baseUrl + 'whatsapp/campaigns/';
+  }
+
+  get whatsappTemplates(): string {
+    return this.baseUrl + 'whatsapp/templates/';
   }
 }

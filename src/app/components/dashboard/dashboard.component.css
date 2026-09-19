@@ -803,3 +803,90 @@
   color: #94a3b8;
   padding: 0.75rem 0;
 }
+
+/* Location Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content.location-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-content.location-modal h3 {
+  color: #0f172a;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.modal-content.location-modal p {
+  color: #475569;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.modal-content.location-modal .instructions {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-content.location-modal .instructions strong {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #1e293b;
+}
+
+.modal-content.location-modal .instructions ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #334155;
+}
+
+.modal-content.location-modal .instructions li {
+  margin-bottom: 0.5rem;
+}
+
+.modal-content.location-modal .instructions li:last-child {
+  margin-bottom: 0;
+}
+
+.modal-content.location-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-content.location-modal .btn-primary {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-content.location-modal .btn-primary:hover {
+  background: #2563eb;
+}

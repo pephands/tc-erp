@@ -79,12 +79,14 @@
 
           <div class="form-group">
             <label for="addSlab">Slab</label>
-            <input 
-              type="text" 
-              id="addSlab" 
-              name="addSlab" 
-              [(ngModel)]="formSlab" 
-            />
+            <select id="addSlab" name="addSlab" [(ngModel)]="formSlab">
+              <option value="" disabled selected>Select Slab</option>
+              <option value="SLAB-1">SLAB-1</option>
+              <option value="SLAB-2">SLAB-2</option>
+              <option value="SLAB-3">SLAB-3</option>
+              <option value="SLAB-4">SLAB-4</option>
+              <option value="SLAB-5">SLAB-5</option>
+            </select>
           </div>
         </div>
 
@@ -190,14 +192,27 @@
         <!-- Row 9: Select Aadhar File Picker -->
         <div class="form-group full-width upload-group">
           <label>Select Aadhar</label>
-          <span class="file-hint">Allowed extensions &#123;jpg,png,gif,pdf&#125;</span>
-          <div class="file-input-wrapper">
-            <input 
-              type="file" 
-              accept=".jpg,.png,.gif,.pdf" 
-              (change)="onAadharFileSelected($event)" 
-            />
-          </div>
+          @if (isEditMode && existingAadharUrl && !isAadharReplaced) {
+            <div class="existing-file-preview" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9; margin-top: 5px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="color: #4a90e2;">badge</span>
+                <span>Existing Aadhar Document</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <a [href]="existingAadharUrl" target="_blank" class="btn-secondary-action" style="text-decoration: none; padding: 4px 10px; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color);">View</a>
+                <button type="button" class="btn-delete" style="padding: 4px 10px; font-size: 0.85rem; border: none; background: #ffebee; color: #d32f2f; border-radius: 4px; cursor: pointer;" (click)="removeExistingAadhar()">Replace</button>
+              </div>
+            </div>
+          } @else {
+            <span class="file-hint">Allowed extensions &#123;jpg,png,gif,pdf&#125;</span>
+            <div class="file-input-wrapper">
+              <input 
+                type="file" 
+                accept=".jpg,.png,.gif,.pdf" 
+                (change)="onAadharFileSelected($event)" 
+              />
+            </div>
+          }
         </div>
 
         <!-- Modal Action Footer Buttons -->

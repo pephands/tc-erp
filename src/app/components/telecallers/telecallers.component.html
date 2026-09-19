@@ -13,15 +13,17 @@
 
     <!-- Action Buttons Cluster -->
     <div class="top-action-buttons">
-      <button type="button" class="btn-primary-action" (click)="onAddNew()">
-        <span class="material-symbols-outlined">person_add</span>
-        <span>Add New</span>
-      </button>
+      @if (isAdminUser) {
+        <button type="button" class="btn-primary-action" (click)="onAddNew()">
+          <span class="material-symbols-outlined">person_add</span>
+          <span>Add New</span>
+        </button>
 
-      <button type="button" class="btn-secondary-action" (click)="onUploadData()">
-        <span class="material-symbols-outlined">upload_file</span>
-        <span>Edit TeleCaller data(upload)</span>
-      </button>
+        <button type="button" class="btn-secondary-action" (click)="onUploadData()">
+          <span class="material-symbols-outlined">upload_file</span>
+          <span>Edit TeleCaller data(upload)</span>
+        </button>
+      }
 
       <button type="button" class="btn-secondary-action" (click)="onDownloadTelecallers()">
         <span class="material-symbols-outlined">download</span>
@@ -42,7 +44,7 @@
 
     <div class="filter-controls-grid">
       <!-- Filter 1: Branch (Admin Only) -->
-      @if (!isTlUser) {
+      @if (isAdminUser) {
         <div class="filter-field">
           <label for="branchSelect">Branch</label>
           <div class="select-wrapper">
@@ -226,14 +228,15 @@
                 <td class="col-aadhar">
                   @if (telecaller.hasAadhar) {
                     <!-- View Aadhar Eye Button -->
-                    <button
-                      type="button"
+                    <a
+                      [href]="telecaller.aadharImage"
+                      target="_blank"
                       class="btn-view-aadhar"
-                      (click)="openAadharModal(telecaller)"
                       title="View Aadhar Card"
+                      style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"
                     >
                       <span class="material-symbols-outlined">visibility</span>
-                    </button>
+                    </a>
                   }
                 </td>
               </tr>
@@ -337,18 +340,30 @@
       </div>
 
       <div class="modal-body aadhar-preview-body">
-        <div class="aadhar-card-graphic">
-          <div class="aadhar-graphic-header">
-            <span class="material-symbols-outlined">fingerprint</span>
-            <span>Government of India - Aadhar Card</span>
+        @if (t.aadharImage) {
+          <div class="aadhar-document-preview" style="text-align: center; margin-bottom: 1.5rem;">
+            <img [src]="t.aadharImage" alt="Aadhar Document" style="max-width: 100%; max-height: 400px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 8px;" onerror="this.style.display='none'" />
+            <div style="margin-top: 1rem;">
+              <a [href]="t.aadharImage" target="_blank" class="btn-primary-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 1rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.2rem;">open_in_new</span>
+                Open Document
+              </a>
+            </div>
           </div>
-          <div class="aadhar-graphic-details">
-            <p><strong>Name:</strong> {{ t.fullName }}</p>
-            <p><strong>Employee ID:</strong> {{ t.id }}</p>
-            <p><strong>Branch:</strong> {{ t.branch }}</p>
-            <p><strong>Aadhar No:</strong> XXXX-XXXX-5829</p>
+        } @else {
+          <div class="aadhar-card-graphic">
+            <div class="aadhar-graphic-header">
+              <span class="material-symbols-outlined">fingerprint</span>
+              <span>Government of India - Aadhar Card</span>
+            </div>
+            <div class="aadhar-graphic-details">
+              <p><strong>Name:</strong> {{ t.fullName }}</p>
+              <p><strong>Employee ID:</strong> {{ t.id }}</p>
+              <p><strong>Branch:</strong> {{ t.branch }}</p>
+              <p><strong>Aadhar No:</strong> XXXX-XXXX-5829</p>
+            </div>
           </div>
-        </div>
+        }
 
         <div class="modal-footer">
           <button type="button" class="btn-secondary-action" (click)="closeAadharModal()">

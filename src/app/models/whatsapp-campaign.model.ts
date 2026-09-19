@@ -4,6 +4,17 @@ export interface WhatsappCampaign {
   branch_name?: string;
   whatsapp_account: number | null;
   campaign_name: string;
+  description?: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WhatsappTemplate {
+  id: number;
+  campaign: number;
+  campaign_name?: string;
+  template_name: string;
   meta_template_name: string;
   template_type: string;
   is_dynamic: boolean;
@@ -30,3 +41,4 @@ export interface WhatsappAccount {
   api_key: string;
   is_active: boolean;
 }
+

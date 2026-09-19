@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WhatsappCampaignService } from '../../services/whatsapp-campaign.service';
 import { BranchListService } from '../../services/branch-list.service';
@@ -24,6 +25,7 @@ export class WhatsappCampaignsComponent implements OnInit {
   private campaignCreateService = inject(WhatsappCampaignCreateService);
   private branchListService = inject(BranchListService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
 
   // Pagination & Filter state
   currentPage = signal<number>(1);
@@ -33,12 +35,21 @@ export class WhatsappCampaignsComponent implements OnInit {
   // Modals state
   isModalOpen = signal<boolean>(false);
   selectedCampaignForEdit = signal<WhatsappCampaign | undefined>(undefined);
+  
+  isDeleteModalOpen = signal<boolean>(false);
+  campaignToDelete = signal<WhatsappCampaign | null>(null);
 
   // Filter state
   filterBranch = signal<string>('');
   filterIsActive = signal<string>('');
-  filterTemplateType = signal<string>('');
   branches = signal<any[]>([]);
+
+  resetFilters(): void {
+    this.searchQuery.set('');
+    this.filterBranch.set('');
+    this.filterIsActive.set('');
+    this.currentPage.set(1);
+  }
 
   // All campaigns from service
   allCampaigns = signal<WhatsappCampaign[]>([]);
@@ -60,18 +71,12 @@ export class WhatsappCampaignsComponent implements OnInit {
       list = list.filter(c => c.is_active === false);
     }
 
-    // Template Type filter
-    if (this.filterTemplateType()) {
-      list = list.filter(c => c.template_type === this.filterTemplateType());
-    }
-
     // Search query
     const query = this.searchQuery().trim().toLowerCase();
     if (query) {
       list = list.filter(c => 
         (c.campaign_name && c.campaign_name.toLowerCase().includes(query)) ||
-        (c.template_type && c.template_type.toLowerCase().includes(query)) ||
-        (c.meta_template_name && c.meta_template_name.toLowerCase().includes(query))
+        (c.description && c.description.toLowerCase().includes(query))
       );
     }
 
@@ -156,36 +161,36 @@ export class WhatsappCampaignsComponent implements OnInit {
     this.isModalOpen.set(true);
   }
 
-  deleteCampaign(campaign: WhatsappCampaign): void {
-    if (confirm(`Are you sure you want to delete campaign "${campaign.campaign_name}"?`)) {
-      if (campaign.id) {
-        this.campaignCreateService.deleteData(campaign.id).subscribe({
-          next: () => {
-            this.toastService.success('Success', 'Campaign deleted successfully');
-            this.loadCampaigns();
-          },
-          error: (err) => {
-            this.toastService.error('Error', err.error?.message || 'Failed to delete campaign');
-          }
-        });
-      }
-    }
+  openDeleteConfirm(campaign: WhatsappCampaign): void {
+    this.campaignToDelete.set(campaign);
+    this.isDeleteModalOpen.set(true);
   }
 
-  testCampaign(campaign: WhatsappCampaign): void {
-    if (!campaign.id) return;
-    
-    const number = window.prompt(`Enter a WhatsApp number to test campaign "${campaign.campaign_name}":\n(e.g., 9190424XXXXX)`);
-    if (number && number.trim() !== '') {
-      this.campaignCreateService.triggerTest(campaign.id, number.trim()).subscribe({
-        next: (res: any) => {
-          this.toastService.success('Success', res.message || 'Test message sent successfully!');
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen.set(false);
+    this.campaignToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const campaign = this.campaignToDelete();
+    if (campaign && campaign.id) {
+      this.campaignCreateService.deleteData(campaign.id).subscribe({
+        next: () => {
+          this.toastService.success('Success', 'Campaign deleted successfully');
+          this.loadCampaigns();
+          this.closeDeleteModal();
         },
-        error: (err: any) => {
-          this.toastService.error('Error', err.error?.message || 'Failed to send test message');
+        error: (err) => {
+          this.toastService.error('Error', err.error?.message || 'Failed to delete campaign');
+          this.closeDeleteModal();
         }
       });
     }
+  }
+
+  viewTemplates(campaign: WhatsappCampaign): void {
+    if (!campaign.id) return;
+    this.router.navigate(['/whatsapp-campaigns', campaign.id, 'templates']);
   }
 
   closeModal(): void {

@@ -641,6 +641,7 @@
                   <thead>
                     <tr>
                       <th>Staff</th>
+                      <th>Branch</th>
                       <th>Code</th>
                       <th>Status</th>
                     </tr>
@@ -649,6 +650,7 @@
                     @for (item of todayPasscodes(); track item.id) {
                       <tr>
                         <td class="staff-cell">{{ item.user_details?.full_name || item.user_details?.username }}</td>
+                        <td>{{ item.user_details?.branch_name || '-' }}</td>
                         <td><code>{{ item.passcode }}</code></td>
                         <td>
                           <span class="mini-badge" [class.used]="item.is_used" [class.active]="!item.is_used">
@@ -658,7 +660,7 @@
                       </tr>
                     } @empty {
                       <tr>
-                        <td colspan="3" class="no-data-sm">No passcodes generated today</td>
+                        <td colspan="4" class="no-data-sm">No passcodes generated today</td>
                       </tr>
                     }
                   </tbody>
@@ -672,4 +674,26 @@
     </div>
 
   </div>
+
+  @if (showLocationInstructionsModal()) {
+    <div class="modal-overlay">
+      <div class="modal-content location-modal">
+        <h3>Location Access Required</h3>
+        <p>Your browser is currently blocking location access, which is required for attendance.</p>
+        <div class="instructions">
+          <strong>How to enable location:</strong>
+          <ol>
+            <li>Click the <strong>lock icon</strong> (or site settings) next to the URL bar.</li>
+            <li>Find <strong>Location</strong> in the site permissions.</li>
+            <li>Change the permission to <strong>Allow</strong>.</li>
+            <li>Refresh the page and try again.</li>
+          </ol>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" (click)="showLocationInstructionsModal.set(false)">Got It</button>
+        </div>
+      </div>
+    </div>
+  }
+
 </main>

@@ -13,6 +13,7 @@ import { ExpenseDetailsComponent } from './components/expense-details/expense-de
 import { ExpenseReportComponent } from './components/expense-report/expense-report.component';
 import { WhatsappCampaignsComponent } from './components/whatsapp-campaigns/whatsapp-campaigns.component';
 import { WhatsappAccountsComponent } from './components/whatsapp-accounts/whatsapp-accounts.component';
+
 import { SendRecordsComponent } from './components/send-records/send-records.component';
 import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
 import { ApprovedRecordsComponent } from './components/approved-records/approved-records.component';
@@ -113,6 +114,16 @@ export const routes: Routes = [
       {
         path: 'whatsapp-campaigns',
         component: WhatsappCampaignsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'whatsapp-campaigns/:campaignId/templates',
+        loadComponent: () => import('./components/whatsapp-templates/whatsapp-templates.component').then(m => m.WhatsappTemplates),
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'whatsapp-send',
+        loadComponent: () => import('./components/whatsapp-send/whatsapp-send.component').then(m => m.WhatsappSendComponent),
         canActivate: [deviceAuthGuard],
       },
       {

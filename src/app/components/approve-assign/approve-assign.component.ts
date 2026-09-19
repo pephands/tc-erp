@@ -41,6 +41,18 @@ export class ApproveAssignComponent implements OnInit {
   isUploadModalOpen = signal<boolean>(false);
   isFlushConfirmModalOpen = signal<boolean>(false);
   isAssignBranchModalOpen = signal<boolean>(false);
+  
+  // Generic Action Confirmation Modal
+  isActionConfirmModalOpen = signal<boolean>(false);
+  actionConfirmTitle = signal<string>('');
+  actionConfirmMessage = signal<string>('');
+  actionConfirmButtonText = signal<string>('');
+  actionConfirmButtonClass = signal<string>(''); // e.g. 'btn-update' or 'btn-delete-confirm'
+  actionConfirmIcon = signal<string>(''); // e.g. 'check_circle' or 'cancel'
+  actionConfirmIconBg = signal<string>(''); // e.g. 'var(--primary)' or 'var(--role-admin-bg)'
+  actionConfirmIconColor = signal<string>(''); // e.g. 'white' or 'var(--role-admin-color)'
+  
+  pendingAction = signal<(() => void) | null>(null);
 
   // Form Inputs: Upload Base
   uploadCategory = signal<'BASE' | 'NON_BASE'>('BASE');
@@ -178,7 +190,7 @@ export class ApproveAssignComponent implements OnInit {
     const category = this.uploadCategory();
 
     if (!file) {
-      alert('Please select an Excel file (.xls, .xlsx) to upload.');
+      this.triggerToast('Please select an Excel file (.xls, .xlsx) to upload.');
       return;
     }
 
@@ -195,7 +207,7 @@ export class ApproveAssignComponent implements OnInit {
         this.isSubmitting.set(false);
         console.error('Error uploading excel:', err);
         const errorMsg = err.error?.message || 'Failed to upload Excel file.';
-        alert(errorMsg);
+        this.triggerToast(errorMsg);
       },
     });
   }
@@ -219,7 +231,7 @@ export class ApproveAssignComponent implements OnInit {
       error: (err: any) => {
         console.error('Error downloading unallocated data:', err);
         this.isExporting.set(false);
-        alert('Failed to download unallocated master data.');
+        this.triggerToast('Failed to download unallocated master data.');
       },
     });
   }
@@ -245,41 +257,85 @@ export class ApproveAssignComponent implements OnInit {
       error: (err: any) => {
         this.isSubmitting.set(false);
         console.error('Error flushing master data:', err);
-        alert('Failed to flush unallocated master data.');
+        this.triggerToast('Failed to flush unallocated master data.');
       },
     });
   }
 
+  // Generic Confirmation Actions
+  openActionConfirm(title: string, message: string, buttonText: string, buttonClass: string, icon: string, iconBg: string, iconColor: string, action: () => void): void {
+    this.actionConfirmTitle.set(title);
+    this.actionConfirmMessage.set(message);
+    this.actionConfirmButtonText.set(buttonText);
+    this.actionConfirmButtonClass.set(buttonClass);
+    this.actionConfirmIcon.set(icon);
+    this.actionConfirmIconBg.set(iconBg);
+    this.actionConfirmIconColor.set(iconColor);
+    this.pendingAction.set(action);
+    this.isActionConfirmModalOpen.set(true);
+  }
+
+  closeActionConfirm(): void {
+    this.isActionConfirmModalOpen.set(false);
+    this.pendingAction.set(null);
+  }
+
+  executeActionConfirm(): void {
+    const action = this.pendingAction();
+    if (action) {
+      action();
+    }
+    this.closeActionConfirm();
+  }
+
   // Admin Request Actions: Approve / Reject
   onApproveRequest(req: BranchAllocationRequestRecord): void {
-    if (confirm(`Approve request #${req.id} for ${req.requestedQuantity} ${req.category} numbers for ${req.branchName}?`)) {
-      this.service.approveAllocationRequest(req.id).subscribe({
-        next: (res: any) => {
-          this.triggerToast(`Request #${req.id} approved successfully!`);
-          this.loadData();
-        },
-        error: (err: any) => {
-          console.error('Error approving request:', err);
-          const msg = err.error?.message || 'Failed to approve request.';
-          alert(msg);
-        },
-      });
-    }
+    this.openActionConfirm(
+      'Approve Request',
+      `Approve request #${req.id} for ${req.requestedQuantity} ${req.category} numbers for ${req.branchName}?`,
+      'Approve',
+      'btn-update',
+      'check_circle',
+      'var(--primary)',
+      'white',
+      () => {
+        this.service.approveAllocationRequest(req.id).subscribe({
+          next: (res: any) => {
+            this.triggerToast(`Request #${req.id} approved successfully!`);
+            this.loadData();
+          },
+          error: (err: any) => {
+            console.error('Error approving request:', err);
+            const msg = err.error?.message || 'Failed to approve request.';
+            alert(msg);
+          },
+        });
+      }
+    );
   }
 
   onRejectRequest(req: BranchAllocationRequestRecord): void {
-    if (confirm(`Reject request #${req.id} (${req.branchName})?`)) {
-      this.service.rejectAllocationRequest(req.id).subscribe({
-        next: (res: any) => {
-          this.triggerToast(`Request #${req.id} rejected.`);
-          this.loadData();
-        },
-        error: (err: any) => {
-          console.error('Error rejecting request:', err);
-          alert('Failed to reject request.');
-        },
-      });
-    }
+    this.openActionConfirm(
+      'Reject Request',
+      `Reject request #${req.id} (${req.branchName})?`,
+      'Reject',
+      'btn-delete-confirm',
+      'cancel',
+      'var(--role-admin-bg)',
+      'var(--role-admin-color)',
+      () => {
+        this.service.rejectAllocationRequest(req.id).subscribe({
+          next: (res: any) => {
+            this.triggerToast(`Request #${req.id} rejected.`);
+            this.loadData();
+          },
+          error: (err: any) => {
+            console.error('Error rejecting request:', err);
+            alert('Failed to reject request.');
+          },
+        });
+      }
+    );
   }
 
   // Admin Action: Assign Data Directly to Branch
@@ -300,11 +356,11 @@ export class ApproveAssignComponent implements OnInit {
     const qty = this.assignBranchQuantity();
 
     if (!branchId) {
-      alert('Please select a Branch.');
+      this.triggerToast('Please select a Branch.');
       return;
     }
     if (!qty || qty <= 0) {
-      alert('Please enter a valid quantity.');
+      this.triggerToast('Please enter a valid quantity.');
       return;
     }
 
@@ -323,7 +379,7 @@ export class ApproveAssignComponent implements OnInit {
             error: (err: any) => {
               this.isSubmitting.set(false);
               console.error('Error approving direct branch assignment:', err);
-              alert(err.error?.message || 'Request created but auto-approval failed.');
+              this.triggerToast(err.error?.message || 'Request created but auto-approval failed.');
               this.loadData();
             },
           });
@@ -337,7 +393,7 @@ export class ApproveAssignComponent implements OnInit {
       error: (err: any) => {
         this.isSubmitting.set(false);
         console.error('Error creating branch allocation:', err);
-        alert(err.error?.message || 'Failed to assign numbers to branch.');
+        this.triggerToast(err.error?.message || 'Failed to assign numbers to branch.');
       },
     });
   }

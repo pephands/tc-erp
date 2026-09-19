@@ -1,0 +1,152 @@
+<main class="main-content fade-in">
+  <div class="content-wrapper">
+    <!-- Header Area -->
+    <div class="page-header">
+      <div class="header-title">
+        <h2>WhatsApp Templates</h2>
+        <p>Trigger and manage your WhatsApp campaigns directly.</p>
+      </div>
+    </div>
+
+    @if (isLoadingCampaigns()) {
+      <div class="skeleton-loader-table"></div>
+    } @else {
+      <!-- Datatable Container -->
+      <div class="datatable-container">
+        <!-- Controls Bar -->
+        <div class="datatable-controls">
+          <div class="search-box">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              [ngModel]="searchQuery()" 
+              (input)="onSearch($event)"
+            />
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th width="80px">S.No</th>
+                <th width="200px">Campaign Name</th>
+                <th>Template Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (campaign of paginatedCampaigns(); track campaign.id) {
+                <tr>
+                  <td>{{ (currentPage() - 1) * pageSize() + $index + 1 }}</td>
+                  <td class="font-semibold">
+                    <div class="campaign-name-cell">
+                      {{ campaign.campaign_name }}
+                      <span class="status-pill mt-2" [class.active]="campaign.is_active !== false">
+                        {{ campaign.is_active !== false ? 'Active' : 'Inactive' }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    @if (isLoadingTemplates()[campaign.id!]) {
+                      <div class="skeleton-loader" style="height: 60px;"></div>
+                    } @else {
+                      <div class="templates-grid">
+                        @for (template of campaignTemplates()[campaign.id!]; track template.id) {
+                          <div class="template-item group">
+                            <div class="t-header">
+                              <span class="t-name" [title]="template.template_name">{{ template.template_name }}</span>
+                              <span class="t-type badge" [ngClass]="'badge-' + template.template_type?.toLowerCase()">
+                                {{ template.template_type }}
+                              </span>
+                            </div>
+                            <div class="t-action">
+                              <div class="premium-input-group" [class.focused]="isInputFocused[template.id!]">
+                                <span class="country-code">+91</span>
+                                <input 
+                                  type="text" 
+                                  placeholder="10 Digits"
+                                  maxlength="10"
+                                  [ngModel]="templateNumbers()[template.id!]"
+                                  (ngModelChange)="onNumberChange(template, $event)"
+                                  (focus)="isInputFocused[template.id!] = true"
+                                  (blur)="isInputFocused[template.id!] = false"
+                                  [disabled]="isSending()[template.id!]"
+                                />
+                                @if (isValidNumber(template.id)) {
+                                  <button 
+                                    class="mini-send-btn slide-in"
+                                    [class.cooldown]="cooldowns()[template.id!] > 0"
+                                    [disabled]="isSending()[template.id!] || cooldowns()[template.id!] > 0"
+                                    (click)="sendMessage(template)"
+                                    title="Send Message"
+                                  >
+                                    @if (isSending()[template.id!]) {
+                                      <div class="btn-spinner inline-spinner"></div>
+                                    } @else if (cooldowns()[template.id!] > 0) {
+                                      <span class="cooldown-text">{{ cooldowns()[template.id!] }}s</span>
+                                    } @else {
+                                      <span class="material-symbols-outlined send-icon-small">send</span>
+                                    }
+                                  </button>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        } @empty {
+                           <div class="empty-templates-text">No templates found.</div>
+                        }
+                      </div>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="empty-state">
+                    <span class="material-symbols-outlined">inbox</span>
+                    <p>No active campaigns found.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (activeCampaigns().length > 0) {
+          <div class="table-pagination">
+            <div class="pagination-controls">
+              <button class="nav-btn" [disabled]="currentPage() === 1" (click)="prevPage()">Prev</button>
+              
+              <div class="page-numbers">
+                @for (p of pageNumbers(); track p) {
+                  <button class="num-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+                    {{ p }}
+                  </button>
+                }
+              </div>
+
+              <button class="nav-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">Next</button>
+              <button class="nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">Last</button>
+            </div>
+            
+            <div class="pagination-stats">
+              Showing {{ paginatedCampaigns().length }} of {{ activeCampaigns().length }} campaigns
+              
+              <div class="per-page">
+                <span>Per page:</span>
+                <select [ngModel]="pageSize()" (change)="onPageSizeChange($event)">
+                  <option [value]="5">5</option>
+                  <option [value]="10">10</option>
+                  <option [value]="25">25</option>
+                  <option [value]="50">50</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</main>

@@ -55,12 +55,14 @@ export class UserListService extends BaseHttpService {
   }
 
   addUser(userData: any): Observable<any> {
-    return this.httpClient.post(this.endpoint, userData, { headers: this.headers });
+    const headers = userData instanceof FormData ? this.multipartHeaders : this.headers;
+    return this.httpClient.post(this.endpoint, userData, { headers: headers });
   }
 
   updateUser(userId: string | number, userData: any): Observable<any> {
     const url = `${this.endpoint}${userId}/`;
-    return this.httpClient.patch(url, userData, { headers: this.headers });
+    const headers = userData instanceof FormData ? this.multipartHeaders : this.headers;
+    return this.httpClient.patch(url, userData, { headers: headers });
   }
 
   uploadManagersExcel(file: File): Observable<any> {

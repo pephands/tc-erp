@@ -313,12 +313,13 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['ADMIN'],
           route: '/whatsapp-campaigns',
         },
-        // {
-        //   id: 'send_whatsapp_10be',
-        //   label: 'Send Whatsapp(Form 10BE)',
-        //   icon: 'send',
-        //   allowedRoles: ['ADMIN', 'TL', 'TC'],
-        // },
+        {
+          id: 'send_whatsapp_message',
+          label: 'Send Message',
+          icon: 'send',
+          allowedRoles: ['TL', 'TC'],
+          route: '/whatsapp-send',
+        },
       ],
     },
     {
