@@ -36,13 +36,68 @@ export class WhatsappSendComponent implements OnInit, OnDestroy {
   // UI state
   isInputFocused: { [key: number]: boolean } = {};
   searchQuery = signal<string>('');
+  selectedMediaType = signal<Record<number, string>>({});
   
   // Timer reference
   private timerRef: any;
 
   activeCampaigns = computed(() => {
-    return this.allCampaigns().filter(c => c.is_active !== false);
+    const query = this.searchQuery().toLowerCase().trim();
+    const campaigns = this.allCampaigns().filter(c => c.is_active !== false);
+    if (!query) return campaigns;
+    return campaigns.filter(c => {
+      const matchCampaign = c.campaign_name.toLowerCase().includes(query);
+      const templates = this.campaignTemplates()[c.id!] || [];
+      const matchTemplate = templates.some(t => 
+        t.template_name.toLowerCase().includes(query) || 
+        (t.template_type && t.template_type.toLowerCase().includes(query))
+      );
+      return matchCampaign || matchTemplate;
+    });
   });
+
+  setMediaTypeFilter(campaignId: number, type: string): void {
+    this.selectedMediaType.update(prev => ({
+      ...prev,
+      [campaignId]: type
+    }));
+  }
+
+  getMediaTypeFilter(campaignId: number): string {
+    return this.selectedMediaType()[campaignId] || 'ALL';
+  }
+
+  getFilteredTemplates(campaignId: number): WhatsappTemplate[] {
+    let templates = this.campaignTemplates()[campaignId] || [];
+    const filter = this.getMediaTypeFilter(campaignId);
+    if (filter !== 'ALL') {
+      templates = templates.filter(t => t.template_type?.toUpperCase() === filter);
+    }
+    const query = this.searchQuery().toLowerCase().trim();
+    if (query) {
+      templates = templates.filter(t => 
+        t.template_name.toLowerCase().includes(query) || 
+        (t.template_type && t.template_type.toLowerCase().includes(query))
+      );
+    }
+    return templates;
+  }
+
+  getTemplateCountByType(campaignId: number, type: string): number {
+    let templates = this.campaignTemplates()[campaignId] || [];
+    const filter = type;
+    if (filter !== 'ALL') {
+      templates = templates.filter(t => t.template_type?.toUpperCase() === filter);
+    }
+    const query = this.searchQuery().toLowerCase().trim();
+    if (query) {
+      templates = templates.filter(t => 
+        t.template_name.toLowerCase().includes(query) || 
+        (t.template_type && t.template_type.toLowerCase().includes(query))
+      );
+    }
+    return templates.length;
+  }
   
   paginatedCampaigns = computed(() => {
     const active = this.activeCampaigns();
