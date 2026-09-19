@@ -266,14 +266,86 @@
           </div>
 
           <div class="form-group">
-            <label>Branch</label>
+            <label>Home Branch</label>
             <select [(ngModel)]="formBranchId">
-              <option value="">Select Branch</option>
+              <option value="">Select Home Branch</option>
               @for (b of branches(); track b.id || b.name) {
                 <option [value]="b.id">{{ b.name }}</option>
               }
             </select>
           </div>
+
+          @if (roleCode === 'MANAGER') {
+            <div class="form-group full-width multi-select-wrapper">
+              <label>Managed Branches (Incharge Of)</label>
+
+              <!-- Custom Select Trigger Box -->
+              <div class="multi-select-box" (click)="toggleBranchDropdown()">
+                @if (formManagedBranchIds.length === 0) {
+                  <span class="placeholder-text">Click to select managed branches...</span>
+                } @else {
+                  <div class="pills-wrapper">
+                    @for (pill of getSelectedBranchPills(); track pill.id) {
+                      <span class="branch-pill">
+                        {{ pill.name }}
+                        <button type="button" class="pill-remove" (click)="$event.stopPropagation(); removeManagedBranch(pill.id)">×</button>
+                      </span>
+                    }
+                  </div>
+                }
+                <span class="material-symbols-outlined dropdown-arrow">
+                  {{ isManagedBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
+                </span>
+              </div>
+
+              <!-- Popover Panel -->
+              @if (isManagedBranchDropdownOpen()) {
+                <div class="multi-select-popover" (click)="$event.stopPropagation()">
+                  <div class="popover-header">
+                    <div class="popover-search">
+                      <span class="material-symbols-outlined search-icon">search</span>
+                      <input 
+                        type="text" 
+                        placeholder="Search branches..." 
+                        [value]="branchSearchText()" 
+                        (input)="onBranchSearchInput($any($event.target).value)" 
+                      />
+                      @if (branchSearchText()) {
+                        <button type="button" class="btn-clear-search" (click)="onBranchSearchInput('')">×</button>
+                      }
+                    </div>
+                    <div class="popover-actions">
+                      <button type="button" class="btn-popover-action" (click)="selectAllBranches()">Select All</button>
+                      <button type="button" class="btn-popover-action" (click)="clearAllBranches()">Clear All</button>
+                    </div>
+                  </div>
+
+                  <div class="popover-options-list">
+                    @for (b of getFilteredBranchesForSelection(); track b.id || b.name) {
+                      <label class="popover-option-item">
+                        <input 
+                          type="checkbox" 
+                          [checked]="isManagedBranchSelected(b.id)" 
+                          (change)="toggleManagedBranch(b.id)" 
+                        />
+                        <span class="option-name">{{ b.name }}</span>
+                        @if (b.code) {
+                          <span class="option-code">({{ b.code }})</span>
+                        }
+                      </label>
+                    } @empty {
+                      <div class="no-branches-found">No branches match your search</div>
+                    }
+                  </div>
+
+                  <div class="popover-footer">
+                    <span>{{ formManagedBranchIds.length }} branch(es) selected</span>
+                    <button type="button" class="btn-done" (click)="closeBranchDropdown()">Done</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
 
           <div class="form-group">
             <label>Gender</label>
@@ -394,14 +466,86 @@
           </div>
 
           <div class="form-group">
-            <label>Branch</label>
+            <label>Home Branch</label>
             <select [(ngModel)]="formBranchId">
-              <option value="">Select Branch</option>
+              <option value="">Select Home Branch</option>
               @for (b of branches(); track b.id || b.name) {
                 <option [value]="b.id">{{ b.name }}</option>
               }
             </select>
           </div>
+
+          @if (roleCode === 'MANAGER' || editingUser()?.roleCode === 'MANAGER') {
+            <div class="form-group full-width multi-select-wrapper">
+              <label>Managed Branches (Incharge Of)</label>
+
+              <!-- Custom Select Trigger Box -->
+              <div class="multi-select-box" (click)="toggleBranchDropdown()">
+                @if (formManagedBranchIds.length === 0) {
+                  <span class="placeholder-text">Click to select managed branches...</span>
+                } @else {
+                  <div class="pills-wrapper">
+                    @for (pill of getSelectedBranchPills(); track pill.id) {
+                      <span class="branch-pill">
+                        {{ pill.name }}
+                        <button type="button" class="pill-remove" (click)="$event.stopPropagation(); removeManagedBranch(pill.id)">×</button>
+                      </span>
+                    }
+                  </div>
+                }
+                <span class="material-symbols-outlined dropdown-arrow">
+                  {{ isManagedBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
+                </span>
+              </div>
+
+              <!-- Popover Panel -->
+              @if (isManagedBranchDropdownOpen()) {
+                <div class="multi-select-popover" (click)="$event.stopPropagation()">
+                  <div class="popover-header">
+                    <div class="popover-search">
+                      <span class="material-symbols-outlined search-icon">search</span>
+                      <input 
+                        type="text" 
+                        placeholder="Search branches..." 
+                        [value]="branchSearchText()" 
+                        (input)="onBranchSearchInput($any($event.target).value)" 
+                      />
+                      @if (branchSearchText()) {
+                        <button type="button" class="btn-clear-search" (click)="onBranchSearchInput('')">×</button>
+                      }
+                    </div>
+                    <div class="popover-actions">
+                      <button type="button" class="btn-popover-action" (click)="selectAllBranches()">Select All</button>
+                      <button type="button" class="btn-popover-action" (click)="clearAllBranches()">Clear All</button>
+                    </div>
+                  </div>
+
+                  <div class="popover-options-list">
+                    @for (b of getFilteredBranchesForSelection(); track b.id || b.name) {
+                      <label class="popover-option-item">
+                        <input 
+                          type="checkbox" 
+                          [checked]="isManagedBranchSelected(b.id)" 
+                          (change)="toggleManagedBranch(b.id)" 
+                        />
+                        <span class="option-name">{{ b.name }}</span>
+                        @if (b.code) {
+                          <span class="option-code">({{ b.code }})</span>
+                        }
+                      </label>
+                    } @empty {
+                      <div class="no-branches-found">No branches match your search</div>
+                    }
+                  </div>
+
+                  <div class="popover-footer">
+                    <span>{{ formManagedBranchIds.length }} branch(es) selected</span>
+                    <button type="button" class="btn-done" (click)="closeBranchDropdown()">Done</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
 
           <div class="form-group">
             <label>Gender</label>

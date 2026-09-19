@@ -33,6 +33,8 @@ export interface UserRecord {
   logOffTime: string;
   hasAadhar: boolean;
   aadharImage?: string;
+  managedBranches?: any[];
+  managedBranchIds?: number[];
 }
 
 @Component({
@@ -108,6 +110,9 @@ export class UserListComponent implements OnInit {
   formBankIfscCode = '';
   formAddress = '';
   formStatus = 'Active';
+  formManagedBranchIds: number[] = [];
+  isManagedBranchDropdownOpen = signal<boolean>(false);
+  branchSearchText = signal<string>('');
   selectedAadharFile: File | null = null;
   selectedExcelFile: File | null = null;
   isSubmittingForm = signal<boolean>(false);
@@ -212,7 +217,9 @@ export class UserListComponent implements OnInit {
       loginTime: this.formatTime12h(u.shift_start_time) || '09:00 AM',
       logOffTime: this.formatTime12h(u.shift_end_time) || '06:00 PM',
       hasAadhar: !!u.aadhar_image,
-      aadharImage: u.aadhar_image
+      aadharImage: u.aadhar_image,
+      managedBranches: u.managed_branches || [],
+      managedBranchIds: (u.managed_branches || []).map((b: any) => b.id)
     };
   }
 
@@ -322,6 +329,9 @@ export class UserListComponent implements OnInit {
     this.formBankIfscCode = user.bankIfscCode;
     this.formAddress = user.address;
     this.formStatus = user.status;
+    this.formManagedBranchIds = user.managedBranchIds ? [...user.managedBranchIds] : [];
+    this.isManagedBranchDropdownOpen.set(false);
+    this.branchSearchText.set('');
     this.selectedAadharFile = null;
     this.isEditModalOpen.set(true);
   }
@@ -351,7 +361,74 @@ export class UserListComponent implements OnInit {
     this.formBankIfscCode = '';
     this.formAddress = '';
     this.formStatus = 'Active';
+    this.formManagedBranchIds = [];
+    this.isManagedBranchDropdownOpen.set(false);
+    this.branchSearchText.set('');
     this.selectedAadharFile = null;
+  }
+
+  toggleManagedBranch(branchId: number): void {
+    const idx = this.formManagedBranchIds.indexOf(branchId);
+    if (idx > -1) {
+      this.formManagedBranchIds.splice(idx, 1);
+    } else {
+      this.formManagedBranchIds.push(branchId);
+    }
+  }
+
+  isManagedBranchSelected(branchId: number): boolean {
+    return this.formManagedBranchIds.includes(branchId);
+  }
+
+  toggleBranchDropdown(): void {
+    this.isManagedBranchDropdownOpen.update(v => !v);
+  }
+
+  closeBranchDropdown(): void {
+    this.isManagedBranchDropdownOpen.set(false);
+  }
+
+  onBranchSearchInput(val: string): void {
+    this.branchSearchText.set(val);
+  }
+
+  getAvailableBranchesForSelection(): any[] {
+    const homeId = this.formBranchId;
+    return this.branches().filter(b => b.id !== 'self' && b.id.toString() !== homeId);
+  }
+
+  getFilteredBranchesForSelection(): any[] {
+    const available = this.getAvailableBranchesForSelection();
+    const query = this.branchSearchText().toLowerCase().trim();
+    if (!query) return available;
+    return available.filter(b => 
+      (b.name && b.name.toLowerCase().includes(query)) || 
+      (b.code && b.code.toLowerCase().includes(query))
+    );
+  }
+
+  getSelectedBranchPills(): { id: number; name: string }[] {
+    const all = this.branches();
+    return this.formManagedBranchIds.map(id => {
+      const b = all.find((item: any) => item.id === id || item.id === Number(id));
+      return { id: Number(id), name: b ? b.name : `Branch #${id}` };
+    });
+  }
+
+  selectAllBranches(): void {
+    const available = this.getAvailableBranchesForSelection();
+    this.formManagedBranchIds = available.map(b => b.id);
+  }
+
+  clearAllBranches(): void {
+    this.formManagedBranchIds = [];
+  }
+
+  removeManagedBranch(branchId: number): void {
+    const idx = this.formManagedBranchIds.indexOf(branchId);
+    if (idx > -1) {
+      this.formManagedBranchIds.splice(idx, 1);
+    }
   }
 
   onFileSelected(event: any): void {
@@ -395,6 +472,11 @@ export class UserListComponent implements OnInit {
     if (this.formBankIfscCode.trim()) formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
     if (this.formAddress.trim()) formData.append('address', this.formAddress.trim());
     if (this.selectedAadharFile) formData.append('aadhar_image', this.selectedAadharFile);
+    if (this.roleCode === 'MANAGER') {
+      if (this.formManagedBranchIds.length > 0) {
+        this.formManagedBranchIds.forEach(id => formData.append('managed_branch_ids', id.toString()));
+      }
+    }
 
     this.userListService.addUser(formData).subscribe({
       next: (res: any) => {
@@ -437,6 +519,13 @@ export class UserListComponent implements OnInit {
     if (this.formBankIfscCode.trim()) formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
     if (this.formAddress.trim()) formData.append('address', this.formAddress.trim());
     if (this.selectedAadharFile) formData.append('aadhar_image', this.selectedAadharFile);
+    if (this.roleCode === 'MANAGER' || u.roleCode === 'MANAGER') {
+      if (this.formManagedBranchIds.length > 0) {
+        this.formManagedBranchIds.forEach(id => formData.append('managed_branch_ids', id.toString()));
+      } else {
+        formData.append('managed_branch_ids', '');
+      }
+    }
 
     this.userListService.updateUser(u.dbId, formData).subscribe({
       next: (res: any) => {
