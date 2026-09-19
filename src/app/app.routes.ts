@@ -3,8 +3,6 @@ import { LoginComponent } from './components/login/login.component';
 import { MainLayoutComponent } from './components/layout/main-layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BranchesComponent } from './components/branches/branches.component';
-import { ManagersComponent } from './components/managers/managers.component';
-import { TelecallersComponent } from './components/telecallers/telecallers.component';
 import { AttendanceComponent } from './components/attendance/attendance.component';
 import { ApproveAssignComponent } from './components/approve-assign/approve-assign.component';
 import { TlDataManagementComponent } from './components/tl-data-management/tl-data-management.component';
@@ -18,6 +16,20 @@ import { SendRecordsComponent } from './components/send-records/send-records.com
 import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
 import { ApprovedRecordsComponent } from './components/approved-records/approved-records.component';
 import { TelecallerWorkstationComponent } from './components/telecaller-workstation/telecaller-workstation.component';
+
+import {
+  TelecallersPageComponent,
+  TeamLeadersPageComponent,
+  ManagersPageComponent,
+  BackendUsersPageComponent,
+  DriversPageComponent,
+  CooksPageComponent,
+  AssistantCooksPageComponent,
+  PublicRelationsPageComponent,
+  CounselorsPageComponent,
+  SuperintendentsPageComponent,
+} from './components/role-users/role-user-pages';
+
 import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
 
@@ -41,16 +53,71 @@ export const routes: Routes = [
         component: BranchesComponent,
         canActivate: [deviceAuthGuard],
       },
+      // --- Users Module Routes ---
+      {
+        path: 'users/telecaller',
+        component: TelecallersPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/team-leader',
+        component: TeamLeadersPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/manager',
+        component: ManagersPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/backend',
+        component: BackendUsersPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/driver',
+        component: DriversPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/cook',
+        component: CooksPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/assistant-cook',
+        component: AssistantCooksPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/public-relations',
+        component: PublicRelationsPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/counselor',
+        component: CounselorsPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/superintendent',
+        component: SuperintendentsPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+
+      // Legacy Route Aliases for backwards compatibility
       {
         path: 'managers',
-        component: ManagersComponent,
+        component: ManagersPageComponent,
         canActivate: [deviceAuthGuard],
       },
       {
         path: 'telecallers',
-        component: TelecallersComponent,
+        component: TelecallersPageComponent,
         canActivate: [deviceAuthGuard],
       },
+
+      // Operations & Features
       {
         path: 'attendance',
         component: AttendanceComponent,

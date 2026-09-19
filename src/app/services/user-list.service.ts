@@ -30,14 +30,21 @@ export class UserListService extends BaseHttpService {
     if (limit) url += `page_size=${limit}&`;
     if (search) url += `search=${encodeURIComponent(search)}&`;
     
-    // Remove trailing '?' or '&'
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
 
     return this.httpClient.get(url, { headers: this.headers });
   }
 
-  getTelecallers(branch?: string | number | null, loginTime?: string | null, logOffTime?: string | null, page?: number, limit?: number, search?: string): Observable<any> {
-    let url = `${this.endpoint}?role=TC&is_active=all&`;
+  getRoleUsers(
+    roleCode: string,
+    branch?: string | number | null,
+    loginTime?: string | null,
+    logOffTime?: string | null,
+    page?: number,
+    limit?: number,
+    search?: string
+  ): Observable<any> {
+    let url = `${this.endpoint}?role=${encodeURIComponent(roleCode)}&is_active=all&`;
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (loginTime) url += `login_time=${encodeURIComponent(loginTime)}&`;
     if (logOffTime) url += `logoff_time=${encodeURIComponent(logOffTime)}&`;
@@ -47,6 +54,10 @@ export class UserListService extends BaseHttpService {
     
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers });
+  }
+
+  getTelecallers(branch?: string | number | null, loginTime?: string | null, logOffTime?: string | null, page?: number, limit?: number, search?: string): Observable<any> {
+    return this.getRoleUsers('TC', branch, loginTime, logOffTime, page, limit, search);
   }
 
   toggleUserStatus(userId: string | number, newStatus: string): Observable<any> {
@@ -65,20 +76,25 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.patch(url, userData, { headers: headers });
   }
 
-  uploadManagersExcel(file: File): Observable<any> {
+  deleteUser(userId: string | number): Observable<any> {
+    const url = `${this.endpoint}${userId}/`;
+    return this.httpClient.delete(url, { headers: this.headers });
+  }
+
+  uploadRoleUsersExcel(file: File, roleCode: string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('target_role', 'TL');
+    formData.append('target_role', roleCode);
     this.params = formData;
     return this.httpClient.post(`${this.endpoint}bulk-upload/`, formData, { headers: this.multipartHeaders });
   }
 
+  uploadManagersExcel(file: File): Observable<any> {
+    return this.uploadRoleUsersExcel(file, 'TL');
+  }
+
   uploadTelecallersExcel(file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('target_role', 'TC');
-    this.params = formData;
-    return this.httpClient.post(`${this.endpoint}bulk-upload/`, formData, { headers: this.multipartHeaders });
+    return this.uploadRoleUsersExcel(file, 'TC');
   }
 
   downloadSampleTemplate(role: string = 'telecaller'): Observable<Blob> {
@@ -86,11 +102,15 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
   }
 
-  exportTelecallersExcel(branch?: string, search?: string): Observable<Blob> {
-    let url = `${this.endpoint}export/?role=TC&`;
+  exportRoleUsersExcel(roleCode: string, branch?: string, search?: string): Observable<Blob> {
+    let url = `${this.endpoint}export/?role=${encodeURIComponent(roleCode)}&`;
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (search) url += `search=${encodeURIComponent(search)}&`;
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
+  }
+
+  exportTelecallersExcel(branch?: string, search?: string): Observable<Blob> {
+    return this.exportRoleUsersExcel('TC', branch, search);
   }
 }

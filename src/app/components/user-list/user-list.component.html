@@ -1,0 +1,538 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">{{ roleIcon }}</span>
+      <div>
+        <div class="title-with-badge">
+          <h2 class="page-title">{{ roleTitle }} Management</h2>
+          <span class="count-badge">{{ totalCount() }} Total</span>
+        </div>
+        <p class="page-sub">{{ roleDescription }}</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn-action btn-add-orange" (click)="openAddModal()">
+        <span class="material-symbols-outlined">person_add</span>
+        <span>Add {{ roleTitle }}</span>
+      </button>
+
+      <button type="button" class="btn-action btn-upload-purple" (click)="openUploadModal()">
+        <span class="material-symbols-outlined">upload_file</span>
+        <span>Upload Bulk</span>
+      </button>
+
+      <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Export Excel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-controls-grid">
+      <!-- Search Input -->
+      <div class="filter-field search-field">
+        <label for="userSearchInput">Search Users</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">search</span>
+          <input
+            type="text"
+            id="userSearchInput"
+            placeholder="Search by Employee ID, name, mobile..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Branch Filter (Admin view) -->
+      <div class="filter-field">
+        <label for="branchSelectInput">Branch</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">domain</span>
+          <select
+            id="branchSelectInput"
+            [ngModel]="selectedBranch()"
+            (ngModelChange)="onBranchChange($event)"
+            [disabled]="!isAdminUser"
+          >
+            <option value="">All Branches</option>
+            @for (b of branches(); track b.id || b.name) {
+              <option [value]="b.name">{{ b.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="filter-field">
+        <label for="statusSelectInput">Status</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">tune</span>
+          <select
+            id="statusSelectInput"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="onStatusChange($event)"
+          >
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card shadow-card">
+    <div class="table-responsive">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Full Name</th>
+            <th>Gender</th>
+            <th>Branch</th>
+            <th>Role</th>
+            <th>Personal Phone</th>
+            <th>Office Phone</th>
+            <th>Shift Time</th>
+            <th>Status</th>
+            <th>Aadhar File</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="11" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Loading {{ roleTitle }} records...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (user of users(); track user.id) {
+              <tr>
+                <td class="col-id">
+                  <code>{{ user.id }}</code>
+                </td>
+                <td class="col-name">
+                  <strong>{{ user.fullName }}</strong>
+                  @if (user.email) {
+                    <div class="sub-text">{{ user.email }}</div>
+                  }
+                </td>
+                <td><span class="gender-tag">{{ user.gender }}</span></td>
+                <td><span class="branch-tag">{{ user.branch || 'Global' }}</span></td>
+                <td><span class="role-pill">{{ user.role }}</span></td>
+                <td class="col-phone">{{ user.personalNo }}</td>
+                <td class="col-phone">{{ user.officialNo || '-' }}</td>
+                <td class="col-shift">{{ user.loginTime }} - {{ user.logOffTime }}</td>
+                <td class="col-status">
+                  <span
+                    class="status-badge"
+                    [class.badge-active]="user.status.toLowerCase() === 'active'"
+                    [class.badge-inactive]="user.status.toLowerCase() !== 'active'"
+                  >
+                    {{ user.status }}
+                  </span>
+                </td>
+                <td class="col-file">
+                  @if (user.aadharImage) {
+                    <button type="button" class="btn-file-link" (click)="openAadharModal(user)">
+                      <span class="material-symbols-outlined">badge</span>
+                      <span>View</span>
+                    </button>
+                  } @else {
+                    <span class="no-file-text">No File</span>
+                  }
+                </td>
+                <td class="text-right col-actions">
+                  <button
+                    type="button"
+                    class="btn-icon-action btn-edit"
+                    title="Edit User"
+                    (click)="openEditModal(user)"
+                  >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-icon-action"
+                    [class.btn-toggle-active]="user.status.toLowerCase() !== 'active'"
+                    [class.btn-toggle-inactive]="user.status.toLowerCase() === 'active'"
+                    [title]="user.status.toLowerCase() === 'active' ? 'Deactivate User' : 'Activate User'"
+                    (click)="onToggleStatus(user)"
+                  >
+                    <span class="material-symbols-outlined">
+                      {{ user.status.toLowerCase() === 'active' ? 'block' : 'check_circle' }}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-icon-action btn-delete"
+                    title="Delete / Relieve User"
+                    (click)="onDeleteUser(user)"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="11" class="empty-state">
+                  <span class="material-symbols-outlined empty-icon">{{ roleIcon }}</span>
+                  <p class="empty-title">No {{ roleTitle }} Users Found</p>
+                  <p class="empty-sub">Click "+ Add {{ roleTitle }}" to add a new user record.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Bar -->
+    @if (users().length > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total {{ roleTitle }} users)
+        </div>
+
+        <div class="pagination-controls">
+          <button type="button" class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">
+            Prev
+          </button>
+          <button type="button" class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Add User Modal -->
+  @if (isAddModalOpen()) {
+    <div class="modal-overlay" (click)="closeAddModal()">
+      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <span class="material-symbols-outlined">person_add</span>
+            <span>Add New {{ roleTitle }}</span>
+          </h3>
+          <button type="button" class="btn-close-modal" (click)="closeAddModal()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body grid-2-col">
+          <div class="form-group">
+            <label>Employee ID (Manual)</label>
+            <input type="text" [(ngModel)]="formEmployeeId" placeholder="e.g. DAR_2709" />
+          </div>
+
+          <div class="form-group">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="formFullName" placeholder="Enter full name" />
+          </div>
+
+          <div class="form-group">
+            <label>Personal Mobile Number <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="formMobile" placeholder="e.g. 9876543210" />
+          </div>
+
+          <div class="form-group">
+            <label>Office Phone</label>
+            <input type="text" [(ngModel)]="formOfficialPhone" placeholder="e.g. 044-12345678" />
+          </div>
+
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="formEmail" placeholder="user@domain.com" />
+          </div>
+
+          <div class="form-group">
+            <label>Branch</label>
+            <select [(ngModel)]="formBranchId">
+              <option value="">Select Branch</option>
+              @for (b of branches(); track b.id || b.name) {
+                <option [value]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Gender</label>
+            <select [(ngModel)]="formGender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Salary (Monthly)</label>
+            <input type="text" [(ngModel)]="formSalary" placeholder="₹ Amount" />
+          </div>
+
+          <div class="form-group">
+            <label>Slab / Category</label>
+            <select [(ngModel)]="formSlab">
+              <option value="">Select Slab</option>
+              @for (s of slabOptions; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Shift Start Time</label>
+            <select [(ngModel)]="formShiftStart">
+              @for (slot of shiftTimeSlots; track slot) {
+                <option [value]="slot">{{ slot }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Shift End Time</label>
+            <select [(ngModel)]="formShiftEnd">
+              @for (slot of shiftTimeSlots; track slot) {
+                <option [value]="slot">{{ slot }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Date of Joining</label>
+            <input type="date" [(ngModel)]="formDateOfJoining" />
+          </div>
+
+          <div class="form-group">
+            <label>Date of Relieving</label>
+            <input type="date" [(ngModel)]="formDateOfRelieving" />
+          </div>
+
+          <div class="form-group">
+            <label>Date of Rejoining</label>
+            <input type="date" [(ngModel)]="formDateOfRejoining" />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Address</label>
+            <textarea rows="2" [(ngModel)]="formAddress" placeholder="Full residential address..."></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Upload Aadhar Document (PDF / Image)</label>
+            <input type="file" (change)="onFileSelected($event)" accept="image/*,application/pdf" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeAddModal()">Cancel</button>
+          <button type="button" class="btn-submit-orange" [disabled]="isSubmittingForm()" (click)="onSubmitAddUser()">
+            {{ isSubmittingForm() ? 'Creating...' : 'Save & Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit User Modal -->
+  @if (isEditModalOpen()) {
+    <div class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <span class="material-symbols-outlined">edit</span>
+            <span>Edit {{ roleTitle }} - {{ editingUser()?.fullName }}</span>
+          </h3>
+          <button type="button" class="btn-close-modal" (click)="closeEditModal()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body grid-2-col">
+          <div class="form-group">
+            <label>Employee ID</label>
+            <input type="text" [(ngModel)]="formEmployeeId" />
+          </div>
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="formFullName" />
+          </div>
+
+          <div class="form-group">
+            <label>Personal Mobile Number</label>
+            <input type="text" [(ngModel)]="formMobile" />
+          </div>
+
+          <div class="form-group">
+            <label>Office Phone</label>
+            <input type="text" [(ngModel)]="formOfficialPhone" />
+          </div>
+
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="formEmail" />
+          </div>
+
+          <div class="form-group">
+            <label>Branch</label>
+            <select [(ngModel)]="formBranchId">
+              <option value="">Select Branch</option>
+              @for (b of branches(); track b.id || b.name) {
+                <option [value]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Gender</label>
+            <select [(ngModel)]="formGender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="formStatus">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Salary</label>
+            <input type="text" [(ngModel)]="formSalary" />
+          </div>
+
+          <div class="form-group">
+            <label>Slab / Category</label>
+            <select [(ngModel)]="formSlab">
+              <option value="">Select Slab</option>
+              @for (s of slabOptions; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Date of Joining</label>
+            <input type="date" [(ngModel)]="formDateOfJoining" />
+          </div>
+
+          <div class="form-group">
+            <label>Date of Relieving</label>
+            <input type="date" [(ngModel)]="formDateOfRelieving" />
+          </div>
+
+          <div class="form-group">
+            <label>Date of Rejoining</label>
+            <input type="date" [(ngModel)]="formDateOfRejoining" />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Upload New Aadhar Proof (Optional)</label>
+            <input type="file" (change)="onFileSelected($event)" accept="image/*,application/pdf" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeEditModal()">Cancel</button>
+          <button type="button" class="btn-submit-orange" [disabled]="isSubmittingForm()" (click)="onSubmitEditUser()">
+            {{ isSubmittingForm() ? 'Saving...' : 'Update User' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Bulk Upload Modal -->
+  @if (isUploadModalOpen()) {
+    <div class="modal-overlay" (click)="closeUploadModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <span class="material-symbols-outlined">upload_file</span>
+            <span>Bulk Upload {{ roleTitle }} Users</span>
+          </h3>
+          <button type="button" class="btn-close-modal" (click)="closeUploadModal()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p class="upload-subtext">Upload an Excel file (.xlsx) containing user details for {{ roleTitle }}.</p>
+
+          <div class="file-drop-box">
+            <input type="file" (change)="onExcelFileSelected($event)" accept=".xlsx, .xls" />
+            <span class="material-symbols-outlined drop-icon">cloud_upload</span>
+            <p>Click to choose or drop Excel spreadsheet</p>
+            @if (selectedExcelFile) {
+              <div class="file-name-chip">Selected: {{ selectedExcelFile.name }}</div>
+            }
+          </div>
+
+          <button type="button" class="btn-download-sample" (click)="onDownloadSampleTemplate()">
+            <span class="material-symbols-outlined">download</span>
+            <span>Download Sample Excel Template</span>
+          </button>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeUploadModal()">Cancel</button>
+          <button type="button" class="btn-submit-orange" [disabled]="isSubmittingForm()" (click)="onSubmitUploadExcel()">
+            {{ isSubmittingForm() ? 'Processing...' : 'Upload & Process' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Aadhar Preview Modal -->
+  @if (selectedAadharUser()) {
+    <div class="modal-overlay" (click)="closeAadharModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            <span class="material-symbols-outlined">badge</span>
+            <span>Aadhar Document - {{ selectedAadharUser()?.fullName }}</span>
+          </h3>
+          <button type="button" class="btn-close-modal" (click)="closeAadharModal()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body text-center">
+          @if (selectedAadharUser()?.aadharImage) {
+            <a [href]="selectedAadharUser()?.aadharImage" target="_blank" class="btn-file-link large-link">
+              <span class="material-symbols-outlined">open_in_new</span>
+              <span>Open Document in New Tab</span>
+            </a>
+          } @else {
+            <p>No Aadhar document file uploaded.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</main>
