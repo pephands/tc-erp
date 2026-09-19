@@ -99,9 +99,10 @@ export class TelecallingService extends BaseHttpService {
       );
   }
 
-  createAllocationRequest(category: string, quantity: number, branchId?: number): Observable<any> {
+  createAllocationRequest(category: string, quantity: number, branchId?: number, autoApprove: boolean = false): Observable<any> {
     const payload: any = { category, requested_quantity: quantity };
     if (branchId) payload.branch = branchId;
+    if (autoApprove) payload.auto_approve = true;
 
     return this.httpClient.post(this.endPoint.telecallingRequests, payload, {
       headers: this.headers,

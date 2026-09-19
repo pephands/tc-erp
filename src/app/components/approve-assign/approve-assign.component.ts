@@ -30,7 +30,9 @@ export class ApproveAssignComponent implements OnInit {
 
   // Toast feedback
   toastMessage = signal<string>('');
+  toastType = signal<'success' | 'warning' | 'error'>('success');
   showToast = signal<boolean>(false);
+  modalError = signal<string>('');
 
   // Search & Pagination
   searchQuery = signal<string>('');
@@ -55,13 +57,13 @@ export class ApproveAssignComponent implements OnInit {
   pendingAction = signal<(() => void) | null>(null);
 
   // Form Inputs: Upload Base
-  uploadCategory = signal<'BASE' | 'NON_BASE'>('BASE');
+  uploadCategory = signal<'BASE' | 'NON BASE'>('BASE');
   selectedFile = signal<File | null>(null);
   uploadFileName = signal<string>('No file chosen');
 
   // Form Inputs: Admin Direct Assign to Branch
   assignBranchId = signal<number | string>('');
-  assignBranchCategory = signal<'BASE' | 'NON_BASE'>('BASE');
+  assignBranchCategory = signal<'BASE' | 'NON BASE'>('BASE');
   assignBranchQuantity = signal<number | null>(null);
 
   ngOnInit(): void {
@@ -76,12 +78,20 @@ export class ApproveAssignComponent implements OnInit {
     });
   }
 
-  triggerToast(msg: string): void {
+  triggerToast(msg: string, type?: 'success' | 'warning' | 'error', duration: number = 6000): void {
+    if (!type) {
+      if (msg.includes('skipped') || msg.includes('Note:') || msg.includes('no more')) {
+        type = 'warning';
+      } else {
+        type = 'success';
+      }
+    }
     this.toastMessage.set(msg);
+    this.toastType.set(type);
     this.showToast.set(true);
     setTimeout(() => {
       this.showToast.set(false);
-    }, 4000);
+    }, duration);
   }
 
   loadData(): void {
@@ -340,7 +350,7 @@ export class ApproveAssignComponent implements OnInit {
           error: (err: any) => {
             console.error('Error approving request:', err);
             const msg = err.error?.message || 'Failed to approve request.';
-            alert(msg);
+            this.triggerToast(msg, 'error');
           },
         });
       }
@@ -364,7 +374,8 @@ export class ApproveAssignComponent implements OnInit {
           },
           error: (err: any) => {
             console.error('Error rejecting request:', err);
-            alert('Failed to reject request.');
+            const msg = err.error?.message || 'Failed to reject request.';
+            this.triggerToast(msg, 'error');
           },
         });
       }
@@ -376,10 +387,12 @@ export class ApproveAssignComponent implements OnInit {
     this.assignBranchId.set('');
     this.assignBranchCategory.set('BASE');
     this.assignBranchQuantity.set(null);
+    this.modalError.set('');
     this.isAssignBranchModalOpen.set(true);
   }
 
   closeAssignBranchModal(): void {
+    this.modalError.set('');
     this.isAssignBranchModalOpen.set(false);
   }
 
@@ -387,46 +400,32 @@ export class ApproveAssignComponent implements OnInit {
     const branchId = Number(this.assignBranchId());
     const category = this.assignBranchCategory();
     const qty = this.assignBranchQuantity();
+    this.modalError.set('');
 
     if (!branchId) {
-      this.triggerToast('Please select a Branch.');
+      this.modalError.set('Please select a target Branch.');
       return;
     }
     if (!qty || qty <= 0) {
-      this.triggerToast('Please enter a valid quantity.');
+      this.modalError.set('Please enter a valid quantity.');
       return;
     }
 
     this.isSubmitting.set(true);
-    this.service.createAllocationRequest(category, qty, branchId).subscribe({
+    this.service.createAllocationRequest(category, qty, branchId, true).subscribe({
       next: (res: any) => {
-        const reqId = res.data?.id;
-        if (reqId) {
-          this.service.approveAllocationRequest(reqId).subscribe({
-            next: () => {
-              this.isSubmitting.set(false);
-              this.closeAssignBranchModal();
-              this.triggerToast(`${qty} ${category === 'BASE' ? 'Base' : 'Non Base'} numbers assigned directly to branch!`);
-              this.loadData();
-            },
-            error: (err: any) => {
-              this.isSubmitting.set(false);
-              console.error('Error approving direct branch assignment:', err);
-              this.triggerToast(err.error?.message || 'Request created but auto-approval failed.');
-              this.loadData();
-            },
-          });
-        } else {
-          this.isSubmitting.set(false);
-          this.closeAssignBranchModal();
-          this.triggerToast('Allocation request created for branch.');
-          this.loadData();
-        }
+        this.isSubmitting.set(false);
+        this.closeAssignBranchModal();
+        const serverMsg = res.message || 'Data allocated directly to branch successfully!';
+        this.triggerToast(serverMsg);
+        this.loadData();
       },
       error: (err: any) => {
         this.isSubmitting.set(false);
         console.error('Error creating branch allocation:', err);
-        this.triggerToast(err.error?.message || 'Failed to assign numbers to branch.');
+        const errMsg = err.error?.message || 'Failed to assign numbers to branch.';
+        this.modalError.set(errMsg);
+        this.triggerToast(errMsg, 'error');
       },
     });
   }

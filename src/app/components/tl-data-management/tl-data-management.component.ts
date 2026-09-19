@@ -53,12 +53,12 @@ export class TlDataManagementComponent implements OnInit {
   isAssignTcModalOpen = signal<boolean>(false);
 
   // Form Inputs: Submit Batch Request to Admin
-  submitCategory = signal<'BASE' | 'NON_BASE'>('BASE');
+  submitCategory = signal<'BASE' | 'NON BASE'>('BASE');
   submitQuantity = signal<number | null>(null);
 
   // Form Inputs: Assign to Telecaller
   selectedTcIds = signal<number[]>([]);
-  assignCategory = signal<'BASE' | 'NON_BASE'>('BASE');
+  assignCategory = signal<'BASE' | 'NON BASE'>('BASE');
   assignQuantity = signal<number | null>(null);
   lastClickedIndex = signal<number | null>(null);
 

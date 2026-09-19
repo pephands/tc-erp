@@ -3,7 +3,7 @@ export interface MasterDonorRecord {
   donorName: string;
   phoneNumber: string;
   dob?: string;
-  category: 'BASE' | 'NON_BASE';
+  category: 'BASE' | 'NON BASE' | 'NON_BASE';
   status: 'UNASSIGNED' | 'APPROVED_TO_BRANCH' | 'ASSIGNED_TO_TC' | 'COMPLETED' | 'ARCHIVED';
   currentBranch?: number;
   currentBranchName?: string;
@@ -23,7 +23,7 @@ export interface BranchAllocationRequestRecord {
   branchCode?: string;
   requestedBy: number;
   requestedByName?: string;
-  category: 'BASE' | 'NON_BASE';
+  category: 'BASE' | 'NON BASE' | 'NON_BASE';
   requestedQuantity: number;
   approvedQuantity?: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';

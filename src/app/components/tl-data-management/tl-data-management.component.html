@@ -131,7 +131,7 @@
                     <span
                       class="category-badge"
                       [class.cat-base]="item.category === 'BASE'"
-                      [class.cat-nonbase]="item.category === 'NON_BASE'"
+                      [class.cat-nonbase]="item.category === 'NON BASE' || item.category === 'NON_BASE'"
                     >
                       {{ item.category === 'BASE' ? 'Base' : 'Non Base' }}
                     </span>
@@ -345,7 +345,7 @@
                   <option value="BASE">
                     Base ({{ (masterSummary()?.unallocated_base_count || 0) | number }})
                   </option>
-                  <option value="NON_BASE">
+                  <option value="NON BASE">
                     Non Base ({{ (masterSummary()?.unallocated_non_base_count || 0) | number }})
                   </option>
                 </select>
@@ -444,7 +444,7 @@
                   <option value="BASE">
                     Base ({{ (branchPool()?.unused_base_count || 0) | number }} Available)
                   </option>
-                  <option value="NON_BASE">
+                  <option value="NON BASE">
                     Non Base ({{ (branchPool()?.unused_non_base_count || 0) | number }} Available)
                   </option>
                 </select>
