@@ -80,29 +80,6 @@
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.btn-reset-filter {
-  width: 38px;
-  height: 38px;
-  border-radius: 6px;
-  background: var(--bg-card-subtle);
-  color: var(--text-dim);
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-reset-filter:hover {
-  background: var(--border-color);
-  color: var(--text-main);
-}
-
-.btn-reset-filter .material-symbols-outlined {
-  font-size: 20px;
-}
-
 /* Dynamic Theme Primary Gradient Button */
 .btn-add-branch {
   background: var(--primary-gradient);
@@ -198,13 +175,13 @@
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-full);
-  background: var(--role-tc-bg);
-  color: var(--role-tc-color);
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
 }
 
 .hide-badge.is-true {
-  background: var(--role-admin-bg);
-  color: var(--role-admin-color);
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 
 .col-actions {
@@ -240,9 +217,9 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: var(--role-tc-bg);
-  color: var(--role-tc-color);
-  border: 1px solid var(--role-tc-color);
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid #22c55e;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,7 +228,7 @@
 }
 
 .btn-restore:hover {
-  background: var(--role-tc-color);
+  background: #22c55e;
   color: white;
 }
 
@@ -263,9 +240,9 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: var(--role-admin-bg);
-  color: var(--role-admin-color);
-  border: 1px solid var(--role-admin-color);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid #ef4444;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,7 +251,7 @@
 }
 
 .btn-delete:hover {
-  background: var(--role-admin-color);
+  background: #ef4444;
   color: white;
 }
 

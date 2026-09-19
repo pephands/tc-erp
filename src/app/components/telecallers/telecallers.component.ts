@@ -29,6 +29,10 @@ export class TelecallersComponent {
     return roles.includes('TL') && !roles.includes('ADMIN');
   }
 
+  get isAdminUser(): boolean {
+    return this.authService.userRoles().includes('ADMIN');
+  }
+
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
   }
@@ -100,10 +104,11 @@ export class TelecallersComponent {
   branches = signal<any[]>([]);
 
   constructor() {
-    if (this.isTlUser) {
+    if (!this.isAdminUser) {
       const userBranch = this.userBranchName;
       if (userBranch) {
         this.selectedBranch.set(userBranch);
+        this.branches.set([{ id: 'self', name: userBranch }]);
       }
       this.isFilterApplied.set(true);
       this.fetchTelecallersFromApi();
@@ -113,8 +118,8 @@ export class TelecallersComponent {
           if (res.status === 'success' || (Array.isArray(res) || res.data)) {
             const data = Array.isArray(res) ? res : (res.data || []);
             this.branches.set(data);
-            if (data.length > 0 && !this.selectedBranch()) {
-              this.selectedBranch.set(data[0].name);
+            if (!this.selectedBranch()) {
+              this.selectedBranch.set('');
               this.isFilterApplied.set(true);
               this.fetchTelecallersFromApi();
             }
@@ -213,11 +218,10 @@ export class TelecallersComponent {
 
   // Clear / Reset Filters
   onResetFilters(): void {
-    if (this.isTlUser) {
+    if (!this.isAdminUser) {
       this.selectedBranch.set(this.userBranchName);
     } else {
-      const defaultBranch = this.branches().length > 0 ? this.branches()[0].name : '';
-      this.selectedBranch.set(defaultBranch);
+      this.selectedBranch.set('');
     }
     this.selectedLoginTime.set('');
     this.selectedLogOffTime.set('');
@@ -229,7 +233,7 @@ export class TelecallersComponent {
 
   fetchTelecallersFromApi(): void {
     let branch = this.selectedBranch();
-    if (this.isTlUser && (!branch || branch === '')) {
+    if (!this.isAdminUser && (!branch || branch === '')) {
       branch = this.userBranchName;
       if (branch) {
         this.selectedBranch.set(branch);
@@ -281,7 +285,8 @@ export class TelecallersComponent {
       branch: u.branch?.name || '',
       loginTime: this.formatTime12h(u.shift_start_time) || '09:00 AM',
       logOffTime: this.formatTime12h(u.shift_end_time) || '06:00 PM',
-      hasAadhar: !!u.aadhar_image
+      hasAadhar: !!u.aadhar_image,
+      aadharImage: u.aadhar_image
     };
   }
 

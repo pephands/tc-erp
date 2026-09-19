@@ -41,6 +41,8 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
   formBankHolderName = '';
   formAddress = '';
   selectedAadharFile: File | null = null;
+  existingAadharUrl: string | null = null;
+  isAadharReplaced = false;
 
   ngOnInit() {
     this.initForm();
@@ -72,6 +74,8 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
       this.formBankHolderName = t.bankHolderName || '';
       this.formAddress = t.address || '';
       this.selectedAadharFile = null;
+      this.existingAadharUrl = t.aadharImage || null;
+      this.isAadharReplaced = false;
     } else {
       this.isEditMode = false;
       this.resetAddForm();
@@ -95,6 +99,8 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
     this.formBankHolderName = '';
     this.formAddress = '';
     this.selectedAadharFile = null;
+    this.existingAadharUrl = null;
+    this.isAadharReplaced = false;
   }
 
   onAadharFileSelected(event: Event): void {
@@ -102,6 +108,11 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
     if (input.files && input.files.length > 0) {
       this.selectedAadharFile = input.files[0];
     }
+  }
+
+  removeExistingAadhar(): void {
+    this.isAadharReplaced = true;
+    this.selectedAadharFile = null;
   }
 
   onAddTelecallerSubmit(): void {
@@ -121,24 +132,33 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
     const branchObj = this.branches.find(b => b.name === this.formBranch || b.shortForm === this.formBranch);
     const branchId = branchObj ? branchObj.id : null;
 
-    const payload: any = {
-      username: this.formMobile.trim(),
-      phone: this.formMobile.trim(),
-      full_name: this.formFullName.trim(),
-      gender: this.formGender,
-      branch_id: branchId,
-      status: 'Active'
-    };
+    const payload = new FormData();
+    payload.append('username', this.formMobile.trim());
+    payload.append('phone', this.formMobile.trim());
+    payload.append('full_name', this.formFullName.trim());
+    payload.append('gender', this.formGender);
+    if (branchId) payload.append('branch_id', branchId.toString());
+    payload.append('status', 'Active');
 
-    if (this.formOfficialNumber.trim()) payload.office_phone = this.formOfficialNumber.trim();
-    if (this.formSlab.trim()) payload.slab = this.formSlab.trim();
-    if (this.formSalary.trim()) payload.salary = this.formSalary.trim();
-    if (this.formDateOfJoining.trim()) payload.date_of_joining = this.formDateOfJoining.trim();
-    if (this.formDateOfRelieving.trim()) payload.date_of_relieving = this.formDateOfRelieving.trim();
-    if (this.formBankAccountNumber.trim()) payload.bank_account_number = this.formBankAccountNumber.trim();
-    if (this.formBankIfscCode.trim()) payload.bank_ifsc_code = this.formBankIfscCode.trim();
-    if (this.formBankHolderName.trim()) payload.bank_holder_name = this.formBankHolderName.trim();
-    if (this.formAddress.trim()) payload.address = this.formAddress.trim();
+    if (this.formOfficialNumber.trim()) payload.append('office_phone', this.formOfficialNumber.trim());
+    if (this.formSlab.trim()) payload.append('slab', this.formSlab.trim());
+    if (this.formSalary.trim()) payload.append('salary', this.formSalary.trim());
+    if (this.formDateOfJoining.trim()) payload.append('date_of_joining', this.formDateOfJoining.trim());
+    if (this.formDateOfRelieving.trim()) payload.append('date_of_relieving', this.formDateOfRelieving.trim());
+    if (this.formBankAccountNumber.trim()) payload.append('bank_account_number', this.formBankAccountNumber.trim());
+    if (this.formBankIfscCode.trim()) payload.append('bank_ifsc_code', this.formBankIfscCode.trim());
+    if (this.formBankHolderName.trim()) payload.append('bank_holder_name', this.formBankHolderName.trim());
+    if (this.formAddress.trim()) payload.append('address', this.formAddress.trim());
+
+    if (this.selectedAadharFile) {
+      payload.append('aadhar_image', this.selectedAadharFile);
+    }
+
+    if (!this.isEditMode) {
+      payload.append('password', 'Welcome@123');
+      payload.append('role_code', 'TC');
+      payload.append('is_active', 'true');
+    }
 
     if (this.isEditMode && this.telecallerToEdit) {
       const targetId = this.telecallerToEdit.rawId || this.telecallerToEdit.id;
@@ -154,9 +174,6 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
         }
       });
     } else {
-      payload.password = 'Welcome@123';
-      payload.role_code = 'TC';
-      payload.is_active = true;
 
       this.userListService.addUser(payload).subscribe({
         next: (res) => {

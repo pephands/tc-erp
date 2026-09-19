@@ -10,6 +10,7 @@ export interface WFHPasscodeRecord {
     id: number;
     username: string;
     full_name: string;
+    branch_name?: string;
   };
   date: string;
   passcode: string;

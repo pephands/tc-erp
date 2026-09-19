@@ -78,12 +78,14 @@
 
             <div class="form-group">
               <label for="editSlab">Slab</label>
-              <input 
-                type="text" 
-                id="editSlab" 
-                name="editSlab" 
-                [(ngModel)]="formSlab" 
-              />
+              <select id="editSlab" name="editSlab" [(ngModel)]="formSlab">
+                <option value="" disabled selected>Select Slab</option>
+                <option value="SLAB-1">SLAB-1</option>
+                <option value="SLAB-2">SLAB-2</option>
+                <option value="SLAB-3">SLAB-3</option>
+                <option value="SLAB-4">SLAB-4</option>
+                <option value="SLAB-5">SLAB-5</option>
+              </select>
             </div>
           </div>
 

@@ -6,16 +6,19 @@
       <span class="material-symbols-outlined search-icon">search</span>
       <input 
         type="text" 
-        placeholder="Search campaigns..." 
+        placeholder="Search templates..." 
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
       />
     </div>
 
     <div class="filter-group">
-      <select class="filter-select" [ngModel]="filterBranch()" (ngModelChange)="filterBranch.set($event); currentPage.set(1)">
-        <option value="">All Branches</option>
-        <option *ngFor="let b of branches()" [value]="b.id">{{ b.name }}</option>
+      <select class="filter-select" [ngModel]="filterTemplateType()" (ngModelChange)="filterTemplateType.set($event); currentPage.set(1)">
+        <option value="">All Template Types</option>
+        <option value="TEXT">Text</option>
+        <option value="IMAGE">Image</option>
+        <option value="VIDEO">Video</option>
+        <option value="DOCUMENT">Document</option>
       </select>
 
       <select class="filter-select" [ngModel]="filterIsActive()" (ngModelChange)="filterIsActive.set($event); currentPage.set(1)">
@@ -23,15 +26,16 @@
         <option value="true">Active Only</option>
         <option value="false">Inactive Only</option>
       </select>
-
-      <button type="button" class="btn-reset-filter" (click)="resetFilters()" title="Reset Filters">
-        <span class="material-symbols-outlined">restart_alt</span>
-      </button>
     </div>
+
+    <button type="button" class="btn-reset" (click)="goBack()" style="margin-right: 8px;">
+      <span class="material-symbols-outlined">arrow_back</span>
+      <span>Back</span>
+    </button>
 
     <button type="button" class="btn-add-branch" (click)="openAddModal()">
       <span class="material-symbols-outlined">add</span>
-      <span>Add Campaign</span>
+      <span>Add Template</span>
     </button>
   </div>
 
@@ -42,8 +46,10 @@
         <thead>
           <tr>
             <th>S.No.</th>
-            <th>Branch Name</th>
-            <th>Campaign Name</th>
+            <th>Template Name</th>
+            <th>Meta Template Name</th>
+            <th>Type</th>
+            <th>Dynamic</th>
             <th>Status</th>
             <th class="text-right">Actions</th>
           </tr>
@@ -53,18 +59,24 @@
             <tr>
               <td colspan="7" class="no-data">
                 <div class="btn-spinner" style="display:inline-block; border-color:var(--text-color); border-top-color:transparent;"></div>
-                <p>Loading campaigns...</p>
+                <p>Loading templates...</p>
               </td>
             </tr>
           } @else {
-            @for (campaign of paginatedCampaigns(); track campaign.id; let i = $index) {
-              <tr (click)="viewTemplates(campaign)" style="cursor: pointer;" class="clickable-row">
+            @for (template of paginatedTemplates(); track template.id; let i = $index) {
+              <tr>
                 <td class="col-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
-                <td class="col-name">{{ campaign.branch_name }}</td>
-                <td class="col-short">{{ campaign.campaign_name }}</td>
+                <td class="col-name">{{ template.template_name || '-' }}</td>
+                <td class="col-short">{{ template.meta_template_name }}</td>
+                <td class="col-phone">{{ template.template_type }}</td>
+                <td class="col-email">
+                  <span class="hide-badge" [class.is-true]="!template.is_dynamic">
+                    {{ template.is_dynamic ? 'Yes' : 'No' }}
+                  </span>
+                </td>
                 <td class="col-hide">
-                  <span class="hide-badge" [class.is-true]="!campaign.is_active">
-                    {{ campaign.is_active ? 'Active' : 'Inactive' }}
+                  <span class="hide-badge" [class.is-true]="!template.is_active">
+                    {{ template.is_active ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
               <td class="col-actions">
@@ -72,24 +84,24 @@
                     <button 
                       type="button" 
                       class="btn-edit" 
-                      (click)="$event.stopPropagation(); viewTemplates(campaign)"
-                      title="View Templates"
+                      (click)="openTestModal(template)"
+                      title="Test Template"
                     >
-                      <span class="material-symbols-outlined">format_list_bulleted</span>
+                      <span class="material-symbols-outlined">send</span>
                     </button>
                     <button 
                       type="button" 
                       class="btn-edit" 
-                      (click)="$event.stopPropagation(); openEditModal(campaign)"
-                      title="Edit Campaign"
+                      (click)="openEditModal(template)"
+                      title="Edit Template"
                     >
                       <span class="material-symbols-outlined">edit</span>
                     </button>
                     <button 
                       type="button" 
                       class="btn-delete" 
-                      (click)="$event.stopPropagation(); openDeleteConfirm(campaign)"
-                      title="Delete Campaign"
+                      (click)="openDeleteConfirm(template)"
+                      title="Delete Template"
                     >
                       <span class="material-symbols-outlined">delete</span>
                     </button>
@@ -99,8 +111,8 @@
           } @empty {
             <tr>
               <td colspan="7" class="no-data">
-                <span class="material-symbols-outlined">campaign</span>
-                <p>No campaign records found.</p>
+                <span class="material-symbols-outlined">description</span>
+                <p>No template records found.</p>
               </td>
             </tr>
           }
@@ -112,7 +124,7 @@
     <!-- Pagination Controls -->
     <div class="pagination-bar">
       <div class="pagination-info">
-        Showing {{ paginatedCampaigns().length }} of {{ filteredCampaigns().length }} campaigns
+        Showing {{ paginatedTemplates().length }} of {{ filteredTemplates().length }} templates
       </div>
 
       <div class="pagination-controls">
@@ -150,11 +162,42 @@
 </main>
 
 @if (isModalOpen()) {
-  <app-add-whatsapp-campaign-modal 
-    [campaignToEdit]="selectedCampaignForEdit()"
+  <app-add-whatsapp-template-modal 
+    [campaignId]="campaignId()"
+    [templateToEdit]="selectedTemplateForEdit()"
     (closeModal)="closeModal()" 
-    (campaignAdded)="onCampaignAdded()">
-  </app-add-whatsapp-campaign-modal>
+    (templateAdded)="onTemplateAdded()">
+  </app-add-whatsapp-template-modal>
+}
+
+@if (isTestModalOpen()) {
+  <div class="modal-backdrop">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">send</span>
+          <h2 class="modal-title">Test Template</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeTestModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Enter WhatsApp Number *</label>
+          <input type="text" [ngModel]="testNumber()" (ngModelChange)="testNumber.set($event)" class="form-control" placeholder="e.g., 9190424XXXXX">
+          <small style="color: var(--text-dim); display: block; margin-top: 6px;">Test message will be sent for template "<strong>{{ templateToTest()?.meta_template_name }}</strong>".</small>
+        </div>
+        <div class="modal-footer" style="margin-top: 24px; justify-content: flex-end;">
+          <button type="button" class="btn-reset" (click)="closeTestModal()" [disabled]="isTesting()">Cancel</button>
+          <button type="button" class="btn-update" (click)="submitTest()" [disabled]="!testNumber() || isTesting()" style="display: flex; align-items: center;">
+            <div *ngIf="isTesting()" class="btn-spinner" style="border-width: 2px; width: 14px; height: 14px; margin-right: 6px; display: inline-block;"></div>
+            {{ isTesting() ? 'Sending...' : 'Send Test' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 }
 
 @if (isDeleteModalOpen()) {
@@ -163,9 +206,9 @@
       <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--role-admin-bg); color: var(--role-admin-color); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
         <span class="material-symbols-outlined" style="font-size: 32px;">delete</span>
       </div>
-      <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem;">Delete Campaign</h2>
+      <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem;">Delete Template</h2>
       <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
-        Are you sure you want to delete <strong style="color: var(--text-main);">"{{ campaignToDelete()?.campaign_name }}"</strong>? This action cannot be undone.
+        Are you sure you want to delete <strong style="color: var(--text-main);">"{{ templateToDelete()?.meta_template_name }}"</strong>? This action cannot be undone.
       </p>
       
       <div style="display: flex; gap: 1rem; justify-content: center;">
@@ -173,7 +216,7 @@
           Cancel
         </button>
         <button type="button" class="btn-delete-confirm" (click)="confirmDelete()" style="flex: 1; padding: 0.75rem; border-radius: var(--radius-md); background: var(--role-admin-color); color: white; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(239, 68, 68, 0.4)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)';">
-          Delete Campaign
+          Delete Template
         </button>
       </div>
     </div>

@@ -9,7 +9,7 @@
     <div class="modal-body">
       <form (ngSubmit)="onSubmit()" #campaignForm="ngForm">
         <div class="form-grid">
-          <div class="form-group">
+          <div class="form-group" style="grid-column: span 2;" *ngIf="isManager">
             <label>Branch *</label>
             <select name="branch" [(ngModel)]="formBranch" required class="form-control" (change)="onBranchChange()">
               <option value="">Select Branch</option>
@@ -17,111 +17,21 @@
             </select>
           </div>
           <div class="form-group" style="grid-column: span 2;" *ngIf="formBranch">
-            <div *ngIf="formAccount" class="alert-success">
-              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">check_circle</span>
+            <div *ngIf="formAccount" class="alert-success" style="background: var(--role-tc-bg); color: var(--role-tc-color); padding: 12px; border-radius: 6px; display: flex; align-items: center; border: 1px solid var(--role-tc-border);">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 8px;">check_circle</span>
               <span>Mapped Account: <strong>{{ getMappedAccountName() }}</strong></span>
             </div>
-            <div *ngIf="!formAccount" class="alert-error">
-              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">error</span>
+            <div *ngIf="!formAccount" class="alert-error" style="background: var(--role-admin-bg); color: var(--role-admin-color); padding: 12px; border-radius: 6px; display: flex; align-items: center; border: 1px solid var(--role-admin-border);">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 8px;">error</span>
               <span>No active WhatsApp account mapped for this branch! Please map one first.</span>
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" [ngStyle]="{'grid-column': campaignToEdit?.id ? 'span 1' : 'span 2'}">
             <label>Campaign Name *</label>
             <input type="text" name="campaignName" [(ngModel)]="formCampaignName" required class="form-control">
           </div>
-          <div class="form-group">
-            <label>Meta Template Name *</label>
-            <input type="text" name="metaTemplate" [(ngModel)]="formMetaTemplateName" required class="form-control">
-          </div>
-
-          <div class="form-group">
-            <label>Template Type *</label>
-            <select name="templateType" [(ngModel)]="formTemplateType" required class="form-control">
-              <option value="TEXT">Text</option>
-              <option value="IMAGE">Image</option>
-              <option value="VIDEO">Video</option>
-              <option value="DOCUMENT">Document</option>
-            </select>
-          </div>
-          <div class="form-group flex-center-v">
-            <label class="checkbox-label">
-              <input type="checkbox" name="isDynamic" [(ngModel)]="formIsDynamic">
-              Is Dynamic Template?
-            </label>
-          </div>
-        </div>
-
-        <!-- Media Upload Section -->
-        <div *ngIf="formTemplateType !== 'TEXT'" class="media-section">
-          <h4>Media</h4>
           
-          <div *ngIf="existingFileUrl" class="existing-media-box" style="margin-bottom: 16px; padding: 12px; background: #f3f4f6; border-radius: 8px; border: 1px dashed #d1d5db; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
-              <!-- Image Preview -->
-              <img *ngIf="formTemplateType === 'IMAGE'" [src]="existingFileUrl" alt="Preview" style="max-height: 80px; max-width: 120px; border-radius: 4px; object-fit: cover; border: 1px solid #d1d5db;">
-              
-              <!-- Video Preview -->
-              <video *ngIf="formTemplateType === 'VIDEO'" [src]="existingFileUrl" controls style="max-height: 80px; max-width: 150px; border-radius: 4px; border: 1px solid #d1d5db;"></video>
-              
-              <!-- Document Icon -->
-              <span *ngIf="formTemplateType === 'DOCUMENT'" style="font-size: 24px; color: #4f46e5;">📄</span>
-              
-              <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase;">Current {{ formTemplateType | titlecase }}</span>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <a [href]="existingFileUrl" target="_blank" style="color: #4f46e5; text-decoration: none; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
-                    {{ existingFileName }}
-                  </a>
-                  <button type="button" (click)="copyExistingUrl($event)" title="Copy URL" style="background: none; border: none; cursor: pointer; color: #6b7280; padding: 2px; display: flex; align-items: center; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; color: #dc2626; border-color: #fecaca; background: #fee2e2;" (click)="removeExistingFile()">Remove</button>
-          </div>
-
-          <div *ngIf="!existingFileUrl" class="form-group" style="margin-bottom: 12px;">
-            <label>Upload {{ formTemplateType | titlecase }} File</label>
-            <input type="file" (change)="onFileSelected($event)" class="form-control" accept="{{ getAcceptType() }}" [disabled]="formMediaUrl.length > 0">
-            <small *ngIf="formMediaUrl.length > 0" style="color: #6b7280; display: block; margin-top: 4px;">Clear the URL below to upload a file instead.</small>
-          </div>
-
-          <div *ngIf="!existingFileUrl" style="text-align: center; color: #6b7280; font-size: 12px; margin-bottom: 12px; font-weight: 500;">— OR —</div>
-
-          <div *ngIf="!existingFileUrl" class="form-group">
-            <label>Provide {{ formTemplateType | titlecase }} URL</label>
-            <input type="url" name="mediaUrl" [(ngModel)]="formMediaUrl" class="form-control" placeholder="https://..." [disabled]="selectedFile !== null">
-            <small *ngIf="selectedFile !== null" style="color: #6b7280; display: block; margin-top: 4px;">Clear the file above to provide a URL instead.</small>
-          </div>
-        </div>
-
-        <!-- Variables Section -->
-        <div *ngIf="formIsDynamic" class="variables-section">
-          <h4>Variables Configuration</h4>
-          
-          <div class="form-group">
-            <label>Body Variables</label>
-            <div *ngFor="let v of bodyVars; let i = index" class="flex-center-v" style="margin-top: 8px;">
-              <input type="text" name="bodyVar_{{i}}" [(ngModel)]="v.label" class="form-control" placeholder="e.g. name, amount" required>
-              <button type="button" class="btn-cancel" style="margin-left: 8px; padding: 4px 8px; font-weight: bold; color: #dc2626;" (click)="removeBodyVar(i)">X</button>
-            </div>
-            <button type="button" class="btn-add-branch" style="margin-top: 12px; font-size: 13px; padding: 6px 10px;" (click)="addBodyVar()">+ Add Body Variable</button>
-          </div>
-
-          <div class="form-group" style="margin-top: 24px;">
-            <label>Button Variables</label>
-            <div *ngFor="let v of buttonVars; let i = index" class="flex-center-v" style="margin-top: 8px;">
-              <input type="text" name="buttonVar_{{i}}" [(ngModel)]="v.label" class="form-control" placeholder="e.g. tracking_link" required>
-              <button type="button" class="btn-cancel" style="margin-left: 8px; padding: 4px 8px; font-weight: bold; color: #dc2626;" (click)="removeButtonVar(i)">X</button>
-            </div>
-            <button type="button" class="btn-add-branch" style="margin-top: 12px; font-size: 13px; padding: 6px 10px;" (click)="addButtonVar()">+ Add Button Variable</button>
-          </div>
           <div class="form-group flex-center-v" *ngIf="campaignToEdit?.id">
             <label class="checkbox-label">
               <input type="checkbox" name="isActive" [(ngModel)]="formIsActive">
@@ -132,7 +42,7 @@
         
         <div class="modal-footer">
           <button type="button" class="btn-cancel" (click)="onClose()" [disabled]="isSubmitting()">Cancel</button>
-          <button type="submit" class="btn-save d-flex align-items-center justify-content-center" [disabled]="!campaignForm.valid || isSubmitting() || !formAccount || (!campaignToEdit?.id && formTemplateType !== 'TEXT' && !selectedFile && !formMediaUrl) || (campaignToEdit?.id && formTemplateType !== 'TEXT' && !selectedFile && !formMediaUrl && !existingFileUrl)">
+          <button type="submit" class="btn-save d-flex align-items-center justify-content-center" [disabled]="!campaignForm.valid || isSubmitting() || !formAccount">
             <div *ngIf="isSubmitting()" class="btn-spinner" style="border-width: 2px; width: 14px; height: 14px; margin-right: 6px; display: inline-block;"></div>
             {{ isSubmitting() ? 'Saving...' : 'Save Campaign' }}
           </button>

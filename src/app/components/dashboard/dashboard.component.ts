@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { AttendanceCheckInService, LocationCoordinates, AttendanceCheckInPayload } from '../../services/attendance-checkin.service';
@@ -26,6 +27,7 @@ export type CheckInStatusState = 'IDLE' | 'LOCATING' | 'SUBMITTING' | 'MARKED' |
 export class DashboardComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private endpoint = inject(Endpoint);
+  private router = inject(Router);
   private authService = inject(AuthService);
   private checkInService = inject(AttendanceCheckInService);
   private checkOutService = inject(AttendanceCheckOutService);
@@ -63,6 +65,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // WFH Staff State
   isWfhMode = signal<boolean>(false);
+  showLocationInstructionsModal = signal<boolean>(false);
   isWfhRequired = signal<boolean>(false);
   wfhPasscode = signal<string>('');
   isWfhMarked = signal<boolean>(false);
@@ -314,6 +317,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (!this.isWfhMode()) {
         this.statusState.set('IDLE');
         this.toastService.error('Location Access Failed', 'Could not detect your current location. Please ensure location permissions are enabled in your browser.');
+        this.showLocationInstructionsModal.set(true);
         return;
       }
       this.locationError.set('Location not available. Proceeding with WFH check-in.');
@@ -375,6 +379,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }
         
+        if (errorMsg.includes('Invalid token')) {
+          this.toastService.error('Session Expired', 'Please login again.');
+          this.authService.logout().subscribe(() => {
+            this.router.navigate(['/login']);
+          });
+          return;
+        }
+
         if (errorMsg.includes('IP Mismatch') || errorMsg.includes('Geofence')) {
           this.isWfhRequired.set(true);
           this.toastService.error('Off-site Location Detected', 'You are not within the authorized network/location. Please request WFH.');
