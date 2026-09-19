@@ -34,13 +34,21 @@ export class TelecallingService extends BaseHttpService {
     return this.endPoint.telecallingRequests;
   }
 
-  uploadExcel(file: File, category: string): Observable<any> {
+  uploadExcel(file: File, category: string = 'BASE'): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', category);
 
     return this.httpClient.post(this.endPoint.telecallingUpload, formData, {
       headers: this.multipartHeaders,
+    });
+  }
+
+  downloadSampleTemplate(): Observable<Blob> {
+    const url = `${this.endPoint.baseUrl}accounts/users/sample-template/?role=telecalling_data`;
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      responseType: 'blob',
     });
   }
 

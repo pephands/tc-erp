@@ -187,7 +187,6 @@ export class ApproveAssignComponent implements OnInit {
 
   onSubmitUpload(): void {
     const file = this.selectedFile();
-    const category = this.uploadCategory();
 
     if (!file) {
       this.triggerToast('Please select an Excel file (.xls, .xlsx) to upload.');
@@ -195,7 +194,7 @@ export class ApproveAssignComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.service.uploadExcel(file, category).subscribe({
+    this.service.uploadExcel(file).subscribe({
       next: (res: any) => {
         this.isSubmitting.set(false);
         this.closeUploadModal();
@@ -209,6 +208,40 @@ export class ApproveAssignComponent implements OnInit {
         const errorMsg = err.error?.message || 'Failed to upload Excel file.';
         this.triggerToast(errorMsg);
       },
+    });
+  }
+
+  onDownloadSampleExcel(): void {
+    this.service.downloadSampleTemplate().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sample_telecalling_upload.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.triggerToast('Sample template downloaded successfully.');
+      },
+      error: () => {
+        const headers = ['NAME', 'MOBILE NUMBER', 'DOB', 'ANNIVERSARY', 'BASE CATEGORY'];
+        const rows = [
+          ['NANDHA', '9500853111', '9/18/2026', '9/18/2026', 'BASE'],
+          ['KAVITHA S', '9876543210', '5/12/1995', '11/20/2020', 'NON BASE']
+        ];
+        let csv = headers.join(',') + '\n';
+        rows.forEach(r => { csv += r.map(v => `"${v}"`).join(',') + '\n'; });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sample_telecalling_upload.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        this.triggerToast('Sample template downloaded.');
+      }
     });
   }
 

@@ -232,51 +232,91 @@
        ========================================== -->
   @if (isUploadModalOpen()) {
     <div class="modal-backdrop" (click)="closeUploadModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-card modal-lg-upload" (click)="$event.stopPropagation()">
         <div class="modal-title-header">
-          <h2>Master Base Excel Upload</h2>
+          <div class="header-title-flex">
+            <span class="material-symbols-outlined header-icon-purple">upload_file</span>
+            <div>
+              <h2>Upload Telecalling Master Data</h2>
+              <p class="header-subtext">Upload bulk telecalling leads. Category (BASE / NON BASE) is auto-detected per record.</p>
+            </div>
+          </div>
           <button type="button" class="modal-close-btn" (click)="closeUploadModal()" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
 
         <div class="modal-body-box">
-          <div class="box-header-bar">
-            <h3>Select Category & Excel File</h3>
-            <span class="subtext">Duplicates will be skipped automatically</span>
-          </div>
-
-          <div class="box-content-area">
-            <div class="form-group">
-              <label>Data Category *</label>
-              <div class="select-wrapper">
-                <select [ngModel]="uploadCategory()" (ngModelChange)="uploadCategory.set($event)">
-                  <option value="BASE">Base</option>
-                  <option value="NON_BASE">Non Base</option>
-                </select>
-                <span class="material-symbols-outlined select-arrow">expand_more</span>
+          <!-- Expected Format Info Box & Sample Download -->
+          <div class="format-info-card">
+            <div class="format-info-left">
+              <span class="material-symbols-outlined format-icon">table_chart</span>
+              <div>
+                <strong>Expected Excel Columns (5 Columns):</strong>
+                <div class="columns-pills">
+                  <span class="col-pill">NAME</span>
+                  <span class="col-pill">MOBILE NUMBER</span>
+                  <span class="col-pill">DOB</span>
+                  <span class="col-pill">ANNIVERSARY</span>
+                  <span class="col-pill">BASE CATEGORY</span>
+                </div>
               </div>
             </div>
+            <button type="button" class="btn-sample-download" (click)="onDownloadSampleExcel()">
+              <span class="material-symbols-outlined">download</span>
+              <span>Sample Template</span>
+            </button>
+          </div>
 
-            <div class="file-upload-row margin-top-sm">
-              <label class="btn-file-choose">
-                Choose file
-                <input type="file" accept=".xls,.xlsx" (change)="onFileChange($event)" hidden />
-              </label>
-              <span class="file-chosen-name">{{ uploadFileName() }}</span>
-            </div>
-
-            <div class="modal-actions-footer">
-              <button
-                type="button"
-                class="btn-modal-submit"
-                [disabled]="isSubmitting()"
-                (click)="onSubmitUpload()"
-              >
-                {{ isSubmitting() ? 'Uploading...' : 'Submit Upload' }}
-              </button>
+          <!-- Drag and Drop Dropzone -->
+          <div class="upload-dropzone" [class.has-file]="selectedFile()">
+            <input type="file" accept=".xls,.xlsx" (change)="onFileChange($event)" class="dropzone-input" />
+            <div class="dropzone-content">
+              @if (!selectedFile()) {
+                <div class="cloud-circle">
+                  <span class="material-symbols-outlined cloud-icon">cloud_upload</span>
+                </div>
+                <div class="dropzone-text">
+                  <span class="primary-text">Click to browse or drag &amp; drop Excel file here</span>
+                  <span class="secondary-text">Supports .xlsx, .xls spreadsheets</span>
+                </div>
+              } @else {
+                <div class="selected-file-chip">
+                  <span class="material-symbols-outlined file-icon">description</span>
+                  <div class="file-details">
+                    <span class="file-name">{{ selectedFile()?.name }}</span>
+                    <span class="file-size">{{ (selectedFile()?.size || 0) / 1024 | number:'1.0-1' }} KB</span>
+                  </div>
+                  <span class="material-symbols-outlined check-icon">check_circle</span>
+                </div>
+              }
             </div>
           </div>
+
+          <!-- Helper Badges -->
+          <div class="upload-badges-row">
+            <span class="info-badge">
+              <span class="material-symbols-outlined">auto_awesome</span>
+              <span>Auto-detects BASE &amp; NON BASE per row</span>
+            </span>
+            <span class="info-badge">
+              <span class="material-symbols-outlined">filter_alt</span>
+              <span>Skipped duplicates automatically</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="modal-footer-actions">
+          <button type="button" class="btn-cancel" (click)="closeUploadModal()">Cancel</button>
+          <button
+            type="button"
+            class="btn-submit-upload"
+            [disabled]="isSubmitting() || !selectedFile()"
+            (click)="onSubmitUpload()"
+          >
+            <span class="material-symbols-outlined">publish</span>
+            <span>{{ isSubmitting() ? 'Uploading Data...' : 'Upload Telecalling Data' }}</span>
+          </button>
         </div>
       </div>
     </div>
