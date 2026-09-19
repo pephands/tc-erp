@@ -94,10 +94,15 @@ export class UploadManagerModalComponent {
         this.toastService.info('Sample Downloaded', 'sample_managers.xlsx downloaded from server.');
       },
       error: () => {
-        const headers = ['Mobile Number', 'Full Name', 'Gender', 'Branch', 'Role', 'Status', 'Email ID', 'Salary'];
+        const headers = [
+          'Employee ID', 'Full Name', 'Official Name', 'Mobile Number', 'Official Number',
+          'Gender', 'Status', 'Role', 'Slab', 'Salary',
+          'Date of Joining', 'Date of Relieving', 'Date of Rejoining',
+          'Bank Account Holder Name', 'Bank Account Number', 'IFSC Code', 'Address', 'Branch Name'
+        ];
         const sampleRows = [
-          ['9876543200', 'MOHAN KUMAR', 'Male', 'ADAMBAKKAM', 'Team Lead', 'Active', 'mohan@paavai.com', '25000'],
-          ['9876543201', 'SARAVANAN S', 'Male', 'ADAMBAKKAM', 'Team Lead', 'Active', 'saravanan@paavai.com', '28000'],
+          ['EMP101', 'MOHAN KUMAR', 'Mohan Kumar', '9876543200', '044-24567899', 'Male', 'Active', 'Manager', '', '25000', '2021-04-01', '', '', 'MOHAN KUMAR', '987654321099', 'SBIN0001234', '10 Admin Plaza, Chennai', 'ADAMBAKKAM'],
+          ['EMP102', 'SARAVANAN S', 'Saravanan S', '9876543201', '044-24567898', 'Male', 'Active', 'Manager', '', '28000', '2020-08-15', '', '', 'SARAVANAN S', '987654321098', 'HDFC0005678', '22 Executive Heights, Madurai', 'ADAMBAKKAM']
         ];
 
         let csvContent = headers.join(',') + '\n';

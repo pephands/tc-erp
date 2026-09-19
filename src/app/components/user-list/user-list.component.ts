@@ -628,15 +628,42 @@ export class UserListComponent implements OnInit {
   }
 
   onDownloadSampleTemplate(): void {
-    this.userListService.downloadSampleTemplate(this.roleCode.toLowerCase()).subscribe({
+    const roleLower = this.roleCode.toLowerCase();
+    this.userListService.downloadSampleTemplate(roleLower).subscribe({
       next: (blob: Blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `sample_${this.roleCode.toLowerCase()}_users.xlsx`;
+        a.download = `sample_${roleLower}_users.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        this.toastService.success('Sample Downloaded', `sample_${roleLower}_users.xlsx downloaded.`);
+      },
+      error: () => {
+        const headers = [
+          'Employee ID', 'Full Name', 'Official Name', 'Mobile Number', 'Official Number',
+          'Gender', 'Status', 'Role', 'Slab', 'Salary',
+          'Date of Joining', 'Date of Relieving', 'Date of Rejoining',
+          'Bank Account Holder Name', 'Bank Account Number', 'IFSC Code', 'Address', 'Branch Name'
+        ];
+        const sampleRows = [
+          ['EMP001', 'Anitha M', 'Anitha Murugan', '9876543210', '044-24567890', 'Female', 'Active', this.roleTitle, 'SLAB-1', '15000', '2024-01-15', '', '', 'Anitha M', '987654321012', 'SBIN0001234', '123 Main Street, Chennai', 'ADAMBAKKAM'],
+          ['EMP002', 'Kavitha S', 'Kavitha S', '9876543211', '044-24567891', 'Female', 'Active', this.roleTitle, 'SLAB-2', '18000', '2023-06-01', '', '', 'Kavitha S', '987654321013', 'HDFC0005678', '45 Park Avenue, Madurai', 'ADAMBAKKAM']
+        ];
+        let csvContent = headers.join(',') + '\n';
+        sampleRows.forEach(row => {
+          csvContent += row.map(val => `"${val}"`).join(',') + '\n';
+        });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sample_${roleLower}_users.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        this.toastService.info('Sample Downloaded', `Sample ${this.roleTitle} template downloaded.`);
       }
     });
   }

@@ -95,10 +95,15 @@ export class UploadTelecallerModalComponent {
       },
       error: () => {
         // Fallback to generating template file directly
-        const headers = ['Mobile Number', 'Full Name', 'Gender', 'Branch', 'Role', 'Status', 'Email ID', 'Salary', 'Official No', 'Login Time', 'Logoff Time'];
+        const headers = [
+          'Employee ID', 'Full Name', 'Official Name', 'Mobile Number', 'Official Number',
+          'Gender', 'Status', 'Role', 'Slab', 'Salary',
+          'Date of Joining', 'Date of Relieving', 'Date of Rejoining',
+          'Bank Account Holder Name', 'Bank Account Number', 'IFSC Code', 'Address', 'Branch Name'
+        ];
         const sampleRows = [
-          ['9876543210', 'ABI M', 'Female', 'ADAMBAKKAM', 'Tele Caller', 'Active', 'abi@paavai.com', '12000', '9087020101', '09:00 AM', '06:00 PM'],
-          ['7395949844', 'ALIYA K', 'Female', 'ADAMBAKKAM', 'Tele Caller', 'Active', 'aliya@paavai.com', '12500', '9087020102', '09:00 AM', '06:00 PM'],
+          ['EMP001', 'ABI M', 'Abinaya M', '9876543210', '044-24567890', 'Female', 'Active', 'Telecaller', 'SLAB-1', '12000', '2024-01-15', '', '', 'ABI M', '987654321012', 'SBIN0001234', '123 Main Street, Chennai', 'ADAMBAKKAM'],
+          ['EMP002', 'ALIYA K', 'Aliya Khan', '7395949844', '044-24567891', 'Female', 'Active', 'Telecaller', 'SLAB-2', '12500', '2023-06-01', '', '', 'ALIYA K', '987654321013', 'HDFC0005678', '45 Park Avenue, Madurai', 'ADAMBAKKAM']
         ];
 
         let csvContent = headers.join(',') + '\n';
