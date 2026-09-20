@@ -68,14 +68,17 @@
           <!-- 4. Payment Mode -->
           <div class="form-group">
             <label for="modeOfPayment">Payment Mode <span class="required-star">*</span></label>
-            <input
-              type="text"
+            <select
               id="modeOfPayment"
               class="form-control"
-              placeholder="Enter payment mode"
               [ngModel]="modeOfPayment()"
               (ngModelChange)="modeOfPayment.set($event)"
-            />
+            >
+              <option value="">Select Payment Mode</option>
+              @for (mode of paymentModes(); track mode.id) {
+                <option [value]="mode.name">{{ mode.name }}</option>
+              }
+            </select>
           </div>
 
           <!-- 5. Donor Type -->

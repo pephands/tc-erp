@@ -125,6 +125,30 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  // Payment Modes
+  getPaymentModes(isActiveOnly: boolean = true): Observable<any> {
+    let params = new HttpParams();
+    if (isActiveOnly) {
+      params = params.set('is_active', 'true');
+    }
+    return this.httpClient.get<any>(this.endPoint.paymentModes, {
+      headers: this.headers,
+      params
+    });
+  }
+
+  createPaymentMode(data: any): Observable<any> {
+    return this.httpClient.post<any>(this.endPoint.paymentModes, data, {
+      headers: this.headers,
+    });
+  }
+
+  updatePaymentMode(id: number | string, data: any): Observable<any> {
+    return this.httpClient.patch<any>(`${this.endPoint.paymentModes}${id}/`, data, {
+      headers: this.headers,
+    });
+  }
+
   getReceiptUrl(id: number | string): string {
     return this.endPoint.paymentRecordReceipt(Number(id));
   }

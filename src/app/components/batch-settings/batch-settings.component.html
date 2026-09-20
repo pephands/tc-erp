@@ -7,7 +7,17 @@
     </div>
     <button type="button" class="btn-add-payment-orange" (click)="openCreateModal()">
       <span class="material-symbols-outlined">add</span>
-      <span>Create Batch</span>
+      <span>{{ activeTab() === 'BATCHES' ? 'Create Batch' : 'Create Mode' }}</span>
+    </button>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-container">
+    <button class="tab-btn" [class.active]="activeTab() === 'BATCHES'" (click)="setTab('BATCHES')">
+      Batch Configurations
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'MODES'" (click)="setTab('MODES')">
+      Payment Modes
     </button>
   </div>
 
@@ -18,7 +28,9 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th>Trigger Time</th>
+            @if (activeTab() === 'BATCHES') {
+              <th>Trigger Time</th>
+            }
             <th>Status</th>
             <th>Created By</th>
             <th>Created At</th>
@@ -32,36 +44,38 @@
             <tr>
               <td colspan="8" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
-                <p>Fetching batch settings...</p>
+                <p>Fetching data...</p>
               </td>
             </tr>
-          } @else if (batches().length === 0) {
+          } @else if (activeTab() === 'BATCHES' ? batches().length === 0 : paymentModes().length === 0) {
             <tr>
               <td colspan="8" class="empty-state">
                 <span class="material-symbols-outlined empty-icon">receipt_long</span>
-                <p class="empty-title">No batch settings found.</p>
+                <p class="empty-title">No records found.</p>
               </td>
             </tr>
           } @else {
-            @for (batch of batches(); track batch.id) {
+            @for (item of (activeTab() === 'BATCHES' ? batches() : paymentModes()); track item.id) {
               <tr>
-                <td class="col-name"><strong>{{ batch.name }}</strong></td>
+                <td class="col-name"><strong>{{ item.name }}</strong></td>
+                @if (activeTab() === 'BATCHES') {
+                  <td>
+                    <span class="tag-pill">
+                      {{ item.trigger_time }}
+                    </span>
+                  </td>
+                }
                 <td>
-                  <span class="tag-pill">
-                    {{ batch.trigger_time }}
+                  <span class="status-badge" [ngClass]="item.is_active ? 'badge-approved' : 'badge-rejected'">
+                    {{ item.is_active ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
-                <td>
-                  <span class="status-badge" [ngClass]="batch.is_active ? 'badge-approved' : 'badge-rejected'">
-                    {{ batch.is_active ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td>{{ batch.created_by_name || 'N/A' }}</td>
-                <td class="col-date">{{ batch.created_at | date:'medium' }}</td>
-                <td>{{ batch.updated_by_name || 'N/A' }}</td>
-                <td class="col-date">{{ batch.updated_at | date:'medium' }}</td>
+                <td>{{ item.created_by_name || 'N/A' }}</td>
+                <td class="col-date">{{ item.created_at | date:'medium' }}</td>
+                <td>{{ item.updated_by_name || 'N/A' }}</td>
+                <td class="col-date">{{ item.updated_at | date:'medium' }}</td>
                 <td class="col-actions justify-content-end">
-                  <button class="btn-action-icon edit-btn" (click)="openEditModal(batch)" title="Edit">
+                  <button class="btn-action-icon edit-btn" (click)="openEditModal(item)" title="Edit">
                     <span class="material-symbols-outlined">edit</span>
                   </button>
                 </td>
@@ -82,7 +96,10 @@
       <div class="modal-header-bar">
         <div class="modal-title-group">
           <span class="material-symbols-outlined modal-icon">settings</span>
-          <h2 class="modal-title">{{ isEditing() ? 'Edit Batch Setting' : 'Create Batch Setting' }}</h2>
+          <h2 class="modal-title">
+            {{ isEditing() ? 'Edit ' : 'Create ' }} 
+            {{ activeTab() === 'BATCHES' ? 'Batch Setting' : 'Payment Mode' }}
+          </h2>
         </div>
         <button type="button" class="btn-close-icon" (click)="closeModal()" title="Close Modal">
           <span class="material-symbols-outlined">close</span>
@@ -92,13 +109,16 @@
       <!-- Modal Form Body -->
       <div class="modal-body">
         <div class="form-group">
-          <label for="batchName">Batch Name <span class="required-star">*</span></label>
-          <input type="text" id="batchName" class="form-control" [(ngModel)]="formData.name" placeholder="e.g. Batch-1">
+          <label for="itemName">Name <span class="required-star">*</span></label>
+          <input type="text" id="itemName" class="form-control" [(ngModel)]="formData.name" placeholder="e.g. {{ activeTab() === 'BATCHES' ? 'Batch-1' : 'UPI' }}">
         </div>
-        <div class="form-group">
-          <label for="triggerTime">Trigger Time <span class="required-star">*</span></label>
-          <input type="time" id="triggerTime" class="form-control" [(ngModel)]="formData.trigger_time">
-        </div>
+        
+        @if (activeTab() === 'BATCHES') {
+          <div class="form-group">
+            <label for="triggerTime">Trigger Time <span class="required-star">*</span></label>
+            <input type="time" id="triggerTime" class="form-control" [(ngModel)]="formData.trigger_time">
+          </div>
+        }
         <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
           <input type="checkbox" id="activeSwitch" [(ngModel)]="formData.is_active" style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
           <label for="activeSwitch" style="cursor: pointer; margin: 0;">Active</label>
@@ -107,7 +127,7 @@
 
       <!-- Modal Action Footer -->
       <div class="modal-footer">
-        <button type="button" class="btn-submit-orange" (click)="saveBatch()">
+        <button type="button" class="btn-submit-orange" (click)="saveItem()">
           <span>{{ isEditing() ? 'Update' : 'Create' }}</span>
         </button>
         <button type="button" class="btn-reset-grey" (click)="closeModal()">

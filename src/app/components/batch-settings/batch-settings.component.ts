@@ -13,7 +13,11 @@ import { PaymentService } from '../../services/payment.service';
 export class BatchSettingsComponent implements OnInit {
   private paymentService = inject(PaymentService);
 
+  activeTab = signal<'BATCHES' | 'MODES'>('BATCHES');
+
   batches = signal<any[]>([]);
+  paymentModes = signal<any[]>([]);
+  
   isLoading = signal<boolean>(false);
   isModalOpen = signal<boolean>(false);
 
@@ -29,6 +33,26 @@ export class BatchSettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchBatches();
+    this.fetchPaymentModes();
+  }
+
+  setTab(tab: 'BATCHES' | 'MODES'): void {
+    this.activeTab.set(tab);
+  }
+
+  fetchPaymentModes(): void {
+    this.paymentService.getPaymentModes(false).subscribe({
+      next: (res) => {
+        if (res && res.results) {
+          this.paymentModes.set(res.results);
+        } else if (Array.isArray(res)) {
+          this.paymentModes.set(res);
+        } else if (res && res.data) {
+          this.paymentModes.set(res.data);
+        }
+      },
+      error: (err) => console.error('Error fetching payment modes:', err)
+    });
   }
 
   fetchBatches(): void {
@@ -62,14 +86,22 @@ export class BatchSettingsComponent implements OnInit {
     this.isModalOpen.set(true);
   }
 
-  openEditModal(batch: any): void {
+  openEditModal(item: any): void {
     this.isEditing.set(true);
-    this.editId.set(batch.id);
-    this.formData = {
-      name: batch.name,
-      trigger_time: batch.trigger_time,
-      is_active: batch.is_active
-    };
+    this.editId.set(item.id);
+    if (this.activeTab() === 'BATCHES') {
+      this.formData = {
+        name: item.name,
+        trigger_time: item.trigger_time,
+        is_active: item.is_active
+      };
+    } else {
+      this.formData = {
+        name: item.name,
+        trigger_time: '',
+        is_active: item.is_active
+      };
+    }
     this.isModalOpen.set(true);
   }
 
@@ -77,34 +109,40 @@ export class BatchSettingsComponent implements OnInit {
     this.isModalOpen.set(false);
   }
 
-  saveBatch(): void {
-    if (!this.formData.name || !this.formData.trigger_time) {
-      alert("Name and Trigger Time are required.");
-      return;
-    }
-
-    if (this.isEditing() && this.editId() !== null) {
-      this.paymentService.updateBatchConfig(this.editId()!, this.formData).subscribe({
-        next: (res) => {
-          this.closeModal();
-          this.fetchBatches();
-        },
-        error: (err) => {
-          console.error("Error updating batch", err);
-          alert("Error updating batch.");
-        }
-      });
+  saveItem(): void {
+    if (this.activeTab() === 'BATCHES') {
+      if (!this.formData.name || !this.formData.trigger_time) {
+        alert("Name and Trigger Time are required.");
+        return;
+      }
+      if (this.isEditing() && this.editId() !== null) {
+        this.paymentService.updateBatchConfig(this.editId()!, this.formData).subscribe({
+          next: () => { this.closeModal(); this.fetchBatches(); },
+          error: (err) => { console.error("Error updating batch", err); alert("Error updating batch."); }
+        });
+      } else {
+        this.paymentService.createBatchConfig(this.formData).subscribe({
+          next: () => { this.closeModal(); this.fetchBatches(); },
+          error: (err) => { console.error("Error creating batch", err); alert("Error creating batch."); }
+        });
+      }
     } else {
-      this.paymentService.createBatchConfig(this.formData).subscribe({
-        next: (res) => {
-          this.closeModal();
-          this.fetchBatches();
-        },
-        error: (err) => {
-          console.error("Error creating batch", err);
-          alert("Error creating batch.");
-        }
-      });
+      if (!this.formData.name) {
+        alert("Name is required.");
+        return;
+      }
+      const data = { name: this.formData.name, is_active: this.formData.is_active };
+      if (this.isEditing() && this.editId() !== null) {
+        this.paymentService.updatePaymentMode(this.editId()!, data).subscribe({
+          next: () => { this.closeModal(); this.fetchPaymentModes(); },
+          error: (err) => { console.error("Error updating mode", err); alert("Error updating payment mode."); }
+        });
+      } else {
+        this.paymentService.createPaymentMode(data).subscribe({
+          next: () => { this.closeModal(); this.fetchPaymentModes(); },
+          error: (err) => { console.error("Error creating mode", err); alert("Error creating payment mode."); }
+        });
+      }
     }
   }
 }

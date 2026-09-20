@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, inject, signal, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Output, Input, inject, signal, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
@@ -12,7 +12,7 @@ import { OnlinePaymentRecord } from '../../models/payment.model';
   templateUrl: './add-online-payment-modal.component.html',
   styleUrl: './add-online-payment-modal.component.css'
 })
-export class AddOnlinePaymentModalComponent implements OnChanges {
+export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   private paymentService = inject(PaymentService);
   private authService = inject(AuthService);
 
@@ -39,6 +39,8 @@ export class AddOnlinePaymentModalComponent implements OnChanges {
   selectedFile = signal<File | null>(null);
   selectedFileName = signal<string>('');
 
+  paymentModes = signal<any[]>([]);
+
   isSubmitting = signal<boolean>(false);
   errorMessage = signal<string>('');
 
@@ -47,6 +49,23 @@ export class AddOnlinePaymentModalComponent implements OnChanges {
     if (user && (user as any).slab) {
       this.slab.set((user as any).slab);
     }
+  }
+
+  ngOnInit() {
+    this.fetchPaymentModes();
+  }
+
+  fetchPaymentModes() {
+    this.paymentService.getPaymentModes(true).subscribe({
+      next: (res: any) => {
+        if (res && res.results) {
+          this.paymentModes.set(res.results);
+        } else if (Array.isArray(res)) {
+          this.paymentModes.set(res);
+        }
+      },
+      error: (err: any) => console.error('Error fetching payment modes:', err)
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

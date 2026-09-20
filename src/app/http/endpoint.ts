@@ -142,6 +142,10 @@ export class Endpoint {
     return this.baseUrl + 'payments/records/';
   }
   
+  get paymentModes(): string {
+    return this.baseUrl + 'payments/modes/';
+  }
+  
   get paymentBatchConfigs(): string {
     return this.baseUrl + 'payments/batch-configs/';
   }
