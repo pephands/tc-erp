@@ -1,0 +1,383 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">verified</span>
+      <div>
+        <h2 class="page-title">{{ isAdmin() ? 'Batch Verification' : 'Pending Verification Records' }}</h2>
+        <p class="page-sub">{{ isAdmin() ? 'Manage batches, download and upload processed excel files.' : 'View newly submitted records and batch status.' }}</p>
+      </div>
+    </div>
+    @if (isAdmin() && activeTab() === 'PENDING_BATCHES') {
+      <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx" style="display: none;">
+        <button type="button" class="btn-add-payment-orange" (click)="fileInput.click()" [disabled]="isUploading()">
+          @if (isUploading()) {
+            <span class="material-symbols-outlined spin-icon" style="animation: spin 1s linear infinite;">progress_activity</span>
+            <span>Processing...</span>
+          } @else {
+            <span class="material-symbols-outlined">upload_file</span>
+            <span>Upload Processed Excel</span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (uploadMessage()) {
+    <div class="alert alert-success" style="padding: 1rem; background-color: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #10b981;">
+      {{ uploadMessage() }}
+    </div>
+  }
+  @if (uploadError()) {
+    <div class="alert alert-danger" style="padding: 1rem; background-color: #fee2e2; color: #b91c1c; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #ef4444;">
+      {{ uploadError() }}
+    </div>
+  }
+
+  <!-- TABS -->
+  <div class="tabs-container" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
+    @if (isAdmin()) {
+      <button 
+        class="tab-btn" 
+        (click)="setTab('PENDING_BATCHES')"
+        style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+        [style.border-bottom-color]="activeTab() === 'PENDING_BATCHES' ? '#f97316' : 'transparent'"
+        [style.color]="activeTab() === 'PENDING_BATCHES' ? '#f97316' : '#6b7280'">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">hourglass_top</span>
+        Pending Batches
+      </button>
+      <button 
+        class="tab-btn" 
+        (click)="setTab('COMPLETED_BATCHES')"
+        style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+        [style.border-bottom-color]="activeTab() === 'COMPLETED_BATCHES' ? '#10b981' : 'transparent'"
+        [style.color]="activeTab() === 'COMPLETED_BATCHES' ? '#10b981' : '#6b7280'">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">task_alt</span>
+        Completed Batches
+      </button>
+      <button 
+        class="tab-btn" 
+        (click)="setTab('OVERALL_BATCHES')"
+        style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+        [style.border-bottom-color]="activeTab() === 'OVERALL_BATCHES' ? '#3b82f6' : 'transparent'"
+        [style.color]="activeTab() === 'OVERALL_BATCHES' ? '#3b82f6' : '#6b7280'">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">analytics</span>
+        Overall Batch Details
+      </button>
+    } @else {
+      <!-- TL / Manager Tabs -->
+      <button 
+        class="tab-btn" 
+        (click)="setTab('RECORDS')"
+        style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+        [style.border-bottom-color]="activeTab() === 'RECORDS' ? '#f97316' : 'transparent'"
+        [style.color]="activeTab() === 'RECORDS' ? '#f97316' : '#6b7280'">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">receipt_long</span>
+        TC Submit Details
+      </button>
+      <button 
+        class="tab-btn" 
+        (click)="setTab('BATCHES')"
+        style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+        [style.border-bottom-color]="activeTab() === 'BATCHES' ? '#3b82f6' : 'transparent'"
+        [style.color]="activeTab() === 'BATCHES' ? '#3b82f6' : '#6b7280'">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">folder_zip</span>
+        Generated Batches
+      </button>
+    }
+  </div>
+
+  <!-- Filter Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-controls-grid">
+      @if (activeTab() === 'RECORDS') {
+        <div class="filter-field search-field">
+          <label>Search Donor, Mobile, Ref ID</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">search</span>
+            <input
+              type="text"
+              placeholder="Search donor name, mobile..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearchChange($event)"
+            />
+          </div>
+        </div>
+      }
+
+      <div class="filter-field">
+        <label>Start Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input type="date" [ngModel]="startDate()" (ngModelChange)="onStartDateChange($event)"/>
+        </div>
+      </div>
+
+      <div class="filter-field">
+        <label>End Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input type="date" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)"/>
+        </div>
+      </div>
+
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batches Table (Shared for both roles, just distinct data behavior) -->
+  @if (activeTab() !== 'RECORDS') {
+    <div class="table-card shadow-card">
+      <div class="table-responsive">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              @if (isAdmin() && activeTab() === 'OVERALL_BATCHES') { <th></th> }
+              @if (!isAdmin() && activeTab() === 'BATCHES') { <th></th> }
+              <th>Config Name</th>
+              <th>Batch Date</th>
+              <th>Generated At</th>
+              <th>Status</th>
+              <th>Total Records</th>
+              <th>OK</th>
+              <th>RESEND</th>
+              <th>OTHER</th>
+              @if (isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) {
+                <th>Action</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="10" class="loading-state">
+                  <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                  <p>Loading batches...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (batch of batches(); track batch.id) {
+                <!-- Main Row -->
+                <tr [class.clickable-row]="isAdmin() ? (activeTab() === 'OVERALL_BATCHES') : true" 
+                    (click)="(isAdmin() && activeTab() === 'OVERALL_BATCHES') || (!isAdmin() && activeTab() === 'BATCHES') ? toggleBatchExpansion(batch.id) : null"
+                    style="cursor: {{ ((isAdmin() && activeTab() === 'OVERALL_BATCHES') || (!isAdmin() && activeTab() === 'BATCHES')) ? 'pointer' : 'default' }}">
+                  
+                  @if (isAdmin() && activeTab() === 'OVERALL_BATCHES') { 
+                    <td><span class="material-symbols-outlined">{{ expandedBatchId() === batch.id ? 'expand_less' : 'expand_more' }}</span></td>
+                  }
+                  @if (!isAdmin() && activeTab() === 'BATCHES') { 
+                    <td><span class="material-symbols-outlined">{{ expandedBatchId() === batch.id ? 'expand_less' : 'expand_more' }}</span></td>
+                  }
+                  
+                  <td><strong>{{ batch.name }}</strong></td>
+                  <td class="col-date">{{ batch.date | date:'yyyy-MM-dd' }}</td>
+                  <td class="col-date">{{ batch.generated_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                  
+                  <td>
+                    @if(batch.status === 'COMPLETED') {
+                      <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">COMPLETED</span>
+                    } @else {
+                      <span class="status-badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">PENDING</span>
+                    }
+                  </td>
+                  
+                  <td><span class="tag-pill">{{ batch.record_count }}</span></td>
+                  <td><span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">{{ batch.ok_count }}</span></td>
+                  <td><span class="status-badge" style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;">{{ batch.resend_count }}</span></td>
+                  <td><span class="status-badge" style="background: #e5e7eb; color: #374151; border: 1px solid #d1d5db;">{{ batch.other_count }}</span></td>
+                  
+                  @if (isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) {
+                    <td>
+                      <button type="button" class="btn-action-blue" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" style="padding: 0.4rem 0.8rem; border: none; border-radius: 4px; background: #0284c7; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
+                        Download
+                      </button>
+                    </td>
+                  }
+                </tr>
+
+                <!-- Expanded View: Overall Batch Details (Admin) -->
+                @if (isAdmin() && activeTab() === 'OVERALL_BATCHES' && expandedBatchId() === batch.id) {
+                  <tr class="expanded-row" style="background: #f8fafc;">
+                    <td colspan="10" style="padding: 1.5rem;">
+                      <h4 style="margin: 0 0 1rem 0; color: #334155; display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-outlined">map</span> Branch-wise Breakdown
+                      </h4>
+                      @if (batchBranchStats()[batch.id]) {
+                        <table class="nested-table" style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;">
+                          <thead style="background: #f1f5f9;">
+                            <tr>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Branch</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Total Records</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">OK</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">RESEND</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">OTHER</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (stat of batchBranchStats()[batch.id]; track stat.branch_id) {
+                              <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 0.75rem;"><strong>{{ stat.branch_name }}</strong></td>
+                                <td style="padding: 0.75rem;"><span class="tag-pill">{{ stat.total }}</span></td>
+                                <td style="padding: 0.75rem;"><span style="color: #059669; font-weight: 600;">{{ stat.ok_count }}</span></td>
+                                <td style="padding: 0.75rem;"><span style="color: #d97706; font-weight: 600;">{{ stat.resend_count }}</span></td>
+                                <td style="padding: 0.75rem;"><span style="color: #4b5563; font-weight: 600;">{{ stat.other_count }}</span></td>
+                              </tr>
+                            } @empty {
+                              <tr><td colspan="5" style="padding: 1rem; text-align: center; color: #64748b;">No branch records found.</td></tr>
+                            }
+                          </tbody>
+                        </table>
+                      } @else {
+                        <div style="display: flex; align-items: center; gap: 10px; color: #64748b;"><span class="material-symbols-outlined spin-icon">progress_activity</span> Loading branch stats...</div>
+                      }
+                    </td>
+                  </tr>
+                }
+
+                <!-- Expanded View: Batch Records (TL/Manager) -->
+                @if (!isAdmin() && activeTab() === 'BATCHES' && expandedBatchId() === batch.id) {
+                  <tr class="expanded-row" style="background: #f8fafc;">
+                    <td colspan="9" style="padding: 1.5rem;">
+                      <h4 style="margin: 0 0 1rem 0; color: #334155; display: flex; align-items: center; gap: 5px;">
+                        <span class="material-symbols-outlined">list_alt</span> Records in this batch
+                      </h4>
+                      @if (batchRecords()[batch.id]) {
+                        <table class="nested-table" style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;">
+                          <thead style="background: #f1f5f9;">
+                            <tr>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Donor Name</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Amount</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Ref Id</th>
+                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (rec of batchRecords()[batch.id]; track rec.id) {
+                              <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 0.75rem;"><strong>{{ rec.donor_name }}</strong><br><small style="color: #64748b;">{{ rec.mobile_number }}</small></td>
+                                <td style="padding: 0.75rem;">₹{{ rec.amount | number:'1.2-2' }}</td>
+                                <td style="padding: 0.75rem;"><code>{{ rec.reference_id }}</code></td>
+                                <td style="padding: 0.75rem;">
+                                  <span class="status-badge" 
+                                    [style.background]="rec.status === 'OK' ? '#d1fae5' : (rec.status === 'RESEND' ? '#fef3c7' : '#f3f4f6')"
+                                    [style.color]="rec.status === 'OK' ? '#065f46' : (rec.status === 'RESEND' ? '#d97706' : '#374151')">
+                                    {{ rec.status }}
+                                  </span>
+                                </td>
+                              </tr>
+                            } @empty {
+                              <tr><td colspan="4" style="padding: 1rem; text-align: center; color: #64748b;">No records found.</td></tr>
+                            }
+                          </tbody>
+                        </table>
+                      } @else {
+                        <div style="display: flex; align-items: center; gap: 10px; color: #64748b;"><span class="material-symbols-outlined spin-icon">progress_activity</span> Loading records...</div>
+                      }
+                    </td>
+                  </tr>
+                }
+              } @empty {
+                <tr>
+                  <td colspan="10" class="empty-state">
+                    <span class="material-symbols-outlined empty-icon">rule_folder</span>
+                    <p class="empty-title">No Batches Found</p>
+                    <p class="empty-sub">There are no batches in this category.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  } 
+
+  <!-- Pending Records Table (Only for TL Tab 1) -->
+  @if (activeTab() === 'RECORDS') {
+    <div class="table-card shadow-card">
+      <div class="table-responsive">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>Submitted Date</th>
+              <th>Donor Number</th>
+              <th>Donor Name</th>
+              <th>Amount</th>
+              <th>Ref Id</th>
+              <th>Payment Mode</th>
+              <th>Donor Type</th>
+              <th>Status</th>
+              <th>Proof File</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="9" class="loading-state">
+                  <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                  <p>Loading records...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (rec of records(); track rec.id) {
+                <tr>
+                  <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                  <td class="col-mobile">{{ rec.mobile_number }}</td>
+                  <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+                  <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
+                  <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
+                  <td><span class="tag-pill">{{ rec.mode_of_payment }}</span></td>
+                  <td><span class="donor-type-tag">{{ rec.donor_type }}</span></td>
+                  <td class="col-status">
+                    @if(rec.status === 'RESEND') {
+                      <span class="status-badge badge-pending" style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;">RESEND</span>
+                    } @else if (rec.status) {
+                      <span class="status-badge badge-new" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">{{ rec.status }}</span>
+                    } @else {
+                      <span style="color: #9ca3af;">-</span>
+                    }
+                  </td>
+                  <td class="col-file">
+                    @if (rec.payment_proof_url) {
+                      <a [href]="rec.payment_proof_url" target="_blank" class="btn-file-link" title="View payment proof">
+                        <span class="material-symbols-outlined">image</span>
+                        <span>Proof</span>
+                      </a>
+                    } @else {
+                      <span class="no-file-text">No File</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="9" class="empty-state">
+                    <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
+                    <p class="empty-title">No Pending Records Found</p>
+                    <p class="empty-sub">There are no NEW or RESEND records awaiting verification.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (records().length > 0) {
+        <div class="pagination-bar">
+          <div class="pagination-info">Showing page {{ currentPage() }} of {{ totalPages() }}</div>
+          <div class="pagination-controls">
+            <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">Prev</button>
+            <button class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Next</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</main>

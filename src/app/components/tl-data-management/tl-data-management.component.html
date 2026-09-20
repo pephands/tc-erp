@@ -299,7 +299,7 @@
           </thead>
           <tbody>
             @for (item of allocationSummary(); track item.telecaller_id) {
-              <tr>
+              <tr class="clickable-row" (click)="onViewAllocatedBases(item)" title="Click to view allocated numbers">
                 <td class="font-bold text-primary">{{ item.telecaller_name }}</td>
                 <td class="font-semibold">{{ item.times_allocated | number }}</td>
                 <td class="font-bold text-success">{{ item.total_quantity | number }}</td>
@@ -481,6 +481,88 @@
               >
                 {{ isSubmitting() ? 'Assigning Data...' : 'Assign Data' }}
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==========================================
+       MODAL 3: VIEW ALLOCATED BASES FOR TC
+       ========================================== -->
+  @if (isAllocatedBasesModalOpen()) {
+    <div class="modal-backdrop" (click)="closeAllocatedBasesModal()">
+      <div class="modal-card" style="max-width: 800px;" (click)="$event.stopPropagation()">
+        <div class="modal-title-header">
+          <h2>Allocated Base Numbers - {{ selectedTelecallerForBases()?.telecaller_name }}</h2>
+          <button type="button" class="modal-close-btn" (click)="closeAllocatedBasesModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box">
+          <div class="box-header-bar" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Allocated Numbers Details</h3>
+            <button
+              type="button"
+              class="btn-toolbar btn-submit"
+              (click)="onDownloadAllocatedBases()"
+              style="padding: 0.25rem 0.75rem; font-size: 0.875rem;"
+            >
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
+              <span>Download CSV</span>
+            </button>
+          </div>
+
+          <div class="box-content-area" style="max-height: 400px; overflow-y: auto;">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Donor Name</th>
+                    <th>Phone Number</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Assigned At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (isLoadingAllocatedBases()) {
+                    <tr>
+                      <td colspan="5" class="loading-table-state">
+                        <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                        <p class="loading-title">Fetching records...</p>
+                      </td>
+                    </tr>
+                  } @else {
+                    @for (donor of allocatedBasesList(); track donor.id) {
+                      <tr>
+                        <td class="font-medium">{{ donor.donor_name }}</td>
+                        <td class="font-bold">{{ donor.phone_number }}</td>
+                        <td>
+                          <span
+                            class="category-badge"
+                            [class.cat-base]="donor.category === 'BASE'"
+                            [class.cat-nonbase]="donor.category === 'NON BASE' || donor.category === 'NON_BASE'"
+                          >
+                            {{ donor.category === 'BASE' ? 'Base' : 'Non Base' }}
+                          </span>
+                        </td>
+                        <td>{{ donor.status }}</td>
+                        <td class="text-muted">{{ donor.assigned_tc_at ? (donor.assigned_tc_at | date:'short') : '-' }}</td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="5" class="empty-state-cell">
+                          <span class="material-symbols-outlined empty-icon">group_off</span>
+                          <p>No numbers found for this telecaller</p>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

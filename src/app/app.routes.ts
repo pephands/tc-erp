@@ -11,6 +11,13 @@ import { ExpenseDetailsComponent } from './components/expense-details/expense-de
 import { ExpenseReportComponent } from './components/expense-report/expense-report.component';
 import { WhatsappCampaignsComponent } from './components/whatsapp-campaigns/whatsapp-campaigns.component';
 import { WhatsappAccountsComponent } from './components/whatsapp-accounts/whatsapp-accounts.component';
+import { WhatsappTemplates } from './components/whatsapp-templates/whatsapp-templates.component';
+import { WhatsappSendComponent } from './components/whatsapp-send/whatsapp-send.component';
+
+import { BatchReportsComponent } from './components/batch-reports/batch-reports.component';
+import { BatchSettingsComponent } from './components/batch-settings/batch-settings.component';
+import { ReceivedStatusComponent } from './components/received-status/received-status.component';
+import { OnlineHistoryComponent } from './components/online-history/online-history.component';
 
 import { SendRecordsComponent } from './components/send-records/send-records.component';
 import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
@@ -174,6 +181,26 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       {
+        path: 'batch-reports',
+        component: BatchReportsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'batch-settings',
+        component: BatchSettingsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'received-status',
+        component: ReceivedStatusComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'online-history',
+        component: OnlineHistoryComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
         path: 'whatsapp-accounts',
         component: WhatsappAccountsComponent,
         canActivate: [deviceAuthGuard],
@@ -185,12 +212,12 @@ export const routes: Routes = [
       },
       {
         path: 'whatsapp-campaigns/:campaignId/templates',
-        loadComponent: () => import('./components/whatsapp-templates/whatsapp-templates.component').then(m => m.WhatsappTemplates),
+        component: WhatsappTemplates,
         canActivate: [deviceAuthGuard],
       },
       {
         path: 'whatsapp-send',
-        loadComponent: () => import('./components/whatsapp-send/whatsapp-send.component').then(m => m.WhatsappSendComponent),
+        component: WhatsappSendComponent,
         canActivate: [deviceAuthGuard],
       },
       {

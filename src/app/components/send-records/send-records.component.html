@@ -125,20 +125,13 @@
                 </td>
                 <td class="col-remarks" [title]="rec.remarks || ''">{{ rec.remarks || '-' }}</td>
                 <td class="col-status">
-                  <span
-                    class="status-badge"
-                    [class.badge-pending]="rec.status === 'PENDING'"
-                    [class.badge-approved]="rec.status === 'APPROVED'"
-                    [class.badge-rejected]="rec.status === 'REJECTED'"
-                  >
-                    {{
-                      rec.status === 'PENDING'
-                        ? 'Pending TL Review'
-                        : rec.status === 'APPROVED'
-                          ? 'Approved'
-                          : 'Rejected'
-                    }}
-                  </span>
+                  @if (rec.status) {
+                    <span class="status-badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
+                      {{ rec.status }}
+                    </span>
+                  } @else {
+                    <span style="color: #9ca3af;">-</span>
+                  }
                 </td>
                 <td class="col-file">
                   @if (rec.payment_proof_url) {
@@ -157,8 +150,12 @@
                 </td>
                 <td class="col-actions">
                   <span class="action-info-chip" [title]="'Ref: ' + rec.reference_id">
-                    <span class="material-symbols-outlined">visibility</span>
                   </span>
+                  @if (rec.status === 'NEW' || rec.status === 'RESEND') {
+                    <button type="button" class="btn-action-icon edit-btn" (click)="onEditRecord(rec)" title="Edit Record">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                  }
                 </td>
               </tr>
             } @empty {
@@ -207,9 +204,10 @@
   </div>
 </main>
 
-<!-- Add Online Payment Modal -->
+<!-- Add/Edit Online Payment Modal -->
 @if (showModal()) {
   <app-add-online-payment-modal
+    [editRecord]="editingRecord()"
     (close)="onCloseModal()"
     (submitted)="onPaymentSubmitted()"
   ></app-add-online-payment-modal>

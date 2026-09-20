@@ -40,7 +40,7 @@ export class ApprovedRecordsComponent implements OnInit {
     const end = this.endDate();
     const page = this.currentPage();
 
-    this.paymentService.getRecords('APPROVED', search, start, end, page).subscribe({
+    this.paymentService.getRecords('OK', search, start, end, page).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;

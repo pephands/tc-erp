@@ -25,6 +25,7 @@ export interface User {
   is_active: boolean;
   is_staff: boolean;
   date_joined?: string;
+  slab?: string;
 }
 
 export interface AuthSession {

@@ -488,7 +488,14 @@ export class UserListComponent implements OnInit {
       error: (err: any) => {
         console.error('Error adding user:', err);
         this.isSubmittingForm.set(false);
-        const msg = err.error?.message || err.error?.detail || 'Failed to create user. Check if Employee ID or mobile number is already registered.';
+        let msg = err.error?.message || err.error?.detail;
+        if (!msg && err.error?.errors) {
+          const errorsObj = err.error.errors;
+          msg = Object.keys(errorsObj).map(key => `${key}: ${errorsObj[key].join(', ')}`).join(' | ');
+        }
+        if (!msg) {
+          msg = 'Failed to create user. Check if Employee ID or mobile number is already registered.';
+        }
         this.toastService.error('Error', msg);
       }
     });
@@ -537,7 +544,15 @@ export class UserListComponent implements OnInit {
       error: (err: any) => {
         console.error('Error updating user:', err);
         this.isSubmittingForm.set(false);
-        this.toastService.error('Update Failed', 'Could not update user details.');
+        let msg = err.error?.message || err.error?.detail;
+        if (!msg && err.error?.errors) {
+          const errorsObj = err.error.errors;
+          msg = Object.keys(errorsObj).map(key => `${key}: ${errorsObj[key].join(', ')}`).join(' | ');
+        }
+        if (!msg) {
+          msg = 'Could not update user details.';
+        }
+        this.toastService.error('Update Failed', msg);
       }
     });
   }

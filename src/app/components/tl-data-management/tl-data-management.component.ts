@@ -29,6 +29,12 @@ export class TlDataManagementComponent implements OnInit {
   currentTab = signal<'REQUESTS' | 'HISTORY' | 'SUMMARY'>('REQUESTS');
   allocationHistory = signal<any[]>([]);
   allocationSummary = signal<any[]>([]);
+
+  // Allocated Bases details modal
+  isAllocatedBasesModalOpen = signal<boolean>(false);
+  allocatedBasesList = signal<any[]>([]);
+  selectedTelecallerForBases = signal<any>(null);
+  isLoadingAllocatedBases = signal<boolean>(false);
   
   // Filters for new features
   startDate = signal<string>('');
@@ -249,6 +255,49 @@ export class TlDataManagementComponent implements OnInit {
         window.URL.revokeObjectURL(url);
       },
       error: (err) => console.error('Error downloading summary:', err)
+    });
+  }
+
+  onViewAllocatedBases(item: any): void {
+    this.selectedTelecallerForBases.set(item);
+    this.isAllocatedBasesModalOpen.set(true);
+    this.isLoadingAllocatedBases.set(true);
+    this.allocatedBasesList.set([]);
+
+    const params = this.getFilterParams();
+    this.service.fetchTCAllocatedBases(item.telecaller_id, params).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'success') {
+          this.allocatedBasesList.set(res.data);
+        }
+        this.isLoadingAllocatedBases.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching allocated bases:', err);
+        this.isLoadingAllocatedBases.set(false);
+      }
+    });
+  }
+
+  closeAllocatedBasesModal(): void {
+    this.isAllocatedBasesModalOpen.set(false);
+  }
+
+  onDownloadAllocatedBases(): void {
+    const item = this.selectedTelecallerForBases();
+    if (!item) return;
+
+    const params = this.getFilterParams();
+    this.service.downloadTCAllocatedBases(item.telecaller_id, params).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `allocated_bases_tc_${item.telecaller_id}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Error downloading allocated bases:', err)
     });
   }
 

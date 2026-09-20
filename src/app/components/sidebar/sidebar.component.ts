@@ -236,14 +236,6 @@ export class SidebarComponent implements OnInit {
       route: '/send-records',
     },
     {
-      id: 'received-records',
-      label: 'Received Records',
-      icon: 'payments',
-      category: 'Operations',
-      allowedRoles: ['TL'],
-      route: '/received-records',
-    },
-    {
       id: 'approved-records',
       label: 'Approved Records',
       icon: 'verified',
@@ -293,6 +285,7 @@ export class SidebarComponent implements OnInit {
           label: 'Received Status',
           icon: 'dataset',
           allowedRoles: ['ADMIN', 'TL'],
+          route: '/received-status',
         },
         {
           id: 'live_report',
@@ -300,7 +293,12 @@ export class SidebarComponent implements OnInit {
           icon: 'monitoring',
           allowedRoles: ['ADMIN', 'TL'],
         },
-        { id: 'report', label: 'Report', icon: 'analytics', allowedRoles: ['ADMIN', 'TL'] },
+        {
+          id: 'report',
+          label: 'Report',
+          icon: 'analytics',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
         {
           id: 'base_task_report',
           label: 'Base Task Report',
@@ -322,6 +320,7 @@ export class SidebarComponent implements OnInit {
       category: 'Analytics',
       allowedRoles: ['ADMIN', 'TL'],
       submenus: [
+
         {
           id: 'main_history',
           label: 'History',
@@ -346,7 +345,12 @@ export class SidebarComponent implements OnInit {
           icon: 'verified_user',
           allowedRoles: ['ADMIN', 'TL'],
         },
-        { id: 'dob_history', label: 'DOB History', icon: 'cake', allowedRoles: ['ADMIN', 'TL'] },
+        {
+          id: 'dob_history',
+          label: 'DOB History',
+          icon: 'cake',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
       ],
     },
     {
@@ -390,7 +394,37 @@ export class SidebarComponent implements OnInit {
       label: 'Online Received Status',
       icon: 'sync_alt',
       category: 'Finance',
-      allowedRoles: ['ADMIN'],
+      allowedRoles: ['ADMIN', 'TL'],
+      submenus: [
+        {
+          id: 'batch_reports',
+          label: 'Batch Details',
+          icon: 'receipt_long',
+          allowedRoles: ['ADMIN', 'TL'],
+          route: '/batch-reports',
+        },
+        {
+          id: 'batch_settings',
+          label: 'Batch Setting',
+          icon: 'settings',
+          allowedRoles: ['ADMIN'],
+          route: '/batch-settings',
+        },
+        {
+          id: 'approved_records_admin',
+          label: 'Approved Records',
+          icon: 'verified',
+          allowedRoles: ['ADMIN', 'TL'],
+          route: '/approved-records',
+        },
+        {
+          id: 'online_history',
+          label: 'Online History',
+          icon: 'history_toggle_off',
+          allowedRoles: ['ADMIN', 'TL'],
+          route: '/online-history',
+        },
+      ]
     },
     {
       id: 'receipts',
@@ -570,6 +604,13 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/expense-report')) return 'expense_report';
     if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
     if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
+    if (url.includes('/send-records')) return 'send-records';
+    if (url.includes('/approved-records')) return 'approved-records';
+    if (url.includes('/received-records')) return 'received-records';
+    if (url.includes('/batch-reports')) return 'batch_reports';
+    if (url.includes('/received-status')) return 'received_status';
+    if (url.includes('/batch-settings')) return 'batch_settings';
+    if (url.includes('/online-history')) return 'online_history';
     if (url.includes('/dashboard')) return 'dashboard';
     return 'dashboard';
   }

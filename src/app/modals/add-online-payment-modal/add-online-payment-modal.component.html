@@ -4,7 +4,7 @@
     <div class="modal-header-bar">
       <div class="modal-title-group">
         <span class="material-symbols-outlined modal-icon">groups</span>
-        <h2 class="modal-title">Add new Online Payment Details</h2>
+        <h2 class="modal-title">{{ editRecord ? 'Edit Online Payment Details' : 'Add new Online Payment Details' }}</h2>
       </div>
       <button type="button" class="btn-close-icon" (click)="onClose()" title="Close Modal">
         <span class="material-symbols-outlined">close</span>
@@ -65,38 +65,30 @@
             />
           </div>
 
-          <!-- 4. Mode of Payment -->
+          <!-- 4. Payment Mode -->
           <div class="form-group">
-            <label for="modeOfPayment">Mode of Payment</label>
-            <select
+            <label for="modeOfPayment">Payment Mode <span class="required-star">*</span></label>
+            <input
+              type="text"
               id="modeOfPayment"
               class="form-control"
+              placeholder="Enter payment mode"
               [ngModel]="modeOfPayment()"
               (ngModelChange)="modeOfPayment.set($event)"
-            >
-              <option value="Gpay">Gpay</option>
-              <option value="PhonePe">PhonePe</option>
-              <option value="Paytm">Paytm</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="UPI">UPI</option>
-              <option value="Netbanking">Netbanking</option>
-              <option value="Cash">Cash</option>
-              <option value="Other">Other</option>
-            </select>
+            />
           </div>
 
-          <!-- 5. Donor Types -->
+          <!-- 5. Donor Type -->
           <div class="form-group">
-            <label for="donorType">Donor Types</label>
+            <label for="donorType">Donor Type <span class="required-star">*</span></label>
             <select
               id="donorType"
               class="form-control"
               [ngModel]="donorType()"
               (ngModelChange)="donorType.set($event)"
             >
-              <option value="New">New</option>
-              <option value="Existing">Existing</option>
-              <option value="Repeat">Repeat</option>
+              <option value="NEW">New</option>
+              <option value="OLD">Old</option>
             </select>
           </div>
 
@@ -143,9 +135,9 @@
 
         <!-- RIGHT COLUMN -->
         <div class="grid-column">
-          <!-- 1. Mobile Number -->
+          <!-- 1. Donor Number -->
           <div class="form-group">
-            <label for="mobileNumber">Mobile Number <span class="required-star">*</span></label>
+            <label for="mobileNumber">Donor Number <span class="required-star">*</span></label>
             <input
               type="text"
               id="mobileNumber"
@@ -171,7 +163,7 @@
 
           <!-- 3. Reference Id -->
           <div class="form-group">
-            <label for="referenceId">Reference Id</label>
+            <label for="referenceId">Reference Id <span class="required-star">*</span></label>
             <input
               type="text"
               id="referenceId"
@@ -188,10 +180,10 @@
             <input
               type="text"
               id="slab"
-              class="form-control"
-              placeholder="Enter slab"
+              class="form-control disabled-input"
               [ngModel]="slab()"
-              (ngModelChange)="slab.set($event)"
+              disabled
+              readonly
             />
           </div>
 
@@ -199,6 +191,11 @@
           <div class="form-group">
             <label for="promotionImage">Select Payment Proof Screenshot</label>
             <span class="file-allowed-hint">Allowed extensions (jpg, png, gif, pdf)</span>
+            @if (editRecord?.payment_proof_url) {
+              <div class="current-file-hint" style="font-size: 0.8rem; margin-bottom: 0.25rem;">
+                Current file: <a [href]="editRecord!.payment_proof_url" target="_blank" style="color: #2563eb; text-decoration: none; font-weight: 600;">View Proof</a>
+              </div>
+            }
             <div class="file-input-wrapper">
               <input
                 type="file"

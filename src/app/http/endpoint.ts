@@ -129,9 +129,37 @@ export class Endpoint {
     return this.baseUrl + 'telecalling/allocations/summary/';
   }
 
+  telecallingAllocatedBases(telecallerId: number): string {
+    return this.baseUrl + `telecalling/allocated-bases/${telecallerId}/`;
+  }
+
   // Payments Domain
   get paymentRecords(): string {
     return this.baseUrl + 'payments/records/';
+  }
+  
+  get paymentBatchConfigs(): string {
+    return this.baseUrl + 'payments/batch-configs/';
+  }
+
+  get paymentBatchTrigger(): string {
+    return this.baseUrl + 'payments/batch/trigger/';
+  }
+
+  get paymentBatchReport(): string {
+    return this.baseUrl + 'payments/batch/report/';
+  }
+
+  get paymentBatchUpload(): string {
+    return this.baseUrl + 'payments/batch/upload/';
+  }
+  
+  paymentBatchBranchStats(runId: number): string {
+    return this.baseUrl + `payments/batch/${runId}/branch-stats/`;
+  }
+  
+  paymentBatchRecords(runId: number): string {
+    return this.baseUrl + `payments/batch/${runId}/records/`;
   }
 
   // Whatsapp

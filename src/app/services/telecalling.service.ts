@@ -276,6 +276,23 @@ export class TelecallingService extends BaseHttpService {
       responseType: 'blob'
     });
   }
+
+  fetchTCAllocatedBases(telecallerId: number, params?: any): Observable<any> {
+    const url = this.endPoint.telecallingAllocatedBases(telecallerId);
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  downloadTCAllocatedBases(telecallerId: number, params?: any): Observable<Blob> {
+    const url = this.endPoint.telecallingAllocatedBases(telecallerId);
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      params: { ...params, export: 'true' },
+      responseType: 'blob'
+    });
+  }
 }
 
 

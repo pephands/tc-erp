@@ -275,6 +275,31 @@
   justify-content: center;
 }
 
+.col-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-action-icon {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-action-icon:hover {
+  color: #d97706;
+  background-color: #fef3c7;
+}
+
 .loading-state, .empty-state {
   text-align: center;
   padding: 3rem 1.5rem;

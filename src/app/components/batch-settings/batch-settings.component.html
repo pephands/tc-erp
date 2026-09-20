@@ -1,0 +1,119 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">settings</span>
+      <h2 class="page-title">Batch Settings</h2>
+    </div>
+    <button type="button" class="btn-add-payment-orange" (click)="openCreateModal()">
+      <span class="material-symbols-outlined">add</span>
+      <span>Create Batch</span>
+    </button>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-card shadow-card mt-3">
+    <div class="table-responsive">
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Trigger Time</th>
+            <th>Status</th>
+            <th>Created By</th>
+            <th>Created At</th>
+            <th>Updated By</th>
+            <th>Updated At</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="8" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Fetching batch settings...</p>
+              </td>
+            </tr>
+          } @else if (batches().length === 0) {
+            <tr>
+              <td colspan="8" class="empty-state">
+                <span class="material-symbols-outlined empty-icon">receipt_long</span>
+                <p class="empty-title">No batch settings found.</p>
+              </td>
+            </tr>
+          } @else {
+            @for (batch of batches(); track batch.id) {
+              <tr>
+                <td class="col-name"><strong>{{ batch.name }}</strong></td>
+                <td>
+                  <span class="tag-pill">
+                    {{ batch.trigger_time }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="batch.is_active ? 'badge-approved' : 'badge-rejected'">
+                    {{ batch.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ batch.created_by_name || 'N/A' }}</td>
+                <td class="col-date">{{ batch.created_at | date:'medium' }}</td>
+                <td>{{ batch.updated_by_name || 'N/A' }}</td>
+                <td class="col-date">{{ batch.updated_at | date:'medium' }}</td>
+                <td class="col-actions justify-content-end">
+                  <button class="btn-action-icon edit-btn" (click)="openEditModal(batch)" title="Edit">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Modal -->
+@if (isModalOpen()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-container shadow-card" style="max-width: 500px;" (click)="$event.stopPropagation()">
+      <!-- Modal Title Bar -->
+      <div class="modal-header-bar">
+        <div class="modal-title-group">
+          <span class="material-symbols-outlined modal-icon">settings</span>
+          <h2 class="modal-title">{{ isEditing() ? 'Edit Batch Setting' : 'Create Batch Setting' }}</h2>
+        </div>
+        <button type="button" class="btn-close-icon" (click)="closeModal()" title="Close Modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Form Body -->
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="batchName">Batch Name <span class="required-star">*</span></label>
+          <input type="text" id="batchName" class="form-control" [(ngModel)]="formData.name" placeholder="e.g. Batch-1">
+        </div>
+        <div class="form-group">
+          <label for="triggerTime">Trigger Time <span class="required-star">*</span></label>
+          <input type="time" id="triggerTime" class="form-control" [(ngModel)]="formData.trigger_time">
+        </div>
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+          <input type="checkbox" id="activeSwitch" [(ngModel)]="formData.is_active" style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
+          <label for="activeSwitch" style="cursor: pointer; margin: 0;">Active</label>
+        </div>
+      </div>
+
+      <!-- Modal Action Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn-submit-orange" (click)="saveBatch()">
+          <span>{{ isEditing() ? 'Update' : 'Create' }}</span>
+        </button>
+        <button type="button" class="btn-reset-grey" (click)="closeModal()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -3,25 +3,22 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
-import { AddOnlinePaymentModalComponent } from '../../modals/add-online-payment-modal/add-online-payment-modal.component';
 
 @Component({
-  selector: 'app-send-records',
+  selector: 'app-online-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddOnlinePaymentModalComponent],
-  templateUrl: './send-records.component.html',
-  styleUrl: './send-records.component.css'
+  imports: [CommonModule, FormsModule],
+  templateUrl: './online-history.component.html',
+  styleUrl: './online-history.component.css'
 })
-export class SendRecordsComponent implements OnInit {
+export class OnlineHistoryComponent implements OnInit {
   private paymentService = inject(PaymentService);
 
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
   isLoading = signal<boolean>(false);
-  showModal = signal<boolean>(false);
-  editingRecord = signal<OnlinePaymentRecord | null>(null);
 
-  // Filters & Search
+  // Filters
   searchQuery = signal<string>('');
   startDate = signal<string>('');
   endDate = signal<string>('');
@@ -32,22 +29,18 @@ export class SendRecordsComponent implements OnInit {
   pageSize = signal<number>(10);
   totalCount = signal<number>(0);
 
-  // Toast Feedback
-  toastMessage = signal<string>('');
-  showToast = signal<boolean>(false);
-
   ngOnInit(): void {
-    this.fetchRecords();
+    this.fetchApprovedRecords();
   }
 
-  fetchRecords(): void {
+  fetchApprovedRecords(): void {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
     const start = this.startDate();
     const end = this.endDate();
     const page = this.currentPage();
 
-    this.paymentService.getRecords('EMPTY', search, start, end, page, '', true).subscribe({
+    this.paymentService.getRecords('', search, start, end, page, 'OK,RESEND,NEW').subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
@@ -68,62 +61,32 @@ export class SendRecordsComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err: any) => {
-        console.error('Error fetching send payment records:', err);
+        console.error('Error fetching approved payment records:', err);
         this.isLoading.set(false);
       }
     });
   }
 
-  onOpenAddModal(): void {
-    this.editingRecord.set(null);
-    this.showModal.set(true);
-  }
-
-  onEditRecord(rec: OnlinePaymentRecord): void {
-    this.editingRecord.set(rec);
-    this.showModal.set(true);
-  }
-
-  onCloseModal(): void {
-    this.editingRecord.set(null);
-    this.showModal.set(false);
-  }
-
-  onPaymentSubmitted(): void {
-    this.editingRecord.set(null);
-    this.showModal.set(false);
-    this.triggerToast('Online payment record submitted successfully for TL approval!');
-    this.fetchRecords();
-  }
-
-  triggerToast(msg: string): void {
-    this.toastMessage.set(msg);
-    this.showToast.set(true);
-    setTimeout(() => {
-      this.showToast.set(false);
-    }, 3500);
-  }
-
-  // Filter Event Handlers
+  // Filter Handlers
   onSearchChange(val: string): void {
     this.searchQuery.set(val);
     this.updateFilterState();
     this.currentPage.set(1);
-    this.fetchRecords();
+    this.fetchApprovedRecords();
   }
 
   onStartDateChange(val: string): void {
     this.startDate.set(val);
     this.updateFilterState();
     this.currentPage.set(1);
-    this.fetchRecords();
+    this.fetchApprovedRecords();
   }
 
   onEndDateChange(val: string): void {
     this.endDate.set(val);
     this.updateFilterState();
     this.currentPage.set(1);
-    this.fetchRecords();
+    this.fetchApprovedRecords();
   }
 
   onResetFilters(): void {
@@ -132,7 +95,7 @@ export class SendRecordsComponent implements OnInit {
     this.endDate.set('');
     this.isFilterApplied.set(false);
     this.currentPage.set(1);
-    this.fetchRecords();
+    this.fetchApprovedRecords();
   }
 
   private updateFilterState(): void {
@@ -142,24 +105,17 @@ export class SendRecordsComponent implements OnInit {
   // Pagination Handlers
   totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
 
-  setPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
-      this.fetchRecords();
-    }
-  }
-
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.update(p => p - 1);
-      this.fetchRecords();
+      this.fetchApprovedRecords();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(p => p + 1);
-      this.fetchRecords();
+      this.fetchApprovedRecords();
     }
   }
 }
