@@ -124,4 +124,15 @@ export class PaymentService extends BaseHttpService {
       headers: this.headers,
     });
   }
+
+  getReceiptUrl(id: number | string): string {
+    return this.endPoint.paymentRecordReceipt(Number(id));
+  }
+
+  downloadReceipt(id: number | string): Observable<Blob> {
+    return this.httpClient.get(this.endPoint.paymentRecordReceipt(Number(id)), {
+      headers: this.headers,
+      responseType: 'blob',
+    });
+  }
 }

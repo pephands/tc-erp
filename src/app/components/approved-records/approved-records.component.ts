@@ -102,6 +102,24 @@ export class ApprovedRecordsComponent implements OnInit {
     this.isFilterApplied.set(!!(this.searchQuery() || this.startDate() || this.endDate()));
   }
 
+  downloadReceipt(rec: OnlinePaymentRecord): void {
+    this.paymentService.downloadReceipt(rec.id).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Receipt_${rec.receipt_id || rec.id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err: any) => {
+        console.error('Error downloading receipt PDF:', err);
+      },
+    });
+  }
+
   // Pagination Handlers
   totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
 

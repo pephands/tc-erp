@@ -84,12 +84,13 @@
             <th>Remarks</th>
             <th>Status</th>
             <th>Proof File</th>
+            <th>Receipt</th>
           </tr>
         </thead>
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="11" class="loading-state">
+              <td colspan="12" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading approved records...</p>
               </td>
@@ -121,10 +122,16 @@
                     <span class="no-file-text">No File</span>
                   }
                 </td>
+                <td class="col-file">
+                  <button type="button" class="btn-file-link" style="background: var(--primary-light, #fff7ed); color: var(--primary, #ea580c); border: 1px solid var(--border-focus, #ea580c); cursor: pointer;" (click)="downloadReceipt(rec)" title="Download Official Receipt PDF">
+                    <span class="material-symbols-outlined">picture_as_pdf</span>
+                    <span>Receipt</span>
+                  </button>
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="11" class="empty-state">
+                <td colspan="12" class="empty-state">
                   <span class="material-symbols-outlined empty-icon">verified_user</span>
                   <p class="empty-title">No Approved Records Found</p>
                   <p class="empty-sub">Once TL verifies your submitted records, they will appear here.</p>

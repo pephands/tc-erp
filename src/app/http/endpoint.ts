@@ -166,6 +166,10 @@ export class Endpoint {
     return this.baseUrl + `payments/batch/${runId}/records/`;
   }
 
+  paymentRecordReceipt(id: number): string {
+    return this.baseUrl + `payments/records/${id}/receipt/`;
+  }
+
   // Whatsapp
   get whatsappAccounts(): string {
     return this.baseUrl + 'whatsapp/accounts/';

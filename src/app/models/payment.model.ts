@@ -19,8 +19,12 @@ export interface OnlinePaymentRecord {
   address?: string;
   dob?: string;
   remarks?: string;
+  task_id?: number;
+  receipt_id?: string;
   payment_proof?: string;
   payment_proof_url?: string;
+  generated_receipt?: string;
+  generated_receipt_url?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | string;
   status_display?: string;
   approved_by?: number;
