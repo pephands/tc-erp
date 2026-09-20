@@ -293,6 +293,14 @@ export class TelecallingService extends BaseHttpService {
       responseType: 'blob'
     });
   }
+
+  downloadTCAllocationBatchPDF(batchId: number): Observable<Blob> {
+    const url = this.endPoint.telecallingAllocationBatchPdf(batchId);
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      responseType: 'blob'
+    });
+  }
 }
 
 

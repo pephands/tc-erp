@@ -258,6 +258,25 @@ export class TlDataManagementComponent implements OnInit {
     });
   }
 
+  onDownloadBatchPDF(batchId: number): void {
+    if (!batchId) return;
+    this.service.downloadTCAllocationBatchPDF(batchId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TC_Allocation_Batch_${batchId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.triggerToast('Allocation batch PDF downloaded successfully.');
+      },
+      error: (err) => {
+        console.error('Error downloading allocation PDF:', err);
+        this.triggerToast('Failed to download allocation PDF.');
+      }
+    });
+  }
+
   onViewAllocatedBases(item: any): void {
     this.selectedTelecallerForBases.set(item);
     this.isAllocatedBasesModalOpen.set(true);

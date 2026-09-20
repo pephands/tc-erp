@@ -133,6 +133,10 @@ export class Endpoint {
     return this.baseUrl + `telecalling/allocated-bases/${telecallerId}/`;
   }
 
+  telecallingAllocationBatchPdf(batchId: number): string {
+    return this.baseUrl + `telecalling/allocations/batch/${batchId}/pdf/`;
+  }
+
   // Payments Domain
   get paymentRecords(): string {
     return this.baseUrl + 'payments/records/';
