@@ -1,0 +1,198 @@
+<main class="main-content">
+  <div class="content-wrapper fade-in">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="header-title">
+        <h2>My Complaints & Feedback</h2>
+        <p>Submit confidential workplace concerns directly to Admins.</p>
+      </div>
+      <button type="button" class="btn-primary" (click)="openSubmitModal()">
+        <span class="material-symbols-outlined">add_comment</span> Submit New Feedback
+      </button>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-card">
+      <div class="table-header-bar">
+        <h3 class="table-title">Submitted Feedback History</h3>
+        <span class="badge-count">{{ feedbacksList().length }} Submissions</span>
+      </div>
+
+      @if (isLoading()) {
+        <div class="skeleton-table"></div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Submitted Date</th>
+                <th>Subject</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Admin Response</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of feedbacksList(); track item.id) {
+                <tr>
+                  <td class="text-muted">{{ item.created_at | date:'short' }}</td>
+                  <td class="font-semibold">{{ item.subject }}</td>
+                  <td>
+                    <span class="category-pill">{{ getCategoryLabel(item.category) }}</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="'status-' + item.status.toLowerCase()">
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (item.admin_notes) {
+                      <span class="admin-response-preview" [title]="item.admin_notes">
+                        {{ item.admin_notes }}
+                      </span>
+                    } @else {
+                      <span class="text-dim">Awaiting review...</span>
+                    }
+                  </td>
+                  <td>
+                    <button type="button" class="btn-sm btn-outline" (click)="openDetailModal(item)">
+                      <span class="material-symbols-outlined icon-sm">visibility</span> View Detail
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="empty-state-cell">
+                    <span class="material-symbols-outlined empty-icon">forum</span>
+                    <p>No feedback submitted yet. Your concerns are handled confidentially by Admin.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Submit Feedback Modal -->
+  @if (isSubmitModalOpen()) {
+    <div class="modal-overlay" (click)="closeSubmitModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Submit Confidential Feedback / Concern</h3>
+          <button type="button" class="close-btn" (click)="closeSubmitModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-alert">
+            <span class="material-symbols-outlined">lock</span>
+            <p><strong>Confidential Submission:</strong> Feedback submitted here is received strictly by Admins. Once sent, entries cannot be modified or deleted.</p>
+          </div>
+
+          <div class="form-group">
+            <label>Subject / Concern Title *</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              placeholder="E.g., Supervision Concern / Workstation Audio Issue"
+              [ngModel]="subjectInput()"
+              (ngModelChange)="subjectInput.set($event)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Category *</label>
+            <select class="form-input" [ngModel]="categoryInput()" (ngModelChange)="categoryInput.set($event)">
+              <option value="TL_CONCERN">TL / Supervision Issue</option>
+              <option value="BRANCH_ENVIRONMENT">Branch / Work Environment</option>
+              <option value="INFRA_WORKSTATION">Infrastructure / Workstation</option>
+              <option value="SYSTEM_BUG">ERP / System Issue</option>
+              <option value="OTHER">Other Concern</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Detailed Message / Complaint *</label>
+            <textarea 
+              rows="5" 
+              class="form-input" 
+              placeholder="Describe your issue or concern in detail..."
+              [ngModel]="messageInput()"
+              (ngModelChange)="messageInput.set($event)"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeSubmitModal()" [disabled]="isSubmitting()">Cancel</button>
+          <button type="button" class="btn-primary" (click)="onSubmitFeedback()" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+              Sending...
+            } @else {
+              Submit Feedback
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- View Feedback Detail Modal -->
+  @if (isDetailModalOpen() && selectedFeedback()) {
+    <div class="modal-overlay" (click)="closeDetailModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Feedback Detail #{{ selectedFeedback()?.id }}</h3>
+          <button type="button" class="close-btn" (click)="closeDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-row">
+            <span class="detail-label">Subject:</span>
+            <span class="detail-value font-semibold">{{ selectedFeedback()?.subject }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Category:</span>
+            <span class="detail-value">{{ getCategoryLabel(selectedFeedback()!.category) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Submitted On:</span>
+            <span class="detail-value">{{ selectedFeedback()?.created_at | date:'medium' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Current Status:</span>
+            <span class="status-badge" [ngClass]="'status-' + selectedFeedback()!.status.toLowerCase()">
+              {{ selectedFeedback()?.status }}
+            </span>
+          </div>
+
+          <div class="form-group margin-top-md">
+            <label>My Complaint Message:</label>
+            <div class="content-box">{{ selectedFeedback()?.message }}</div>
+          </div>
+
+          @if (selectedFeedback()?.admin_notes) {
+            <div class="form-group margin-top-md">
+              <label>Admin Resolution Response:</label>
+              <div class="admin-notes-box">
+                <p>{{ selectedFeedback()?.admin_notes }}</p>
+                <span class="reviewed-meta">
+                  Reviewed by {{ selectedFeedback()?.reviewed_by_name || 'Admin' }} on {{ selectedFeedback()?.reviewed_at | date:'medium' }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeDetailModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Toast -->
+  @if (showToast()) {
+    <div class="toast-notification fade-in">
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+</main>

@@ -512,6 +512,7 @@ export class SidebarComponent implements OnInit {
       icon: 'reviews',
       category: 'Operations',
       allowedRoles: ['ADMIN'],
+      route: '/feedback-details',
     },
     {
       id: 'feedbacks',
@@ -519,6 +520,7 @@ export class SidebarComponent implements OnInit {
       icon: 'reviews',
       category: 'Operations',
       allowedRoles: ['TC'],
+      route: '/feedbacks',
     },
     // {
     //   id: 'work_details',

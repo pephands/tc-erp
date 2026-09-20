@@ -23,6 +23,8 @@ import { SendRecordsComponent } from './components/send-records/send-records.com
 import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
 import { ApprovedRecordsComponent } from './components/approved-records/approved-records.component';
 import { TelecallerWorkstationComponent } from './components/telecaller-workstation/telecaller-workstation.component';
+import { FeedbacksComponent } from './components/feedbacks/feedbacks.component';
+import { FeedbackDetailsComponent } from './components/feedback-details/feedback-details.component';
 
 import {
   TelecallersPageComponent,
@@ -218,6 +220,16 @@ export const routes: Routes = [
       {
         path: 'whatsapp-send',
         component: WhatsappSendComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'feedbacks',
+        component: FeedbacksComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'feedback-details',
+        component: FeedbackDetailsComponent,
         canActivate: [deviceAuthGuard],
       },
       {

@@ -178,4 +178,13 @@ export class Endpoint {
   get whatsappTemplates(): string {
     return this.baseUrl + 'whatsapp/templates/';
   }
+
+  // Internal Feedback Domain
+  get feedbacks(): string {
+    return this.baseUrl + 'internal/feedbacks/';
+  }
+
+  feedbackResolve(id: number): string {
+    return this.baseUrl + `internal/feedbacks/${id}/resolve/`;
+  }
 }

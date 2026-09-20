@@ -1,0 +1,181 @@
+<main class="main-content">
+  <div class="content-wrapper fade-in">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="header-title">
+        <h2>Telecaller Feedback & Complaints Dashboard</h2>
+        <p>Review and resolve confidential workplace concerns submitted by Telecallers.</p>
+      </div>
+    </div>
+
+    <!-- Table Container & Filters -->
+    <div class="table-card">
+      <div class="table-header-bar flex-column">
+        <div class="header-top">
+          <h3 class="table-title">Complaints Management</h3>
+          <span class="badge-count">{{ feedbacksList().length }} Records</span>
+        </div>
+
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Branch</label>
+            <select class="form-input" [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event); onFilterChange()">
+              <option value="">All Branches</option>
+              @for (b of branchesList(); track b.id) {
+                <option [value]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Category</label>
+            <select class="form-input" [ngModel]="selectedCategoryFilter()" (ngModelChange)="selectedCategoryFilter.set($event); onFilterChange()">
+              <option value="">All Categories</option>
+              <option value="TL_CONCERN">TL / Supervision Issue</option>
+              <option value="BRANCH_ENVIRONMENT">Branch Environment</option>
+              <option value="INFRA_WORKSTATION">Infrastructure / Workstation</option>
+              <option value="SYSTEM_BUG">ERP / System Issue</option>
+              <option value="OTHER">Other Concern</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Status</label>
+            <select class="form-input" [ngModel]="selectedStatusFilter()" (ngModelChange)="selectedStatusFilter.set($event); onFilterChange()">
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+
+          <div class="filter-group search-group">
+            <label>Search</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              placeholder="Search telecaller or subject..."
+              [ngModel]="searchQuery()" 
+              (input)="onFilterChange()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+          </div>
+        </div>
+      </div>
+
+      @if (isLoading()) {
+        <div class="skeleton-table"></div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Submitted Date</th>
+                <th>Branch</th>
+                <th>Telecaller</th>
+                <th>Subject</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of feedbacksList(); track item.id) {
+                <tr>
+                  <td class="text-muted">{{ item.created_at | date:'short' }}</td>
+                  <td class="font-semibold">{{ item.branch_name || 'N/A' }}</td>
+                  <td class="font-bold text-primary">{{ item.telecaller_name || item.telecaller_username }}</td>
+                  <td class="font-semibold">{{ item.subject }}</td>
+                  <td>
+                    <span class="category-pill">{{ getCategoryLabel(item.category) }}</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" [ngClass]="'status-' + item.status.toLowerCase()">
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <button type="button" class="btn-sm btn-primary" (click)="openResolveModal(item)">
+                      <span class="material-symbols-outlined icon-sm">rate_review</span> Review / Resolve
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="empty-state-cell">
+                    <span class="material-symbols-outlined empty-icon">mark_email_read</span>
+                    <p>No complaints or feedbacks match the selected filter criteria.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Review & Resolve Modal -->
+  @if (isResolveModalOpen() && selectedFeedback()) {
+    <div class="modal-overlay" (click)="closeResolveModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Review & Resolve Complaint #{{ selectedFeedback()?.id }}</h3>
+          <button type="button" class="close-btn" (click)="closeResolveModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="meta-banner">
+            <div><strong>Telecaller:</strong> {{ selectedFeedback()?.telecaller_name }} ({{ selectedFeedback()?.telecaller_username }})</div>
+            <div><strong>Branch:</strong> {{ selectedFeedback()?.branch_name || 'N/A' }}</div>
+            <div><strong>Category:</strong> {{ getCategoryLabel(selectedFeedback()!.category) }}</div>
+            <div><strong>Submitted On:</strong> {{ selectedFeedback()?.created_at | date:'medium' }}</div>
+          </div>
+
+          <div class="form-group margin-top-md">
+            <label>Telecaller's Complaint Message:</label>
+            <div class="content-box">{{ selectedFeedback()?.message }}</div>
+          </div>
+
+          <div class="form-group margin-top-md">
+            <label>Update Status *</label>
+            <select class="form-input" [ngModel]="resolveStatusInput()" (ngModelChange)="resolveStatusInput.set($event)">
+              <option value="PENDING">Pending</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Admin Resolution Notes / Response Message *</label>
+            <textarea 
+              rows="4" 
+              class="form-input" 
+              placeholder="Enter resolution notes, actions taken, or response to the telecaller..."
+              [ngModel]="adminNotesInput()"
+              (ngModelChange)="adminNotesInput.set($event)"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeResolveModal()" [disabled]="isSubmitting()">Cancel</button>
+          <button type="button" class="btn-primary" (click)="onSubmitResolution()" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+              <span>Saving...</span>
+            } @else {
+              <span>Save Resolution Response</span>
+            }
+          </button>
+        </div>
+        </div>
+      </div>
+  }
+
+  <!-- Toast -->
+  @if (showToast()) {
+    <div class="toast-notification fade-in">
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+</main>
