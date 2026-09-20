@@ -134,7 +134,7 @@ export class SidebarComponent implements OnInit {
           id: 'team_leader',
           label: 'Team Leader',
           icon: 'supervisor_account',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/team-leader',
         },
         {
@@ -148,49 +148,49 @@ export class SidebarComponent implements OnInit {
           id: 'backend',
           label: 'Backend',
           icon: 'computer',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/backend',
         },
         {
           id: 'driver',
           label: 'Driver',
           icon: 'directions_car',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/driver',
         },
         {
           id: 'cook',
           label: 'Cook',
           icon: 'restaurant',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/cook',
         },
         {
           id: 'assistant_cook',
           label: 'Assistant Cook',
           icon: 'soup_kitchen',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/assistant-cook',
         },
         {
           id: 'public_relations',
           label: 'Public Relations',
           icon: 'campaign',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/public-relations',
         },
         {
           id: 'counselor',
           label: 'Counselor',
           icon: 'psychology',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/counselor',
         },
         {
           id: 'superintendent',
           label: 'Superintendent',
           icon: 'badge',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN'],
           route: '/users/superintendent',
         },
       ],
@@ -202,22 +202,6 @@ export class SidebarComponent implements OnInit {
       category: 'Operations',
       allowedRoles: ['ADMIN', 'TL', 'TC'],
       route: '/attendance',
-    },
-    {
-      id: 'approve_assign',
-      label: 'Approve/Assign Base',
-      icon: 'assignment_ind',
-      category: 'Operations',
-      allowedRoles: ['ADMIN'],
-      route: '/approve-assign',
-    },
-    {
-      id: 'tl_data_management',
-      label: 'Branch Data Management',
-      icon: 'domain',
-      category: 'Operations',
-      allowedRoles: ['TL'],
-      route: '/tl-data-management',
     },
     {
       id: 'workstation',
@@ -244,112 +228,55 @@ export class SidebarComponent implements OnInit {
       route: '/approved-records',
     },
     {
-      id: 'branch_details',
-      label: 'Branch Details',
-      icon: 'location_city',
-      category: 'Core',
+      id: 'approve_assign',
+      label: 'Approve/Assign Base',
+      icon: 'assignment_ind',
+      category: 'Operations',
+      allowedRoles: ['ADMIN'],
+      route: '/approve-assign',
+    },
+    {
+      id: 'tl_data_management',
+      label: 'Branch Data Management',
+      icon: 'domain',
+      category: 'Operations',
+      allowedRoles: ['TL'],
+      route: '/tl-data-management',
+    },
+    {
+      id: 'online_status',
+      label: 'Payment Batches',
+      icon: 'sync_alt',
+      category: 'Finance',
       allowedRoles: ['ADMIN', 'TL'],
       submenus: [
         {
-          id: 'branch_documents',
-          label: 'Branch Documents',
-          icon: 'folder_shared',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
-          route: '/branch-documents',
-        },
-        {
-          id: 'expense_details',
-          label: 'Expense Details',
-          icon: 'receipt',
+          id: 'batch_reports',
+          label: 'Batch Details',
+          icon: 'receipt_long',
           allowedRoles: ['ADMIN', 'TL'],
-          route: '/expense-details',
+          route: '/batch-reports',
         },
         {
-          id: 'expense_report',
-          label: 'Expense Report',
-          icon: 'summarize',
+          id: 'batch_settings',
+          label: 'Batch Setting',
+          icon: 'settings',
           allowedRoles: ['ADMIN'],
-          route: '/expense-report',
-        },
-      ],
-    },
-    {
-      id: 'reports',
-      label: 'Reports',
-      icon: 'insights',
-      category: 'Analytics',
-      allowedRoles: ['ADMIN', 'TL'],
-      submenus: [
-        {
-          id: 'received_status',
-          label: 'Received Status',
-          icon: 'dataset',
-          allowedRoles: ['ADMIN', 'TL'],
-          route: '/received-status',
+          route: '/batch-settings',
         },
         {
-          id: 'live_report',
-          label: 'Live Report',
-          icon: 'monitoring',
+          id: 'approved_records_admin',
+          label: 'Approved Records',
+          icon: 'verified',
           allowedRoles: ['ADMIN', 'TL'],
+          route: '/approved-records',
         },
         {
-          id: 'report',
-          label: 'Report',
-          icon: 'analytics',
+          id: 'online_history',
+          label: 'Payment History',
+          icon: 'history_toggle_off',
           allowedRoles: ['ADMIN', 'TL'],
-        },
-        {
-          id: 'base_task_report',
-          label: 'Base Task Report',
-          icon: 'task_alt',
-          allowedRoles: ['ADMIN', 'TL'],
-        },
-        {
-          id: 'attendance_report',
-          label: 'Attendance Report',
-          icon: 'co_present',
-          allowedRoles: ['ADMIN', 'TL'],
-        },
-      ],
-    },
-    {
-      id: 'history',
-      label: 'History',
-      icon: 'history',
-      category: 'Analytics',
-      allowedRoles: ['ADMIN', 'TL'],
-      submenus: [
-
-        {
-          id: 'main_history',
-          label: 'History',
-          icon: 'manage_history',
-          allowedRoles: ['ADMIN', 'TL'],
-        },
-        {
-          id: 'pickup_history',
-          label: 'Pickup History',
-          icon: 'package_2',
-          allowedRoles: ['ADMIN', 'TL'],
-        },
-        {
-          id: 'base_history',
-          label: 'Base History',
-          icon: 'database',
-          allowedRoles: ['ADMIN', 'TL'],
-        },
-        {
-          id: 'trust_history',
-          label: 'Trust History',
-          icon: 'verified_user',
-          allowedRoles: ['ADMIN', 'TL'],
-        },
-        {
-          id: 'dob_history',
-          label: 'DOB History',
-          icon: 'cake',
-          allowedRoles: ['ADMIN', 'TL'],
+          route: '/online-history',
         },
       ],
     },
@@ -389,43 +316,7 @@ export class SidebarComponent implements OnInit {
         },
       ],
     },
-    {
-      id: 'online_status',
-      label: 'Online Received Status',
-      icon: 'sync_alt',
-      category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL'],
-      submenus: [
-        {
-          id: 'batch_reports',
-          label: 'Batch Details',
-          icon: 'receipt_long',
-          allowedRoles: ['ADMIN', 'TL'],
-          route: '/batch-reports',
-        },
-        {
-          id: 'batch_settings',
-          label: 'Batch Setting',
-          icon: 'settings',
-          allowedRoles: ['ADMIN'],
-          route: '/batch-settings',
-        },
-        {
-          id: 'approved_records_admin',
-          label: 'Approved Records',
-          icon: 'verified',
-          allowedRoles: ['ADMIN', 'TL'],
-          route: '/approved-records',
-        },
-        {
-          id: 'online_history',
-          label: 'Online History',
-          icon: 'history_toggle_off',
-          allowedRoles: ['ADMIN', 'TL'],
-          route: '/online-history',
-        },
-      ]
-    },
+
     {
       id: 'receipts',
       label: 'Receipts',
@@ -443,89 +334,200 @@ export class SidebarComponent implements OnInit {
           id: 'create_view_receipt',
           label: 'Create / View Receipt',
           icon: 'post_add',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
         {
           id: 'receipt_history',
           label: 'Receipt History',
           icon: 'history',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
         {
           id: 'annual_receipt_23_24',
           label: '2023-24: Annual Receipt',
           icon: 'calendar_today',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
         {
           id: 'annual_receipt_22_23',
           label: '2022-23: Annual Receipt',
           icon: 'calendar_month',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
         {
           id: 'bulk_download',
           label: 'Bulk Download',
           icon: 'cloud_download',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
         {
           id: 'trust_receipt_history',
           label: 'Trust Receipt History',
           icon: 'history_edu',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
         {
           id: 'pickup_receipt',
           label: 'Pickup Receipt',
           icon: 'pin_drop',
-          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          allowedRoles: ['ADMIN', 'TL'],
         },
       ],
     },
+
+    {
+      id: 'branch_details',
+      label: 'Branch Details',
+      icon: 'location_city',
+      category: 'Core',
+      allowedRoles: ['ADMIN', 'TL'],
+      submenus: [
+        {
+          id: 'branch_documents',
+          label: 'Branch Documents',
+          icon: 'folder_shared',
+          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          route: '/branch-documents',
+        },
+        {
+          id: 'expense_details',
+          label: 'Expense Details',
+          icon: 'receipt',
+          allowedRoles: ['ADMIN', 'TL'],
+          route: '/expense-details',
+        },
+        {
+          id: 'expense_report',
+          label: 'Expense Report',
+          icon: 'summarize',
+          allowedRoles: ['ADMIN'],
+          route: '/expense-report',
+        },
+      ],
+    },
+    // {
+    //   id: 'reports',
+    //   label: 'Reports',
+    //   icon: 'insights',
+    //   category: 'Analytics',
+    //   allowedRoles: ['ADMIN', 'TL'],
+    //   submenus: [
+    //     {
+    //       id: 'received_status',
+    //       label: 'Received Status',
+    //       icon: 'dataset',
+    //       allowedRoles: ['ADMIN', 'TL'],
+    //       route: '/received-status',
+    //     },
+    //     {
+    //       id: 'live_report',
+    //       label: 'Live Report',
+    //       icon: 'monitoring',
+    //       allowedRoles: ['ADMIN', 'TL'],
+    //     },
+    //     {
+    //       id: 'report',
+    //       label: 'Report',
+    //       icon: 'analytics',
+    //       allowedRoles: ['ADMIN', 'TL'],
+    //     },
+    //     {
+    //       id: 'base_task_report',
+    //       label: 'Base Task Report',
+    //       icon: 'task_alt',
+    //       allowedRoles: ['ADMIN', 'TL'],
+    //     },
+    //     {
+    //       id: 'attendance_report',
+    //       label: 'Attendance Report',
+    //       icon: 'co_present',
+    //       allowedRoles: ['ADMIN', 'TL'],
+    //     },
+    //   ],
+    // },
+    {
+      id: 'history',
+      label: 'History',
+      icon: 'history',
+      category: 'Analytics',
+      allowedRoles: ['ADMIN', 'TL'],
+      submenus: [
+        {
+          id: 'main_history',
+          label: 'History',
+          icon: 'manage_history',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
+        {
+          id: 'pickup_history',
+          label: 'Pickup History',
+          icon: 'package_2',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
+        {
+          id: 'base_history',
+          label: 'Base History',
+          icon: 'database',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
+        {
+          id: 'trust_history',
+          label: 'Trust History',
+          icon: 'verified_user',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
+        {
+          id: 'dob_history',
+          label: 'DOB History',
+          icon: 'cake',
+          allowedRoles: ['ADMIN', 'TL'],
+        },
+      ],
+    },
+
     {
       id: 'food_bookings',
       label: 'Food Bookings',
       icon: 'restaurant',
       category: 'Services',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN'],
     },
     {
       id: 'upload_pan',
       label: 'Upload PAN Details',
       icon: 'badge',
       category: 'Compliance',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN'],
     },
     {
       id: 'website_activities',
       label: 'Website Activities',
       icon: 'web',
       category: 'Analytics',
-      allowedRoles: ['ADMIN', 'TL'],
+      allowedRoles: ['ADMIN'],
     },
     {
       id: 'feedback_details',
       label: 'Feedback Details',
       icon: 'reviews',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN'],
     },
     {
-      id: 'template_details',
-      label: 'Template Details',
-      icon: 'dashboard_customize',
+      id: 'feedbacks',
+      label: 'Feedbacks',
+      icon: 'reviews',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'TL'],
+      allowedRoles: ['TC'],
     },
-    {
-      id: 'work_details',
-      label: 'Work Details',
-      icon: 'work_history',
-      category: 'Operations',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
-      route: '/work-details',
-    },
+    // {
+    //   id: 'work_details',
+    //   label: 'Work Details',
+    //   icon: 'work_history',
+    //   category: 'Operations',
+    //   allowedRoles: ['ADMIN', 'TL'],
+    //   route: '/work-details',
+    // },
   ];
 
   constructor() {
@@ -560,15 +562,15 @@ export class SidebarComponent implements OnInit {
       .map((item) => {
         const validSubmenus = item.submenus
           ? item.submenus.filter((sub) => {
-            if (
-              sub.allowedRoles &&
-              userRoles.length > 0 &&
-              !sub.allowedRoles.some((r) => userRoles.includes(r))
-            ) {
-              return false;
-            }
-            return true;
-          })
+              if (
+                sub.allowedRoles &&
+                userRoles.length > 0 &&
+                !sub.allowedRoles.some((r) => userRoles.includes(r))
+              ) {
+                return false;
+              }
+              return true;
+            })
           : undefined;
 
         return {
