@@ -174,6 +174,22 @@ export class Endpoint {
     return this.baseUrl + `payments/records/${id}/receipt/`;
   }
 
+  get verifiedDonorsUpload(): string {
+    return this.baseUrl + 'payments/verified-donors/upload/';
+  }
+
+  get verifiedDonors(): string {
+    return this.baseUrl + 'payments/verified-donors/';
+  }
+
+  get verifiedDonorsCheck(): string {
+    return this.baseUrl + 'payments/verified-donors/check/';
+  }
+
+  get verifiedDonorsForceDelete(): string {
+    return this.baseUrl + 'payments/verified-donors/force-delete/';
+  }
+
   // Whatsapp
   get whatsappAccounts(): string {
     return this.baseUrl + 'whatsapp/accounts/';

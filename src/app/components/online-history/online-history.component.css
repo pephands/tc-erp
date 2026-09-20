@@ -126,13 +126,16 @@
   pointer-events: none;
 }
 
-.input-wrapper input {
+.input-wrapper input,
+.input-wrapper select {
   width: 100%;
   padding: 0.55rem 0.75rem 0.55rem 2.25rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 0.85rem;
   outline: none;
+  background-color: white;
+  appearance: none;
 }
 
 .btn-reset-filters {

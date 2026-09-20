@@ -63,6 +63,22 @@ export class BatchReportsComponent implements OnInit {
     this.activeTab.set(tab);
     this.currentPage.set(1);
     this.expandedBatchId.set(null);
+    
+    // Reset filters on tab switch
+    this.searchQuery.set('');
+    this.startDate.set('');
+    this.endDate.set('');
+    this.isFilterApplied.set(false);
+    
+    // Default to today's date for completed batches or TL generated batches if no date is set
+    if (tab === 'COMPLETED_BATCHES' || tab === 'BATCHES') {
+      const today = new Date();
+      const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      this.startDate.set(localDate);
+      this.endDate.set(localDate);
+      this.updateFilterState();
+    }
+    
     this.fetchDataForActiveTab();
   }
 
@@ -118,12 +134,26 @@ export class BatchReportsComponent implements OnInit {
     this.isLoading.set(true);
     const start = this.startDate();
     const end = this.endDate();
+    const page = this.currentPage();
 
-    this.paymentService.getBatchReports(start, end, status).subscribe({
+    this.paymentService.getBatchReports(start, end, status, page).subscribe({
       next: (res: any) => {
-        if (res && res.status === 'success') {
-          this.batches.set(res.data);
+        let items: any[] = [];
+        let count = 0;
+
+        if (res && res.results) {
+          items = res.results;
+          count = res.count || items.length;
+        } else if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+          count = items.length;
+        } else if (Array.isArray(res)) {
+          items = res;
+          count = items.length;
         }
+
+        this.batches.set(items);
+        this.totalCount.set(count);
         this.isLoading.set(false);
       },
       error: (err: any) => {
@@ -262,14 +292,14 @@ export class BatchReportsComponent implements OnInit {
   prevPage(): void {
     if (this.currentPage() > 1) {
       this.currentPage.update(p => p - 1);
-      this.fetchRecords();
+      this.fetchDataForActiveTab();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(p => p + 1);
-      this.fetchRecords();
+      this.fetchDataForActiveTab();
     }
   }
 }

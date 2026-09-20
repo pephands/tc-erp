@@ -95,6 +95,25 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     }
   }
 
+  onMobileNumberChange(val: string): void {
+    this.mobileNumber.set(val);
+    if (val && val.length === 10) {
+      this.paymentService.checkVerifiedDonor(val).subscribe({
+        next: (res: any) => {
+          if (res && res.name) {
+            this.donorName.set(res.name);
+            this.correctionName.set(res.name);
+            this.panNumber.set(res.pan_number || '');
+            this.donorType.set('OLD');
+          }
+        },
+        error: (err: any) => {
+          // Do nothing, skip if not matched
+        }
+      });
+    }
+  }
+
   onReset(): void {
     this.paymentDate.set(new Date().toISOString().slice(0, 10));
     this.mobileNumber.set('');

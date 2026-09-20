@@ -278,6 +278,13 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['ADMIN', 'TL'],
           route: '/online-history',
         },
+        {
+          id: 'verified_donors',
+          label: 'Verified Donors',
+          icon: 'how_to_reg',
+          allowedRoles: ['ADMIN'],
+          route: '/verified-donors',
+        },
       ],
     },
     {

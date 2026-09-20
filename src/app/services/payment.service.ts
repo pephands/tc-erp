@@ -29,29 +29,20 @@ export class PaymentService extends BaseHttpService {
     endDate: string = '',
     page: number = 1,
     excludeStatus: string = '',
-    unbatchedOnly: boolean = false
+    unbatched: boolean = false,
+    branch: string = ''
   ): Observable<any> {
-    let params = new HttpParams().set('page', page.toString());
-    if (status) {
-      params = params.set('status', status);
-    }
-    if (excludeStatus) {
-      params = params.set('exclude_status', excludeStatus);
-    }
-    if (unbatchedOnly) {
-      params = params.set('unbatched', 'true');
-    }
-    if (search) {
-      params = params.set('search', search);
-    }
-    if (startDate) {
-      params = params.set('start_date', startDate);
-    }
-    if (endDate) {
-      params = params.set('end_date', endDate);
-    }
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    if (search) params = params.set('search', search);
+    if (startDate) params = params.set('start_date', startDate);
+    if (endDate) params = params.set('end_date', endDate);
+    if (page) params = params.set('page', page.toString());
+    if (excludeStatus) params = params.set('exclude_status', excludeStatus);
+    if (unbatched) params = params.set('unbatched', 'true');
+    if (branch) params = params.set('branch', branch);
 
-    return this.httpClient.get<any>(this.endpoint, {
+    return this.httpClient.get<any>(this.endPoint.paymentRecords, {
       headers: this.headers,
       params,
     });
@@ -63,12 +54,13 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
-  getBatchReports(startDate: string = '', endDate: string = '', status: string = ''): Observable<any> {
+  getBatchReports(startDate: string, endDate: string, status: string, page: number = 1): Observable<any> {
     let params = new HttpParams();
     if (startDate) params = params.set('start_date', startDate);
     if (endDate) params = params.set('end_date', endDate);
     if (status) params = params.set('batch_status', status);
-    
+    params = params.set('page', page.toString());
+
     return this.httpClient.get<any>(this.endPoint.paymentBatchReport, {
       headers: this.headers,
       params,
@@ -109,6 +101,38 @@ export class PaymentService extends BaseHttpService {
   // Batch Configs
   getBatchConfigs(): Observable<any> {
     return this.httpClient.get<any>(this.endPoint.paymentBatchConfigs, {
+      headers: this.headers,
+    });
+  }
+
+  uploadVerifiedDonors(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.httpClient.post<any>(this.endPoint.verifiedDonorsUpload, formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
+  getVerifiedDonors(page: number = 1, search: string = ''): Observable<any> {
+    let params = new HttpParams().set('page', page.toString());
+    if (search) params = params.set('search', search);
+
+    return this.httpClient.get<any>(this.endPoint.verifiedDonors, {
+      headers: this.headers,
+      params: params
+    });
+  }
+
+  checkVerifiedDonor(mobileNumber: string): Observable<any> {
+    let params = new HttpParams().set('mobile_number', mobileNumber);
+    return this.httpClient.get<any>(this.endPoint.verifiedDonorsCheck, {
+      headers: this.headers,
+      params: params
+    });
+  }
+
+  forceDeleteVerifiedDonors(): Observable<any> {
+    return this.httpClient.delete<any>(this.endPoint.verifiedDonorsForceDelete, {
       headers: this.headers,
     });
   }

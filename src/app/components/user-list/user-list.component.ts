@@ -393,8 +393,7 @@ export class UserListComponent implements OnInit {
   }
 
   getAvailableBranchesForSelection(): any[] {
-    const homeId = this.formBranchId;
-    return this.branches().filter(b => b.id !== 'self' && b.id.toString() !== homeId);
+    return this.branches().filter(b => b.id !== 'self');
   }
 
   getFilteredBranchesForSelection(): any[] {

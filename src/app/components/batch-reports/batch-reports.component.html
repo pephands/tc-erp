@@ -297,6 +297,15 @@
           </tbody>
         </table>
       </div>
+      @if (batches().length > 0) {
+        <div class="pagination-bar">
+          <div class="pagination-info">Showing page {{ currentPage() }} of {{ totalPages() }}</div>
+          <div class="pagination-controls">
+            <button class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">Prev</button>
+            <button class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Next</button>
+          </div>
+        </div>
+      }
     </div>
   } 
 

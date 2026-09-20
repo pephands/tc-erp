@@ -56,6 +56,36 @@
         </div>
       </div>
 
+      <!-- Status Filter -->
+      <div class="filter-field">
+        <label>Status</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">rule</span>
+          <select [ngModel]="statusFilter()" (ngModelChange)="onStatusChange($event)" class="status-select">
+            <option value="">All Statuses</option>
+            <option value="OK">OK</option>
+            <option value="RESEND">RESEND</option>
+            <option value="OTHERS">Others</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Branch Filter (Only for Admin/Manager) -->
+      @if (isAdmin() || isManager()) {
+        <div class="filter-field">
+          <label>Branch</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">store</span>
+            <select [ngModel]="branchFilter()" (ngModelChange)="onBranchChange($event)" class="branch-select">
+              <option value="">All Branches</option>
+              @for (b of branches(); track b.id) {
+                <option [value]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
+
       <!-- Reset -->
       <div class="filter-field action-field">
         <label class="invisible-label">Reset</label>
@@ -75,12 +105,19 @@
           <tr>
             <th>Approved Date</th>
             <th>Donation Date</th>
+            <th>Branch</th>
+            <th>TC Name</th>
+            <th>Receipt Id</th>
             <th>Donor Number</th>
             <th>Donor Name</th>
+            <th>Correction Name</th>
             <th>Amount</th>
             <th>Ref Id</th>
             <th>Payment Mode</th>
             <th>Donor Type</th>
+            <th>PAN Number</th>
+            <th>DOB</th>
+            <th>Address</th>
             <th>Remarks</th>
             <th>Status</th>
             <th>Proof File</th>
@@ -89,7 +126,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="11" class="loading-state">
+              <td colspan="18" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading approved records...</p>
               </td>
@@ -99,16 +136,26 @@
               <tr>
                 <td class="col-date">{{ rec.approved_at ? (rec.approved_at | date:'yyyy-MM-dd HH:mm') : (rec.created_at | date:'yyyy-MM-dd') }}</td>
                 <td class="col-date">{{ rec.payment_date }}</td>
+                <td><strong>{{ rec.branch_name || '-' }}</strong></td>
+                <td>{{ rec.telecaller_name || rec.telecaller_username || '-' }}</td>
+                <td class="col-ref"><code>{{ rec.receipt_id || '-' }}</code></td>
                 <td class="col-mobile">{{ rec.mobile_number }}</td>
                 <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+                <td class="col-name">{{ rec.correction_name || '-' }}</td>
                 <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
                 <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
                 <td><span class="tag-pill">{{ rec.mode_of_payment }}</span></td>
                 <td><span class="donor-type-tag">{{ rec.donor_type }}</span></td>
+                <td>{{ rec.pan_number || '-' }}</td>
+                <td>{{ rec.dob || '-' }}</td>
+                <td class="col-remarks" [title]="rec.address || ''">{{ rec.address || '-' }}</td>
                 <td class="col-remarks" [title]="rec.remarks || ''">{{ rec.remarks || '-' }}</td>
                 <td class="col-status">
-                  <span class="status-badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
-                    {{ rec.status }}
+                  <span class="status-badge" 
+                    [style.background]="rec.status === 'OK' ? '#d1fae5' : (rec.status === 'RESEND' ? '#fef3c7' : '#e0e7ff')"
+                    [style.color]="rec.status === 'OK' ? '#065f46' : (rec.status === 'RESEND' ? '#d97706' : '#4338ca')"
+                    [style.border]="rec.status === 'OK' ? '1px solid #10b981' : (rec.status === 'RESEND' ? '1px solid #fcd34d' : '1px solid #c7d2fe')">
+                    {{ rec.status || 'PENDING' }}
                   </span>
                 </td>
                 <td class="col-file">
@@ -124,7 +171,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="11" class="empty-state">
+                <td colspan="17" class="empty-state">
                   <span class="material-symbols-outlined empty-icon">verified_user</span>
                   <p class="empty-title">No Online History Found</p>
                   <p class="empty-sub">Once TL verifies your submitted records, they will appear here.</p>

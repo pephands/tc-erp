@@ -25,6 +25,7 @@ import { ApprovedRecordsComponent } from './components/approved-records/approved
 import { TelecallerWorkstationComponent } from './components/telecaller-workstation/telecaller-workstation.component';
 import { FeedbacksComponent } from './components/feedbacks/feedbacks.component';
 import { FeedbackDetailsComponent } from './components/feedback-details/feedback-details.component';
+import { VerifiedDonors } from './components/verified-donors/verified-donors';
 
 import {
   TelecallersPageComponent,
@@ -201,6 +202,11 @@ export const routes: Routes = [
         path: 'online-history',
         component: OnlineHistoryComponent,
         canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'verified-donors',
+        component: VerifiedDonors,
+        canActivate: [deviceAuthGuard]
       },
       {
         path: 'whatsapp-accounts',

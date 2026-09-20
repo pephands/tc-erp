@@ -151,7 +151,7 @@
                 <td class="col-actions">
                   <span class="action-info-chip" [title]="'Ref: ' + rec.reference_id">
                   </span>
-                  @if (rec.status === 'NEW' || rec.status === 'RESEND') {
+                  @if (!rec.status || rec.status === '' || rec.status === 'NEW' || rec.status === 'RESEND') {
                     <button type="button" class="btn-action-icon edit-btn" (click)="onEditRecord(rec)" title="Edit Record">
                       <span class="material-symbols-outlined">edit</span>
                     </button>

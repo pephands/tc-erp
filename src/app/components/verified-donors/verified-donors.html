@@ -1,0 +1,146 @@
+<div class="page-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <span class="material-symbols-outlined title-icon">how_to_reg</span>
+        <div>
+          <h1 class="page-title">Verified Donors Database</h1>
+          <p class="page-subtitle">Manage, upload, and search verified donors.</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="header-actions">
+        <!-- Search Box -->
+        <div class="search-box">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input 
+            type="text" 
+            placeholder="Search by Name, Mobile, PAN..." 
+            class="search-input"
+            (input)="onSearch($event)"
+          />
+        </div>
+
+        <!-- Upload File Button -->
+        <div class="action-btn-group">
+          <button 
+            class="btn-outline" 
+            (click)="downloadSampleFormat()"
+          >
+            <span class="material-symbols-outlined">download</span>
+            Sample Format
+          </button>
+
+          <input 
+            type="file" 
+            id="donorUpload" 
+            style="display: none" 
+            accept=".xlsx, .xls"
+            (change)="onFileUpload($event)"
+          />
+          <button 
+            class="btn-primary" 
+            onclick="document.getElementById('donorUpload').click()"
+            [disabled]="isUploading()"
+          >
+            <span class="material-symbols-outlined">{{ isUploading() ? 'hourglass_top' : 'upload_file' }}</span>
+            {{ isUploading() ? 'Uploading...' : 'Upload XLSX' }}
+          </button>
+
+          <!-- Force Delete Button -->
+          <button 
+            class="btn-danger" 
+            (click)="forceDeleteAll()"
+            [disabled]="isDeleting() || totalRecords() === 0"
+          >
+            <span class="material-symbols-outlined">{{ isDeleting() ? 'hourglass_top' : 'delete_forever' }}</span>
+            {{ isDeleting() ? 'Deleting...' : 'Delete All' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="content-card">
+    
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 80px">S.No</th>
+            <th>Name</th>
+            <th>Mobile Number</th>
+            <th>PAN Number</th>
+            <th>Status</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="6" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Loading donors...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (donor of records(); track donor.id; let i = $index) {
+              <tr>
+                <td class="col-id">{{ (currentPage() - 1) * 100 + i + 1 }}</td>
+                <td class="col-name"><strong>{{ donor.name }}</strong></td>
+                <td class="col-mobile">{{ donor.mobile_number }}</td>
+                <td class="col-pan">{{ donor.pan_number || '-' }}</td>
+                <td>
+                  <span class="status-badge" [class.active]="donor.is_active" [class.inactive]="!donor.is_active">
+                    {{ donor.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="col-date">{{ donor.created_at | date:'dd MMM yyyy, hh:mm a' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-state">
+                  <span class="material-symbols-outlined empty-icon">group_off</span>
+                  <p class="empty-title">No Donors Found</p>
+                  <p class="empty-sub">Try searching with a different term or upload a new file.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Section -->
+    <div class="pagination-section">
+      <div class="page-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalRecords() }} total records)
+      </div>
+      <div class="page-controls">
+        <button 
+          class="btn-icon" 
+          (click)="prevPage()" 
+          [disabled]="currentPage() === 1 || isLoading()"
+          title="Previous Page"
+        >
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <div class="page-indicator">
+          {{ currentPage() }}
+        </div>
+        <button 
+          class="btn-icon" 
+          (click)="nextPage()" 
+          [disabled]="currentPage() === totalPages() || isLoading() || totalPages() === 0"
+          title="Next Page"
+        >
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    </div>
+    
+  </div>
+</div>
