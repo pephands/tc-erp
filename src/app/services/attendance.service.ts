@@ -25,23 +25,25 @@ export class AttendanceService extends BaseHttpService {
     return this.endPoint.attendanceList;
   }
 
-  getAttendanceRecords(branch?: string, startDate?: string, endDate?: string, search?: string, page: number = 1, pageSize: number = 10): Observable<any> {
+  getAttendanceRecords(branch?: string, startDate?: string, endDate?: string, search?: string, page: number = 1, pageSize: number = 10, status?: string): Observable<any> {
     let url = `${this.endpoint}?page=${page}&page_size=${pageSize}&`;
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (startDate) url += `start_date=${encodeURIComponent(startDate)}&`;
     if (endDate) url += `end_date=${encodeURIComponent(endDate)}&`;
     if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (status) url += `status=${encodeURIComponent(status)}&`;
 
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers });
   }
 
-  exportAttendanceExcel(branch?: string, startDate?: string, endDate?: string, search?: string): Observable<Blob> {
+  exportAttendanceExcel(branch?: string, startDate?: string, endDate?: string, search?: string, status?: string): Observable<Blob> {
     let url = `${this.endPoint.attendanceExport}?`;
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (startDate) url += `start_date=${encodeURIComponent(startDate)}&`;
     if (endDate) url += `end_date=${encodeURIComponent(endDate)}&`;
     if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (status) url += `status=${encodeURIComponent(status)}&`;
 
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });

@@ -94,6 +94,29 @@
         </div>
       </div>
 
+      <!-- Filter 4: Status Selection -->
+      <div class="filter-field">
+        <label for="statusSelect">Status</label>
+        <div class="select-wrapper">
+          <span class="material-symbols-outlined input-icon">fact_check</span>
+          <select
+            id="statusSelect"
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="onStatusChange($event)"
+          >
+            <option value="" selected>All Statuses</option>
+            <option value="P">Present</option>
+            <option value="A">Absent</option>
+            <option value="WFH">Work From Home</option>
+            <option value="HD">Half Day</option>
+            <option value="L">Late</option>
+            <option value="EL">Early Leave</option>
+            <option value="H">Holiday</option>
+            <option value="WH">Weekly Holiday</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Reset Filters Action -->
       <div class="filter-field action-field">
         <label class="invisible-label">Reset</label>

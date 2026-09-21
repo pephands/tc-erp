@@ -404,14 +404,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isWfhMode() && !this.wfhPasscode().trim()) {
+      this.toastService.error('Passcode Required', 'Please enter your 6-character WFH passcode provided by your Team Leader.');
+      return;
+    }
+
     try {
       const coords = await this.checkInService.getCurrentLocation();
+      const isWfh = this.isWfhMode();
       const payload: AttendanceCheckOutPayload = {
         attendance_id: attendanceId,
         latitude: coords.latitude,
         longitude: coords.longitude,
         ip_address: this.clientIp(),
-        deviceid: this.checkInService.getDeviceId() || undefined
+        deviceid: this.checkInService.getDeviceId() || undefined,
+        override_code: isWfh ? this.wfhPasscode().trim().toUpperCase() : undefined
       };
 
       this.checkOutService.getData(payload).subscribe({
@@ -423,10 +430,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.statusState.set('COMPLETED');
           this.toastService.info('Check-Out Recorded', `Check-out recorded at ${timeStr}. Device authorization session cleared.`);
         },
-        error: () => {
-          this.checkInService.clearAttendanceMarked();
-          this.statusState.set('COMPLETED');
-          this.toastService.error('Checkout Failed', 'Failed to record checkout on the server.');
+        error: (err: any) => {
+          let errorMsg = 'Failed to record checkout on the server.';
+          if (err.error) {
+            if (Array.isArray(err.error)) {
+               errorMsg = err.error[0];
+            } else if (typeof err.error === 'object') {
+               const firstKey = Object.keys(err.error)[0];
+               if (firstKey) {
+                 const val = err.error[firstKey];
+                 errorMsg = Array.isArray(val) ? val[0] : val;
+               }
+            } else if (typeof err.error === 'string') {
+               errorMsg = err.error;
+            }
+          }
+
+          if (errorMsg.includes('Invalid token')) {
+            this.toastService.error('Session Expired', 'Please login again.');
+            this.authService.logout().subscribe(() => {
+              this.router.navigate(['/login']);
+            });
+            return;
+          }
+
+          if (errorMsg.includes('IP Mismatch') || errorMsg.includes('Geofence')) {
+            this.isWfhRequired.set(true);
+            this.toastService.error('Off-site Location Detected', 'You are not within the authorized network/location. Please request a WFH passcode to checkout.');
+          } else {
+            this.toastService.error('Checkout Failed', errorMsg);
+          }
         }
       });
     } catch (err) {

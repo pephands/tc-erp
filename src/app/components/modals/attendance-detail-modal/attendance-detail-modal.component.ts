@@ -114,4 +114,16 @@ export class AttendanceDetailModalComponent {
     }
     return '';
   }
+
+  get ipAddress(): string {
+    return this.attendance?.originalItem?.ip_address || '--';
+  }
+
+  get ipAddressOut(): string {
+    return this.attendance?.originalItem?.ip_address_out || '--';
+  }
+
+  get hasCheckOut(): boolean {
+    return this.checkOutTime !== '--:--' || this.hasLocationOut;
+  }
 }

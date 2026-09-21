@@ -15,6 +15,8 @@ export interface Branch {
   latitude?: number;
   longitude?: number;
   geofence_radius_meters?: number;
+  ip_validation_enabled?: boolean;
+  location_validation_enabled?: boolean;
   is_active: boolean;
   status?: string;
   allowed_ips?: BranchIP[];

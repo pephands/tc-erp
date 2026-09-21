@@ -36,6 +36,8 @@ export class AddBranchModalComponent implements OnInit {
   formLat: number | null = null;
   formLng: number | null = null;
   formRadius: number = 200;
+  formIpValidation: boolean = true;
+  formLocationValidation: boolean = true;
 
   // IPs array
   ips = signal<{ ip: string; label: string }[]>([{ ip: '', label: 'Main Office' }]);
@@ -61,6 +63,8 @@ export class AddBranchModalComponent implements OnInit {
       this.formLat = this.editBranch.latitude ?? null;
       this.formLng = this.editBranch.longitude ?? null;
       this.formRadius = this.editBranch.geofence_radius_meters ?? 200;
+      this.formIpValidation = this.editBranch.ip_validation_enabled ?? true;
+      this.formLocationValidation = this.editBranch.location_validation_enabled ?? true;
 
       if (this.editBranch.allowed_ips && this.editBranch.allowed_ips.length > 0) {
         this.ips.set(this.editBranch.allowed_ips.map(ip => ({ ip: ip.ip_address, label: ip.label })));
@@ -157,6 +161,8 @@ export class AddBranchModalComponent implements OnInit {
       latitude: this.formLat,
       longitude: this.formLng,
       geofence_radius_meters: this.formRadius,
+      ip_validation_enabled: this.formIpValidation,
+      location_validation_enabled: this.formLocationValidation,
       is_active: true,
       allowed_ips: this.ips().filter(ip => ip.ip.trim() !== '').map(ip => ({
         ip_address: ip.ip.trim(),

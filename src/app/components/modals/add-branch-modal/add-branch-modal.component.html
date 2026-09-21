@@ -50,9 +50,15 @@
 
         <!-- IP Whitelisting -->
         <div class="form-section">
-          <h3 class="form-section-title">
-            <span class="material-symbols-outlined">router</span> Allowed IP Addresses
-          </h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="form-section-title" style="margin: 0;">
+              <span class="material-symbols-outlined">router</span> Allowed IP Addresses
+            </h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="formIpValidation" style="margin: 0; font-size: 13px; font-weight: 600; cursor: pointer;">Enable Validation</label>
+              <input type="checkbox" id="formIpValidation" name="formIpValidation" [(ngModel)]="formIpValidation" style="width: 16px; height: 16px; cursor: pointer;" />
+            </div>
+          </div>
           
           <div class="ip-list">
             @for (ipObj of ips(); track $index; let i = $index) {
@@ -82,9 +88,15 @@
 
         <!-- Location Plotting -->
         <div class="form-section">
-          <h3 class="form-section-title">
-            <span class="material-symbols-outlined">location_on</span> Geolocation Details
-          </h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 class="form-section-title" style="margin: 0;">
+              <span class="material-symbols-outlined">location_on</span> Geolocation Details
+            </h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="formLocationValidation" style="margin: 0; font-size: 13px; font-weight: 600; cursor: pointer;">Enable Validation</label>
+              <input type="checkbox" id="formLocationValidation" name="formLocationValidation" [(ngModel)]="formLocationValidation" style="width: 16px; height: 16px; cursor: pointer;" />
+            </div>
+          </div>
           
           <div class="form-row">
             <div class="form-group">

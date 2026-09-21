@@ -36,83 +36,117 @@
           <div class="detail-label">Total Duration</div>
           <div class="detail-value">{{ totalDuration }}</div>
         </div>
-        
-        <div class="detail-group">
-          <div class="detail-label">Check-in Time</div>
-          <div class="detail-value">{{ checkInTime }}</div>
-        </div>
-        
-        <div class="detail-group">
-          <div class="detail-label">Check-out Time</div>
-          <div class="detail-value">{{ checkOutTime }}</div>
-        </div>
       </div>
       
       <hr class="divider" />
       
-      <div class="location-section">
-        <div class="location-title">
-          <span class="material-symbols-outlined location-icon">location_on</span>
-          <span>Location at check-in</span>
-        </div>
-        
-        @if (hasLocation) {
-          <div class="location-card">
-            <div class="address-details">
-              Coordinates: {{ latitude }}, {{ longitude }}
-            </div>
-            <a [href]="mapUrl" target="_blank" class="map-link">
-              Open in Google Maps <span class="material-symbols-outlined link-icon">open_in_new</span>
-            </a>
+      <div class="split-view">
+        <!-- Check-in Column -->
+        <div class="split-col check-in-col">
+          <div class="split-header checkin-header">
+            <span class="material-symbols-outlined header-icon">login</span>
+            Check-In Details
           </div>
           
-          <div class="map-container">
-            <iframe 
-              width="100%" 
-              height="200" 
-              frameborder="0" 
-              style="border:0; border-radius: 8px;"
-              [src]="mapEmbedUrl"
-              allowfullscreen>
-            </iframe>
+          <div class="info-grid">
+            <div class="detail-group">
+              <div class="detail-label">Time</div>
+              <div class="detail-value">{{ checkInTime }}</div>
+            </div>
+            <div class="detail-group">
+              <div class="detail-label">IP Address</div>
+              <div class="detail-value">{{ ipAddress }}</div>
+            </div>
           </div>
-        } @else {
-          <div class="no-location">
-            No check-in location data available.
+          
+          <div class="location-section" style="margin-top: 8px;">
+            <div class="location-title">
+              <span class="material-symbols-outlined location-icon">location_on</span>
+              <span>Location</span>
+            </div>
+            
+            @if (hasLocation) {
+              <div class="location-card">
+                <div class="address-details">
+                  Coordinates: {{ latitude }}, {{ longitude }}
+                </div>
+                <a [href]="mapUrl" target="_blank" class="map-link">
+                  Open in Google Maps <span class="material-symbols-outlined link-icon">open_in_new</span>
+                </a>
+              </div>
+              
+              <div class="map-container">
+                <iframe 
+                  width="100%" 
+                  height="200" 
+                  frameborder="0" 
+                  style="border:0; border-radius: 8px;"
+                  [src]="mapEmbedUrl"
+                  allowfullscreen>
+                </iframe>
+              </div>
+            } @else {
+              <div class="no-location">
+                No check-in location data available.
+              </div>
+            }
+          </div>
+        </div>
+        
+        <!-- Check-out Column -->
+        @if (hasCheckOut) {
+          <div class="split-col check-out-col">
+            <div class="split-header checkout-header">
+              <span class="material-symbols-outlined header-icon">logout</span>
+              Check-Out Details
+            </div>
+            
+            <div class="info-grid">
+              <div class="detail-group">
+                <div class="detail-label">Time</div>
+                <div class="detail-value">{{ checkOutTime }}</div>
+              </div>
+              <div class="detail-group">
+                <div class="detail-label">IP Address</div>
+                <div class="detail-value">{{ ipAddressOut }}</div>
+              </div>
+            </div>
+            
+            <div class="location-section" style="margin-top: 8px;">
+              <div class="location-title">
+                <span class="material-symbols-outlined location-icon" style="color: #ef4444;">location_off</span>
+                <span>Location</span>
+              </div>
+              
+              @if (hasLocationOut) {
+                <div class="location-card">
+                  <div class="address-details">
+                    Coordinates: {{ latitudeOut }}, {{ longitudeOut }}
+                  </div>
+                  <a [href]="mapUrlOut" target="_blank" class="map-link">
+                    Open in Google Maps <span class="material-symbols-outlined link-icon">open_in_new</span>
+                  </a>
+                </div>
+                
+                <div class="map-container">
+                  <iframe 
+                    width="100%" 
+                    height="200" 
+                    frameborder="0" 
+                    style="border:0; border-radius: 8px;"
+                    [src]="mapEmbedUrlOut"
+                    allowfullscreen>
+                  </iframe>
+                </div>
+              } @else {
+                <div class="no-location">
+                  No check-out location data available.
+                </div>
+              }
+            </div>
           </div>
         }
       </div>
-
-      @if (hasLocationOut) {
-        <hr class="divider" />
-        
-        <div class="location-section">
-          <div class="location-title">
-            <span class="material-symbols-outlined location-icon" style="color: #ef4444;">location_off</span>
-            <span>Location at check-out</span>
-          </div>
-          
-          <div class="location-card">
-            <div class="address-details">
-              Coordinates: {{ latitudeOut }}, {{ longitudeOut }}
-            </div>
-            <a [href]="mapUrlOut" target="_blank" class="map-link">
-              Open in Google Maps <span class="material-symbols-outlined link-icon">open_in_new</span>
-            </a>
-          </div>
-          
-          <div class="map-container">
-            <iframe 
-              width="100%" 
-              height="200" 
-              frameborder="0" 
-              style="border:0; border-radius: 8px;"
-              [src]="mapEmbedUrlOut"
-              allowfullscreen>
-            </iframe>
-          </div>
-        </div>
-      }
     </div>
   </div>
 </div>

@@ -41,6 +41,7 @@ export class AttendanceComponent implements OnInit {
   selectedBranch = signal<string>('');
   startDate = signal<string>('');
   endDate = signal<string>('');
+  selectedStatus = signal<string>('');
   isFilterApplied = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isExporting = signal<boolean>(false);
@@ -86,9 +87,10 @@ export class AttendanceComponent implements OnInit {
     const start = this.startDate();
     const end = this.endDate();
     const search = this.searchQuery().trim();
+    const status = this.selectedStatus();
 
 
-    this.attendanceService.getAttendanceRecords(branch, start, end, search, this.currentPage(), this.pageSize()).subscribe({
+    this.attendanceService.getAttendanceRecords(branch, start, end, search, this.currentPage(), this.pageSize(), status).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         if (res && res.status === 'success' && res.data) {
@@ -205,8 +207,9 @@ export class AttendanceComponent implements OnInit {
     const start = this.startDate();
     const end = this.endDate();
     const search = this.searchQuery().trim();
+    const status = this.selectedStatus();
 
-    this.attendanceService.exportAttendanceExcel(branch, start, end, search).subscribe({
+    this.attendanceService.exportAttendanceExcel(branch, start, end, search, status).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -255,9 +258,16 @@ export class AttendanceComponent implements OnInit {
     this.fetchAttendanceFromApi();
   }
 
+  onStatusChange(val: string): void {
+    this.selectedStatus.set(val);
+    this.updateFilterAppliedState();
+    this.currentPage.set(1);
+    this.fetchAttendanceFromApi();
+  }
+
   private updateFilterAppliedState(): void {
     const isBranchFiltered = this.isAdminOrManager ? !!this.selectedBranch() : false;
-    this.isFilterApplied.set(!!(isBranchFiltered || this.startDate() || this.endDate() || this.searchQuery()));
+    this.isFilterApplied.set(!!(isBranchFiltered || this.startDate() || this.endDate() || this.searchQuery() || this.selectedStatus()));
   }
 
   onResetFilters(): void {
@@ -265,6 +275,7 @@ export class AttendanceComponent implements OnInit {
     this.startDate.set('');
     this.endDate.set('');
     this.searchQuery.set('');
+    this.selectedStatus.set('');
     this.isFilterApplied.set(false);
     this.currentPage.set(1);
     this.fetchAttendanceFromApi();

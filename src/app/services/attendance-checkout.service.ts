@@ -9,6 +9,7 @@ export interface AttendanceCheckOutPayload {
   longitude: number;
   ip_address?: string;
   deviceid?: string;
+  override_code?: string;
 }
 
 @Injectable({
