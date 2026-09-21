@@ -13,15 +13,17 @@
     </div>
 
     <div class="header-actions">
-      <button type="button" class="btn-action btn-add-orange" (click)="openAddModal()">
-        <span class="material-symbols-outlined">person_add</span>
-        <span>Add {{ roleTitle }}</span>
-      </button>
+      @if (canEditOrDelete) {
+        <button type="button" class="btn-action btn-add-orange" (click)="openAddModal()">
+          <span class="material-symbols-outlined">person_add</span>
+          <span>Add {{ roleTitle }}</span>
+        </button>
 
-      <button type="button" class="btn-action btn-upload-purple" (click)="openUploadModal()">
-        <span class="material-symbols-outlined">upload_file</span>
-        <span>Upload Bulk</span>
-      </button>
+        <button type="button" class="btn-action btn-upload-purple" (click)="openUploadModal()">
+          <span class="material-symbols-outlined">upload_file</span>
+          <span>Upload Bulk</span>
+        </button>
+      }
 
       <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
         <span class="material-symbols-outlined">download</span>
@@ -111,7 +113,9 @@
             <th>Shift Time</th>
             <th>Status</th>
             <th>Aadhar File</th>
-            <th class="text-right">Actions</th>
+            @if (canEditOrDelete) {
+              <th class="text-right">Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -159,38 +163,40 @@
                     <span class="no-file-text">No File</span>
                   }
                 </td>
-                <td class="text-right col-actions">
-                  <button
-                    type="button"
-                    class="btn-icon-action btn-edit"
-                    title="Edit User"
-                    (click)="openEditModal(user)"
-                  >
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
+                @if (canEditOrDelete) {
+                  <td class="text-right col-actions">
+                    <button
+                      type="button"
+                      class="btn-icon-action btn-edit"
+                      title="Edit User"
+                      (click)="openEditModal(user)"
+                    >
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    class="btn-icon-action"
-                    [class.btn-toggle-active]="user.status.toLowerCase() !== 'active'"
-                    [class.btn-toggle-inactive]="user.status.toLowerCase() === 'active'"
-                    [title]="user.status.toLowerCase() === 'active' ? 'Deactivate User' : 'Activate User'"
-                    (click)="onToggleStatus(user)"
-                  >
-                    <span class="material-symbols-outlined">
-                      {{ user.status.toLowerCase() === 'active' ? 'block' : 'check_circle' }}
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      class="btn-icon-action"
+                      [class.btn-toggle-active]="user.status.toLowerCase() !== 'active'"
+                      [class.btn-toggle-inactive]="user.status.toLowerCase() === 'active'"
+                      [title]="user.status.toLowerCase() === 'active' ? 'Deactivate User' : 'Activate User'"
+                      (click)="onToggleStatus(user)"
+                    >
+                      <span class="material-symbols-outlined">
+                        {{ user.status.toLowerCase() === 'active' ? 'block' : 'check_circle' }}
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    class="btn-icon-action btn-delete"
-                    title="Delete / Relieve User"
-                    (click)="onDeleteUser(user)"
-                  >
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </td>
+                    <button
+                      type="button"
+                      class="btn-icon-action btn-delete"
+                      title="Delete / Relieve User"
+                      (click)="onDeleteUser(user)"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </td>
+                }
               </tr>
             } @empty {
               <tr>

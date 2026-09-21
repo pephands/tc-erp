@@ -5,10 +5,12 @@ import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
 
+import { AddOnlinePaymentModalComponent } from '../../modals/add-online-payment-modal/add-online-payment-modal.component';
+
 @Component({
   selector: 'app-batch-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddOnlinePaymentModalComponent],
   templateUrl: './batch-reports.component.html',
   styleUrl: './batch-reports.component.css'
 })
@@ -38,6 +40,10 @@ export class BatchReportsComponent implements OnInit {
   uploadError = signal<string>('');
 
   @ViewChild('fileInput') fileInput!: ElementRef;
+
+  // Edit Modal State
+  showEditModal = signal<boolean>(false);
+  selectedRecord = signal<OnlinePaymentRecord | null>(null);
 
   // Filters
   searchQuery = signal<string>('');
@@ -301,5 +307,21 @@ export class BatchReportsComponent implements OnInit {
       this.currentPage.update(p => p + 1);
       this.fetchDataForActiveTab();
     }
+  }
+
+  // Edit Handlers
+  openEditModal(record: OnlinePaymentRecord): void {
+    this.selectedRecord.set(record);
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.selectedRecord.set(null);
+  }
+
+  onEditSubmitted(): void {
+    this.closeEditModal();
+    this.fetchDataForActiveTab();
   }
 }

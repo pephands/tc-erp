@@ -64,6 +64,20 @@ export class UserListComponent implements OnInit {
     return this.authService.userRoles().includes('ADMIN');
   }
 
+  get canEditOrDelete(): boolean {
+    const roles = this.authService.userRoles();
+    const isAdmin = roles.includes('ADMIN');
+    if (isAdmin) return true;
+    
+    const isTlOrManager = roles.includes('TL') || roles.includes('MANAGER');
+    if (this.roleCode === 'TC' && isTlOrManager) {
+      return false;
+    }
+    
+    // Default to true for other roles/lists, backend will enforce permissions
+    return true;
+  }
+
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
   }

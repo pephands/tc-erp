@@ -130,7 +130,7 @@ export class Endpoint {
   }
 
   telecallingAllocatedBases(telecallerId: number): string {
-    return this.baseUrl + `telecalling/allocated-bases/${telecallerId}/`;
+    return this.baseUrl + `telecalling/allocations/tc-bases/${telecallerId}/`;
   }
 
   telecallingAllocationBatchPdf(batchId: number): string {
