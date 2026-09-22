@@ -23,7 +23,7 @@ export class Endpoint {
   }
 
   get telecallers(): string {
-    return this.baseUrl + 'accounts/users/?role=TC';
+    return this.baseUrl + 'accounts/users/?role=TC&is_active=true&page_size=1000';
   }
 
   get changePassword(): string {
@@ -135,6 +135,10 @@ export class Endpoint {
 
   telecallingAllocationBatchPdf(batchId: number): string {
     return this.baseUrl + `telecalling/allocations/batch/${batchId}/pdf/`;
+  }
+
+  telecallingAllocationBatchExcel(batchId: number): string {
+    return this.baseUrl + `telecalling/allocations/batch/${batchId}/excel/`;
   }
 
   // Payments Domain

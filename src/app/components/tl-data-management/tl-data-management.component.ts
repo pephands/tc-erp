@@ -277,6 +277,25 @@ export class TlDataManagementComponent implements OnInit {
     });
   }
 
+  onDownloadBatchExcel(batchId: number): void {
+    if (!batchId) return;
+    this.service.downloadTCAllocationBatchExcel(batchId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TC_Allocation_Batch_${batchId}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.triggerToast('Allocation batch Excel downloaded successfully.');
+      },
+      error: (err) => {
+        console.error('Error downloading allocation Excel:', err);
+        this.triggerToast('Failed to download allocation Excel.');
+      }
+    });
+  }
+
   onViewAllocatedBases(item: any): void {
     this.selectedTelecallerForBases.set(item);
     this.isAllocatedBasesModalOpen.set(true);

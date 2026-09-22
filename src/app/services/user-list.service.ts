@@ -42,9 +42,17 @@ export class UserListService extends BaseHttpService {
     logOffTime?: string | null,
     page?: number,
     limit?: number,
-    search?: string
+    search?: string,
+    isActive?: string
   ): Observable<any> {
-    let url = `${this.endpoint}?role=${encodeURIComponent(roleCode)}&is_active=all&`;
+    let url = `${this.endpoint}?role=${encodeURIComponent(roleCode)}&`;
+    if (isActive) {
+      if (isActive.toLowerCase() === 'active') url += 'is_active=true&';
+      else if (isActive.toLowerCase() === 'inactive') url += 'is_active=false&';
+      else url += 'is_active=all&';
+    } else {
+      url += 'is_active=all&';
+    }
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (loginTime) url += `login_time=${encodeURIComponent(loginTime)}&`;
     if (logOffTime) url += `logoff_time=${encodeURIComponent(logOffTime)}&`;

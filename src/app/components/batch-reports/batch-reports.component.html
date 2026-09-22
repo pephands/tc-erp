@@ -140,7 +140,6 @@
           <thead>
             <tr>
               @if (isAdmin() && activeTab() === 'OVERALL_BATCHES') { <th></th> }
-              @if (!isAdmin() && activeTab() === 'BATCHES') { <th></th> }
               <th>Config Name</th>
               <th>Batch Date</th>
               <th>Generated At</th>
@@ -149,7 +148,7 @@
               <th>OK</th>
               <th>RESEND</th>
               <th>OTHER</th>
-              @if (isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) {
+              @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || (!isAdmin() && activeTab() === 'BATCHES')) {
                 <th>Action</th>
               }
             </tr>
@@ -165,14 +164,11 @@
             } @else {
               @for (batch of batches(); track batch.id) {
                 <!-- Main Row -->
-                <tr [class.clickable-row]="isAdmin() ? (activeTab() === 'OVERALL_BATCHES') : true" 
-                    (click)="(isAdmin() && activeTab() === 'OVERALL_BATCHES') || (!isAdmin() && activeTab() === 'BATCHES') ? toggleBatchExpansion(batch.id) : null"
-                    style="cursor: {{ ((isAdmin() && activeTab() === 'OVERALL_BATCHES') || (!isAdmin() && activeTab() === 'BATCHES')) ? 'pointer' : 'default' }}">
+                <tr [class.clickable-row]="isAdmin() && activeTab() === 'OVERALL_BATCHES'" 
+                    (click)="isAdmin() && activeTab() === 'OVERALL_BATCHES' ? toggleBatchExpansion(batch.id) : null"
+                    style="cursor: {{ (isAdmin() && activeTab() === 'OVERALL_BATCHES') ? 'pointer' : 'default' }}">
                   
                   @if (isAdmin() && activeTab() === 'OVERALL_BATCHES') { 
-                    <td><span class="material-symbols-outlined">{{ expandedBatchId() === batch.id ? 'expand_less' : 'expand_more' }}</span></td>
-                  }
-                  @if (!isAdmin() && activeTab() === 'BATCHES') { 
                     <td><span class="material-symbols-outlined">{{ expandedBatchId() === batch.id ? 'expand_less' : 'expand_more' }}</span></td>
                   }
                   
@@ -193,7 +189,7 @@
                   <td><span class="status-badge" style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;">{{ batch.resend_count }}</span></td>
                   <td><span class="status-badge" style="background: #e5e7eb; color: #374151; border: 1px solid #d1d5db;">{{ batch.other_count }}</span></td>
                   
-                  @if (isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) {
+                  @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || (!isAdmin() && activeTab() === 'BATCHES')) {
                     <td>
                       <button type="button" class="btn-action-blue" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" style="padding: 0.4rem 0.8rem; border: none; border-radius: 4px; background: #0284c7; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
                         <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
@@ -242,48 +238,7 @@
                   </tr>
                 }
 
-                <!-- Expanded View: Batch Records (TL/Manager) -->
-                @if (!isAdmin() && activeTab() === 'BATCHES' && expandedBatchId() === batch.id) {
-                  <tr class="expanded-row" style="background: #f8fafc;">
-                    <td colspan="9" style="padding: 1.5rem;">
-                      <h4 style="margin: 0 0 1rem 0; color: #334155; display: flex; align-items: center; gap: 5px;">
-                        <span class="material-symbols-outlined">list_alt</span> Records in this batch
-                      </h4>
-                      @if (batchRecords()[batch.id]) {
-                        <table class="nested-table" style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;">
-                          <thead style="background: #f1f5f9;">
-                            <tr>
-                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Donor Name</th>
-                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Amount</th>
-                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Ref Id</th>
-                              <th style="padding: 0.75rem; text-align: left; font-size: 0.85rem; color: #475569;">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            @for (rec of batchRecords()[batch.id]; track rec.id) {
-                              <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 0.75rem;"><strong>{{ rec.donor_name }}</strong><br><small style="color: #64748b;">{{ rec.mobile_number }}</small></td>
-                                <td style="padding: 0.75rem;">₹{{ rec.amount | number:'1.2-2' }}</td>
-                                <td style="padding: 0.75rem;"><code>{{ rec.reference_id }}</code></td>
-                                <td style="padding: 0.75rem;">
-                                  <span class="status-badge" 
-                                    [style.background]="rec.status === 'OK' ? '#d1fae5' : (rec.status === 'RESEND' ? '#fef3c7' : '#f3f4f6')"
-                                    [style.color]="rec.status === 'OK' ? '#065f46' : (rec.status === 'RESEND' ? '#d97706' : '#374151')">
-                                    {{ rec.status }}
-                                  </span>
-                                </td>
-                              </tr>
-                            } @empty {
-                              <tr><td colspan="4" style="padding: 1rem; text-align: center; color: #64748b;">No records found.</td></tr>
-                            }
-                          </tbody>
-                        </table>
-                      } @else {
-                        <div style="display: flex; align-items: center; gap: 10px; color: #64748b;"><span class="material-symbols-outlined spin-icon">progress_activity</span> Loading records...</div>
-                      }
-                    </td>
-                  </tr>
-                }
+
               } @empty {
                 <tr>
                   <td colspan="10" class="empty-state">

@@ -301,6 +301,14 @@ export class TelecallingService extends BaseHttpService {
       responseType: 'blob'
     });
   }
+
+  downloadTCAllocationBatchExcel(batchId: number): Observable<Blob> {
+    const url = this.endPoint.telecallingAllocationBatchExcel(batchId);
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      responseType: 'blob'
+    });
+  }
 }
 
 

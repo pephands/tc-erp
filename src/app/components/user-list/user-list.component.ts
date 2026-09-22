@@ -171,7 +171,8 @@ export class UserListComponent implements OnInit {
     const search = this.searchQuery().trim();
     const page = this.currentPage();
 
-    this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search).subscribe({
+    const status = this.selectedStatus();
+    this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search, status).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         let count = 0;
@@ -189,14 +190,9 @@ export class UserListComponent implements OnInit {
 
         const mapped = items.map((u: any) => this.mapApiUserToRecord(u));
 
-        // Client-side status filter if specified
-        let filtered = mapped;
-        if (this.selectedStatus()) {
-          filtered = mapped.filter(u => u.status.toLowerCase() === this.selectedStatus().toLowerCase());
-        }
-
-        this.users.set(filtered);
-        this.totalCount.set(count || filtered.length);
+        // Backend already handles filtering by status
+        this.users.set(mapped);
+        this.totalCount.set(count);
         this.isLoading.set(false);
       },
       error: (err: any) => {
