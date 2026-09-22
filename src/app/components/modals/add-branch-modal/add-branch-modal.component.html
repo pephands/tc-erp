@@ -21,13 +21,20 @@
           </h3>
           
           <div class="form-row">
+            <div class="form-group full-width">
+              <label for="formBranchId">Branch ID *</label>
+              <input type="number" id="formBranchId" name="formBranchId" [(ngModel)]="formBranchId" placeholder="e.g. 101" required />
+            </div>
+          </div>
+          
+          <div class="form-row">
             <div class="form-group">
               <label for="formName">Branch Name *</label>
-              <input type="text" id="formName" name="formName" [(ngModel)]="formName" placeholder="e.g. ADAMBAKKAM" required />
+              <input type="text" id="formName" name="formName" [(ngModel)]="formName" (ngModelChange)="formName = $event.toUpperCase()" placeholder="e.g. ADAMBAKKAM" required />
             </div>
             <div class="form-group">
               <label for="formCode">Branch Code *</label>
-              <input type="text" id="formCode" name="formCode" [(ngModel)]="formCode" placeholder="e.g. ADM" required />
+              <input type="text" id="formCode" name="formCode" [(ngModel)]="formCode" (ngModelChange)="formCode = $event.toUpperCase()" placeholder="e.g. ADM" required />
             </div>
           </div>
           

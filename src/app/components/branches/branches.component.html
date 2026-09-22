@@ -2,20 +2,60 @@
 
   <!-- Header Action Bar (Add Branch & Search) -->
   <div class="action-header-bar">
-    <div class="search-field">
-      <span class="material-symbols-outlined search-icon">search</span>
-      <input 
-        type="text" 
-        placeholder="Search branches by name, code, phone, email, address..." 
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event); onSearchChange()"
-      />
+    <div style="display: flex; gap: 1rem; align-items: center; flex: 1; flex-wrap: wrap;">
+      <div class="search-field">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input 
+          type="text" 
+          placeholder="Search branches by name, code, phone, email, address..." 
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event); onFilterChange()"
+        />
+      </div>
+      
+      <select 
+        class="status-filter"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event); onFilterChange()"
+        style="padding: 0.65rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-main); outline: none; cursor: pointer; min-width: 120px;"
+      >
+        <option value="">All Statuses</option>
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+
+      @if (searchQuery() || statusFilter()) {
+        <button 
+          type="button" 
+          (click)="resetFilters()" 
+          style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); color: #dc2626; cursor: pointer; transition: all 0.2s ease;"
+          title="Clear Filters"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px;">filter_alt_off</span>
+          <span>Reset</span>
+        </button>
+      }
     </div>
 
-    <button type="button" class="btn-add-branch" (click)="openAddModal()">
-      <span class="material-symbols-outlined">add</span>
-      <span>Add Branch</span>
-    </button>
+    <div style="display: flex; gap: 10px;">
+      <button 
+        type="button" 
+        class="btn-add-branch" 
+        (click)="exportToExcel()"
+        [disabled]="isExporting()"
+      >
+        <span class="material-symbols-outlined">download</span>
+        <span>{{ isExporting() ? 'Downloading...' : 'Download XLSX' }}</span>
+      </button>
+      <button type="button" class="btn-add-branch" (click)="openUploadModal()">
+        <span class="material-symbols-outlined">upload</span>
+        <span>Upload Branches</span>
+      </button>
+      <button type="button" class="btn-add-branch" (click)="openAddModal()">
+        <span class="material-symbols-outlined">add</span>
+        <span>Add Branch</span>
+      </button>
+    </div>
   </div>
 
   <!-- Data Table Card Container -->
@@ -46,7 +86,7 @@
           } @else {
             @for (branch of paginatedBranches(); track branch.id) {
               <tr>
-                <td class="col-id">{{ branch.id }}</td>
+                <td class="col-id">{{ branch.branch_id }}</td>
                 <td class="col-name">{{ branch.name }}</td>
                 <td class="col-short">{{ branch.code }}</td>
                 <td class="col-phone">{{ branch.phone || 'NA' }}</td>
@@ -60,22 +100,22 @@
                 </td>
               <td class="col-actions">
                 <div class="action-btn-group">
+                  <button 
+                    type="button" 
+                    class="btn-edit" 
+                    (click)="openEditModal(branch)"
+                    title="Edit Branch"
+                  >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
                   @if (branch.status !== 'Inactive') {
-                    <button 
-                      type="button" 
-                      class="btn-edit" 
-                      (click)="openEditModal(branch)"
-                      title="Edit Branch"
-                    >
-                      <span class="material-symbols-outlined">edit</span>
-                    </button>
                     <button 
                       type="button" 
                       class="btn-delete" 
                       (click)="onDeleteBranch(branch.id)"
                       title="Deactivate Branch"
                     >
-                      <span class="material-symbols-outlined">delete</span>
+                      <span class="material-symbols-outlined">block</span>
                     </button>
                   } @else {
                     <button 
@@ -164,3 +204,72 @@
   </app-add-branch-modal>
 }
 
+<!-- Upload Branches Modal -->
+@if (isUploadModalOpen()) {
+  <div class="modal-backdrop" (click)="closeUploadModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()" style="max-width: 550px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+      
+      <div class="modal-header" style="background: #ffffff; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <div class="modal-title-group" style="display: flex; align-items: center; gap: 0.75rem; color: #0f172a;">
+          <span class="material-symbols-outlined" style="font-size: 22px; color: #1e293b;">upload_file</span>
+          <h2 class="modal-title" style="margin: 0; font-size: 1.15rem; font-weight: 600; color: #0f172a;">Upload Branches</h2>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeUploadModal()" [disabled]="isLoading()" style="background: none; border: none; cursor: pointer; color: #64748b;">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem;">
+        <p style="margin-top: 0; margin-bottom: 1.25rem; font-size: 0.95rem; color: #334155;">
+          Upload an Excel file (.xlsx) or CSV containing branch details.
+        </p>
+        
+        <!-- Drag & Drop Area -->
+        <div 
+          class="upload-drop-area" 
+          (click)="uploadFileInput.click()" 
+          style="border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 2.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s ease; background: #ffffff; margin-bottom: 1.5rem;"
+          onmouseover="this.style.borderColor='var(--primary)'; this.style.background='var(--primary-light)';"
+          onmouseout="this.style.borderColor='#cbd5e1'; this.style.background='#ffffff';"
+        >
+          <input type="file" #uploadFileInput (change)="onFileSelected($event)" accept=".xlsx,.csv" style="display: none;" />
+          
+          <span class="material-symbols-outlined" style="font-size: 44px; color: var(--primary); margin-bottom: 0.75rem; display: block;">cloud_upload</span>
+          <div style="font-size: 1rem; font-weight: 500; color: #334155;">
+            @if (selectedFile()) {
+              <span style="color: var(--primary);">{{ selectedFile()?.name }}</span>
+            } @else {
+              Click to choose or drop Excel spreadsheet
+            }
+          </div>
+        </div>
+
+        <button type="button" (click)="downloadSampleFormat()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background 0.2s;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+          Download Sample Excel Template
+        </button>
+
+        @if (uploadError()) {
+          <div style="margin-top: 1.25rem; padding: 0.75rem 1rem; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px; color: #b91c1c; font-size: 0.9rem; font-weight: 500; display: flex; align-items: flex-start; gap: 0.5rem;">
+            <span class="material-symbols-outlined" style="font-size: 20px;">error</span>
+            <div style="flex: 1;">{{ uploadError() }}</div>
+          </div>
+        }
+      </div>
+      
+      <div class="modal-footer" style="padding: 1.25rem 1.5rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 0.75rem; background: #ffffff;">
+        <button type="button" (click)="closeUploadModal()" [disabled]="isLoading()" style="padding: 0.6rem 1.5rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+          Cancel
+        </button>
+        <button type="button" (click)="confirmUpload()" [disabled]="isLoading() || !selectedFile()" style="padding: 0.6rem 1.5rem; background: var(--primary-gradient, var(--primary)); color: white; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; opacity: {{ (isLoading() || !selectedFile()) ? '0.7' : '1' }};">
+          @if (isLoading()) {
+            <div class="btn-spinner"></div>
+            Processing...
+          } @else {
+            Upload & Process
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

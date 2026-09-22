@@ -25,4 +25,12 @@ export class BranchCreateService extends BaseHttpService {
   postData(payload: any): Observable<any> {
     return this.httpPostMethod(payload);
   }
+
+  uploadFile(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.httpClient.post(`${this.endpoint}upload/`, formData, {
+      headers: this.multipartHeaders
+    });
+  }
 }

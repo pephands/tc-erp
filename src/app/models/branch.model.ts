@@ -7,6 +7,7 @@ export interface BranchIP {
 
 export interface Branch {
   id: number;
+  branch_id?: number;
   name: string;
   code: string;
   address: string;

@@ -28,6 +28,7 @@ export class AddBranchModalComponent implements OnInit {
   private http = inject(HttpClient);
 
   // Form Fields
+  formBranchId: number | null = null;
   formName = '';
   formCode = '';
   formPhone = '';
@@ -55,6 +56,7 @@ export class AddBranchModalComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.editBranch) {
+      this.formBranchId = this.editBranch.branch_id ?? null;
       this.formName = this.editBranch.name;
       this.formCode = this.editBranch.code;
       this.formPhone = this.editBranch.phone || '';
@@ -137,8 +139,8 @@ export class AddBranchModalComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.formName.trim() || !this.formCode.trim()) {
-      this.toastService.error('Validation Error', 'Branch Name and Code are required.');
+    if (!this.formName.trim() || !this.formCode.trim() || this.formBranchId === null) {
+      this.toastService.error('Validation Error', 'Branch ID, Name, and Code are required.');
       return;
     }
 
@@ -153,6 +155,7 @@ export class AddBranchModalComponent implements OnInit {
     }
 
     const payload = {
+      branch_id: this.formBranchId,
       name: this.formName.trim().toUpperCase(),
       code: this.formCode.trim().toUpperCase(),
       phone: this.formPhone.trim(),
