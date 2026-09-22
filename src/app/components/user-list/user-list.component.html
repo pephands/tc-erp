@@ -186,15 +186,6 @@
                         {{ user.status.toLowerCase() === 'active' ? 'block' : 'check_circle' }}
                       </span>
                     </button>
-
-                    <button
-                      type="button"
-                      class="btn-icon-action btn-delete"
-                      title="Delete / Relieve User"
-                      (click)="onDeleteUser(user)"
-                    >
-                      <span class="material-symbols-outlined">delete</span>
-                    </button>
                   </td>
                 }
               </tr>
@@ -618,14 +609,23 @@
 
   <!-- Bulk Upload Modal -->
   @if (isUploadModalOpen()) {
-    <div class="modal-overlay" (click)="closeUploadModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="!isSubmittingForm() && closeUploadModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()" style="position: relative; overflow: hidden;">
+        
+        <!-- Local Loader Overlay -->
+        @if (isSubmittingForm()) {
+          <div class="local-loader-overlay">
+            <div class="loader-spinner"></div>
+            <p>Uploading & Processing...</p>
+          </div>
+        }
+
         <div class="modal-header">
           <h3>
             <span class="material-symbols-outlined">upload_file</span>
             <span>Bulk Upload {{ roleTitle }} Users</span>
           </h3>
-          <button type="button" class="btn-close-modal" (click)="closeUploadModal()">
+          <button type="button" class="btn-close-modal" (click)="closeUploadModal()" [disabled]="isSubmittingForm()">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -634,7 +634,7 @@
           <p class="upload-subtext">Upload an Excel file (.xlsx) containing user details for {{ roleTitle }}.</p>
 
           <div class="file-drop-box">
-            <input type="file" (change)="onExcelFileSelected($event)" accept=".xlsx, .xls" />
+            <input type="file" (change)="onExcelFileSelected($event)" accept=".xlsx, .xls" [disabled]="isSubmittingForm()" />
             <span class="material-symbols-outlined drop-icon">cloud_upload</span>
             <p>Click to choose or drop Excel spreadsheet</p>
             @if (selectedExcelFile) {
@@ -642,14 +642,14 @@
             }
           </div>
 
-          <button type="button" class="btn-download-sample" (click)="onDownloadSampleTemplate()">
+          <button type="button" class="btn-download-sample" (click)="onDownloadSampleTemplate()" [disabled]="isSubmittingForm()">
             <span class="material-symbols-outlined">download</span>
             <span>Download Sample Excel Template</span>
           </button>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="closeUploadModal()">Cancel</button>
+          <button type="button" class="btn-cancel" (click)="closeUploadModal()" [disabled]="isSubmittingForm()">Cancel</button>
           <button type="button" class="btn-submit-orange" [disabled]="isSubmittingForm()" (click)="onSubmitUploadExcel()">
             {{ isSubmittingForm() ? 'Processing...' : 'Upload & Process' }}
           </button>
