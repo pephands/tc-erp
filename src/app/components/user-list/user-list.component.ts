@@ -531,13 +531,13 @@ export class UserListComponent implements OnInit {
     if (this.formBranchId) formData.append('branch_id', this.formBranchId);
     formData.append('slab', this.formSlab.trim());
     if (this.formSalary.trim()) formData.append('salary', this.formSalary.trim());
-    if (this.formDateOfJoining) formData.append('date_of_joining', this.formDateOfJoining);
-    if (this.formDateOfRelieving) formData.append('date_of_relieving', this.formDateOfRelieving);
-    if (this.formDateOfRejoining) formData.append('date_of_rejoining', this.formDateOfRejoining);
-    if (this.formBankAccountNumber.trim()) formData.append('bank_account_number', this.formBankAccountNumber.trim());
-    if (this.formBankHolderName.trim()) formData.append('bank_holder_name', this.formBankHolderName.trim());
-    if (this.formBankIfscCode.trim()) formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
-    if (this.formAddress.trim()) formData.append('address', this.formAddress.trim());
+    formData.append('date_of_joining', this.formDateOfJoining || '');
+    formData.append('date_of_relieving', this.formDateOfRelieving || '');
+    formData.append('date_of_rejoining', this.formDateOfRejoining || '');
+    formData.append('bank_account_number', this.formBankAccountNumber.trim());
+    formData.append('bank_holder_name', this.formBankHolderName.trim());
+    formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
+    formData.append('address', this.formAddress.trim());
     if (this.selectedAadharFile) formData.append('aadhar_image', this.selectedAadharFile);
     if (this.roleCode === 'MANAGER' || u.roleCode === 'MANAGER') {
       if (this.formManagedBranchIds.length > 0) {

@@ -348,16 +348,28 @@
   border-color: #93c5fd;
 }
 
-.btn-toggle-inactive:hover {
+.btn-toggle-inactive {
   background: #fee2e2;
   color: #dc2626;
   border-color: #fca5a5;
 }
 
-.btn-toggle-active:hover {
+.btn-toggle-inactive:hover {
+  background: #fecaca;
+  color: #b91c1c;
+  border-color: #f87171;
+}
+
+.btn-toggle-active {
   background: #d1fae5;
   color: #059669;
   border-color: #6ee7b7;
+}
+
+.btn-toggle-active:hover {
+  background: #a7f3d0;
+  color: #047857;
+  border-color: #34d399;
 }
 
 .btn-delete:hover {
