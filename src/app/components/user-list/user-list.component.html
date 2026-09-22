@@ -593,7 +593,20 @@
 
           <div class="form-group full-width">
             <label>Upload New Aadhar Proof (Optional)</label>
-            <input type="file" (change)="onFileSelected($event)" accept="image/*,application/pdf" />
+            @if (existingAadharUrl && !isAadharReplaced) {
+              <div class="existing-file-preview" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9; margin-top: 5px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span class="material-symbols-outlined" style="color: #4a90e2;">badge</span>
+                  <span>Existing Aadhar Document</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <a [href]="existingAadharUrl" target="_blank" class="btn-secondary-action" style="text-decoration: none; padding: 4px 10px; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color);">View</a>
+                  <button type="button" class="btn-delete" style="padding: 4px 10px; font-size: 0.85rem; border: none; background: #ffebee; color: #d32f2f; border-radius: 4px; cursor: pointer;" (click)="removeExistingAadhar()">Replace</button>
+                </div>
+              </div>
+            } @else {
+              <input type="file" (change)="onFileSelected($event)" accept="image/*,application/pdf" />
+            }
           </div>
         </div>
 

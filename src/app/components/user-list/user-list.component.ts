@@ -123,11 +123,14 @@ export class UserListComponent implements OnInit {
   formBankHolderName = '';
   formBankIfscCode = '';
   formAddress = '';
+
+  selectedAadharFile: File | null = null;
+  existingAadharUrl: string | null = null;
+  isAadharReplaced = false;
   formStatus = 'Active';
   formManagedBranchIds: number[] = [];
   isManagedBranchDropdownOpen = signal<boolean>(false);
   branchSearchText = signal<string>('');
-  selectedAadharFile: File | null = null;
   selectedExcelFile: File | null = null;
   isSubmittingForm = signal<boolean>(false);
 
@@ -342,8 +345,17 @@ export class UserListComponent implements OnInit {
     this.formBankHolderName = user.bankHolderName;
     this.formBankIfscCode = user.bankIfscCode;
     this.formAddress = user.address;
+    
+    this.existingAadharUrl = user.aadharImage || null;
+    this.isAadharReplaced = false;
+    this.selectedAadharFile = null;
+
+    if (this.roleCode === 'MANAGER' || user.roleCode === 'MANAGER') {
+      this.formManagedBranchIds = user.managedBranchIds ? [...user.managedBranchIds] : [];
+    } else {
+      this.formManagedBranchIds = [];
+    }
     this.formStatus = user.status;
-    this.formManagedBranchIds = user.managedBranchIds ? [...user.managedBranchIds] : [];
     this.isManagedBranchDropdownOpen.set(false);
     this.branchSearchText.set('');
     this.selectedAadharFile = null;
@@ -451,6 +463,11 @@ export class UserListComponent implements OnInit {
     }
   }
 
+  removeExistingAadhar(): void {
+    this.isAadharReplaced = true;
+    this.selectedAadharFile = null;
+  }
+
   onSubmitAddUser(): void {
     if (!this.formFullName.trim()) {
       this.toastService.error('Validation Error', 'Full Name is required.');
@@ -538,7 +555,13 @@ export class UserListComponent implements OnInit {
     formData.append('bank_holder_name', this.formBankHolderName.trim());
     formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
     formData.append('address', this.formAddress.trim());
-    if (this.selectedAadharFile) formData.append('aadhar_image', this.selectedAadharFile);
+    
+    if (this.selectedAadharFile) {
+      formData.append('aadhar_image', this.selectedAadharFile);
+    } else if (this.isAadharReplaced) {
+      formData.append('aadhar_image', ''); // Clear existing image
+    }
+    
     if (this.roleCode === 'MANAGER' || u.roleCode === 'MANAGER') {
       if (this.formManagedBranchIds.length > 0) {
         this.formManagedBranchIds.forEach(id => formData.append('managed_branch_ids', id.toString()));
