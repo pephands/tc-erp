@@ -25,10 +25,12 @@
         <span>{{ isLoading() ? 'Refreshing...' : 'Refresh Attendance' }}</span>
       </button>
 
-      <button type="button" class="btn-secondary-action" [disabled]="isExporting()" (click)="onDownloadAttendanceData()">
-        <span class="material-symbols-outlined" [class.spin-icon]="isExporting()">{{ isExporting() ? 'progress_activity' : 'download' }}</span>
-        <span>{{ isExporting() ? 'Exporting...' : 'Download Attendance data' }}</span>
-      </button>
+      @if (!isTcUser) {
+        <button type="button" class="btn-secondary-action" [disabled]="isExporting()" (click)="onDownloadAttendanceData()">
+          <span class="material-symbols-outlined" [class.spin-icon]="isExporting()">{{ isExporting() ? 'progress_activity' : 'download' }}</span>
+          <span>{{ isExporting() ? 'Exporting...' : 'Download Attendance data' }}</span>
+        </button>
+      }
     </div>
   </div>
 
@@ -74,6 +76,8 @@
             id="startDateInput"
             [ngModel]="startDate()"
             (ngModelChange)="onStartDateChange($event)"
+            [min]="isTcUser ? currentMonthStart : null"
+            [max]="isTcUser ? currentMonthEnd : null"
             placeholder="Select Start Date"
           />
         </div>
@@ -89,6 +93,8 @@
             id="endDateInput"
             [ngModel]="endDate()"
             (ngModelChange)="onEndDateChange($event)"
+            [min]="isTcUser ? currentMonthStart : null"
+            [max]="isTcUser ? currentMonthEnd : null"
             placeholder="Select End Date"
           />
         </div>

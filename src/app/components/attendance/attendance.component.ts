@@ -74,9 +74,23 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  get currentMonthStart(): string {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1, 12).toISOString().split('T')[0];
+  }
+
+  get currentMonthEnd(): string {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth() + 1, 0, 12).toISOString().split('T')[0];
+  }
+
   ngOnInit(): void {
     if (this.isTlUser && this.userBranchName) {
       this.selectedBranch.set(this.userBranchName);
+    }
+    if (this.isTcUser) {
+      this.startDate.set(this.currentMonthStart);
+      this.endDate.set(this.currentMonthEnd);
     }
     this.fetchAttendanceFromApi();
   }
@@ -84,8 +98,22 @@ export class AttendanceComponent implements OnInit {
   fetchAttendanceFromApi(isManualRefresh: boolean = false): void {
     this.isLoading.set(true);
     const branch = this.isTlUser ? (this.userBranchName || this.selectedBranch()) : (this.isAdminOrManager ? this.selectedBranch() : '');
-    const start = this.startDate();
-    const end = this.endDate();
+    
+    let start = this.startDate();
+    let end = this.endDate();
+
+    if (this.isTcUser) {
+      // Force restriction to current month if dates are out of bounds or missing
+      const minDate = this.currentMonthStart;
+      const maxDate = this.currentMonthEnd;
+      
+      if (!start || start < minDate) start = minDate;
+      if (start > maxDate) start = maxDate;
+      
+      if (!end || end > maxDate) end = maxDate;
+      if (end < minDate) end = minDate;
+    }
+
     const search = this.searchQuery().trim();
     const status = this.selectedStatus();
 
