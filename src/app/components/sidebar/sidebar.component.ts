@@ -228,6 +228,14 @@ export class SidebarComponent implements OnInit {
       route: '/approved-records',
     },
     {
+      id: 'online_history_tc',
+      label: 'Payment History',
+      icon: 'history_toggle_off',
+      category: 'Operations',
+      allowedRoles: ['TC'],
+      route: '/online-history',
+    },
+    {
       id: 'approve_assign',
       label: 'Approve/Assign Base',
       icon: 'assignment_ind',

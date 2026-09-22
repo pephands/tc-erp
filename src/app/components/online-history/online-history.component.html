@@ -38,6 +38,8 @@
             id="startDateApprovedInput"
             [ngModel]="startDate()"
             (ngModelChange)="onStartDateChange($event)"
+            [min]="minDate()"
+            [max]="maxDate()"
           />
         </div>
       </div>
@@ -52,6 +54,8 @@
             id="endDateApprovedInput"
             [ngModel]="endDate()"
             (ngModelChange)="onEndDateChange($event)"
+            [min]="minDate()"
+            [max]="maxDate()"
           />
         </div>
       </div>

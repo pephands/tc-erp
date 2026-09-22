@@ -147,8 +147,8 @@ export class WhatsappSendComponent implements OnInit, OnDestroy {
         const timestamp = stored[templateId];
         const elapsed = now - timestamp;
         
-        if (elapsed < 30000) {
-          updatedCooldowns[templateId] = Math.ceil((30000 - elapsed) / 1000);
+        if (elapsed < 60000) {
+          updatedCooldowns[templateId] = Math.ceil((60000 - elapsed) / 1000);
           hasActiveCooldowns = true;
         } else {
           delete stored[templateId];

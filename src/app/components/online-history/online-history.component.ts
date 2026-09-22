@@ -26,6 +26,8 @@ export class OnlineHistoryComponent implements OnInit {
   searchQuery = signal<string>('');
   startDate = signal<string>('');
   endDate = signal<string>('');
+  minDate = signal<string>('');
+  maxDate = signal<string>('');
   statusFilter = signal<string>('');
   branchFilter = signal<string>('');
   isFilterApplied = signal<boolean>(false);
@@ -49,9 +51,32 @@ export class OnlineHistoryComponent implements OnInit {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
 
+    if (!this.isAdmin() && !this.isManager()) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      const startStr = this.formatDate(firstDay);
+      const endStr = this.formatDate(lastDay);
+
+      this.startDate.set(startStr);
+      this.endDate.set(endStr);
+      this.minDate.set(startStr);
+      this.maxDate.set(endStr);
+    }
+
     if (this.isAdmin() || this.isManager()) {
       this.fetchBranches();
     }
+  }
+
+  formatDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   fetchBranches(): void {
@@ -146,8 +171,13 @@ export class OnlineHistoryComponent implements OnInit {
 
   onResetFilters(): void {
     this.searchQuery.set('');
-    this.startDate.set('');
-    this.endDate.set('');
+    if (!this.isAdmin() && !this.isManager()) {
+      this.startDate.set(this.minDate());
+      this.endDate.set(this.maxDate());
+    } else {
+      this.startDate.set('');
+      this.endDate.set('');
+    }
     this.statusFilter.set('');
     this.branchFilter.set('');
     this.isFilterApplied.set(false);
