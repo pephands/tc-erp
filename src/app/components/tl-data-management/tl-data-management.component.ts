@@ -235,7 +235,7 @@ export class TlDataManagementComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'allocation_history.csv';
+        a.download = 'allocation_history.xlsx';
         a.click();
         window.URL.revokeObjectURL(url);
       },
@@ -250,7 +250,7 @@ export class TlDataManagementComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'allocation_summary.csv';
+        a.download = 'allocation_summary.xlsx';
         a.click();
         window.URL.revokeObjectURL(url);
       },
@@ -331,7 +331,7 @@ export class TlDataManagementComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `allocated_bases_tc_${item.telecaller_id}.csv`;
+        a.download = `allocated_bases_tc_${item.telecaller_id}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
       },
