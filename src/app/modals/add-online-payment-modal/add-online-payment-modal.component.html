@@ -115,7 +115,7 @@
             <input
               type="text"
               id="correctionName"
-              class="form-control"
+              class="form-control uppercase-input"
               placeholder="Enter correction name"
               [ngModel]="correctionName()"
               (ngModelChange)="correctionName.set($event)"
@@ -127,7 +127,7 @@
             <label for="address">Address</label>
             <textarea
               id="address"
-              class="form-control textarea-control"
+              class="form-control textarea-control uppercase-input"
               rows="3"
               placeholder="Enter full address"
               [ngModel]="address()"
@@ -157,7 +157,7 @@
             <input
               type="text"
               id="donorName"
-              class="form-control"
+              class="form-control uppercase-input"
               placeholder="Enter donor name"
               [ngModel]="donorName()"
               (ngModelChange)="donorName.set($event)"
@@ -214,7 +214,7 @@
             <label for="remarks">Remarks</label>
             <textarea
               id="remarks"
-              class="form-control textarea-control"
+              class="form-control textarea-control uppercase-input"
               rows="3"
               placeholder="Enter remarks"
               [ngModel]="remarks()"

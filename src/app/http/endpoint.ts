@@ -22,6 +22,10 @@ export class Endpoint {
     return this.baseUrl + 'accounts/users/';
   }
 
+  get me(): string {
+    return this.baseUrl + 'accounts/me/';
+  }
+
   get telecallers(): string {
     return this.baseUrl + 'accounts/users/?role=TC&is_active=true&page_size=1000';
   }

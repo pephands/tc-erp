@@ -115,6 +115,36 @@ export class AttendanceDetailModalComponent {
     return '';
   }
 
+  get distanceText(): string | null {
+    if (this.hasLocation && this.hasLocationOut) {
+      const lat1 = parseFloat(this.latitude);
+      const lon1 = parseFloat(this.longitude);
+      const lat2 = parseFloat(this.latitudeOut);
+      const lon2 = parseFloat(this.longitudeOut);
+      
+      if (!isNaN(lat1) && !isNaN(lon1) && !isNaN(lat2) && !isNaN(lon2)) {
+        const R = 6371e3; // metres
+        const φ1 = lat1 * Math.PI/180;
+        const φ2 = lat2 * Math.PI/180;
+        const Δφ = (lat2-lat1) * Math.PI/180;
+        const Δλ = (lon2-lon1) * Math.PI/180;
+
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const d = R * c; // in metres
+        
+        if (d < 1000) {
+          return `${Math.round(d)} meters apart`;
+        } else {
+          return `${(d / 1000).toFixed(2)} km apart`;
+        }
+      }
+    }
+    return null;
+  }
+
   get ipAddress(): string {
     return this.attendance?.originalItem?.ip_address || '--';
   }

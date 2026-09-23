@@ -639,6 +639,8 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/received-status')) return 'received_status';
     if (url.includes('/batch-settings')) return 'batch_settings';
     if (url.includes('/online-history')) return 'online_history';
+    if (url.includes('/live-batch')) return 'live_batch';
+    if (url.includes('/verified-donors')) return 'verified_donors';
     if (url.includes('/dashboard')) return 'dashboard';
     return 'dashboard';
   }

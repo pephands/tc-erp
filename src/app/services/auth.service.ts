@@ -143,6 +143,28 @@ export class AuthService {
     this.currentSession.set(null);
   }
 
+  fetchLatestSession(): Observable<boolean> {
+    const session = this.currentSession();
+    if (!session || !session.token) {
+      return of(false);
+    }
+    
+    return this.http.get<{status: string, user: User}>(this.endpoint.me, {
+      headers: { Authorization: `Token ${session.token}` }
+    }).pipe(
+      map(response => {
+        if (response.status === 'success' && response.user) {
+          const updatedSession = { ...session, user: response.user };
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updatedSession));
+          this.currentSession.set(updatedSession);
+          return true;
+        }
+        return false;
+      }),
+      catchError(() => of(false))
+    );
+  }
+
   hasRole(allowedRoles: Array<string>): boolean {
     const roles = this.userRoles();
     return allowedRoles.some(allowed => roles.includes(allowed));

@@ -99,6 +99,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.loadStaffUsers();
       this.loadTodayPasscodes();
     }
+
+    // Refresh user session data from backend to ensure roles/branches are up to date
+    this.authService.fetchLatestSession().subscribe();
   }
 
   loadDashboardMetrics(): void {

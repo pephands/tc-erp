@@ -40,6 +40,13 @@
       
       <hr class="divider" />
       
+      @if (distanceText) {
+        <div class="distance-banner" style="text-align: center; font-weight: 600; padding: 10px; background-color: #f3f4f6; border-radius: 6px; margin-bottom: 15px; color: #374151;">
+          <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">social_distance</span>
+          Distance between Check-In & Check-Out: <span style="color: #ef4444;">{{ distanceText }}</span>
+        </div>
+      }
+
       <div class="split-view">
         <!-- Check-in Column -->
         <div class="split-col check-in-col">

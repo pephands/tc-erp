@@ -77,6 +77,26 @@ export class MainLayoutComponent {
       this.pageTitle.set('Expense Report');
       this.pageIcon.set('bar_chart');
       this.parentTitle.set('Branch Details');
+    } else if (url.includes('/live-batch')) {
+      this.pageTitle.set('Live Batch');
+      this.pageIcon.set('speed');
+      this.parentTitle.set('Payment Batches');
+    } else if (url.includes('/batch-reports')) {
+      this.pageTitle.set('Batch Details');
+      this.pageIcon.set('receipt_long');
+      this.parentTitle.set('Payment Batches');
+    } else if (url.includes('/batch-settings')) {
+      this.pageTitle.set('Batch Setting');
+      this.pageIcon.set('settings');
+      this.parentTitle.set('Payment Batches');
+    } else if (url.includes('/online-history')) {
+      this.pageTitle.set('Payment History');
+      this.pageIcon.set('history_toggle_off');
+      this.parentTitle.set('Payment Batches');
+    } else if (url.includes('/approved-records')) {
+      this.pageTitle.set('Approved Records');
+      this.pageIcon.set('verified');
+      this.parentTitle.set('Payment Batches');
     } else {
       this.pageTitle.set('Dashboard');
       this.pageIcon.set('dashboard');
