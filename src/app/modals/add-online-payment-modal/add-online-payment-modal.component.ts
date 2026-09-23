@@ -148,8 +148,9 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.errorMessage.set('Payment Date is required.');
       return;
     }
-    if (!this.mobileNumber().trim()) {
-      this.errorMessage.set('Donor Number is required.');
+    const donorNo = this.mobileNumber().trim();
+    if (!/^\d{10}$/.test(donorNo)) {
+      this.errorMessage.set('Donor Number must be exactly 10 digits.');
       return;
     }
     if (!this.donorName().trim()) {
