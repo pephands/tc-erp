@@ -168,7 +168,7 @@
             <th>In Time</th>
             <th>Out Time</th>
             <th>Status</th>
-            @if (isAdminOrManager) {
+            @if (isAdmin) {
               <th>Actions</th>
             }
           </tr>
@@ -202,7 +202,7 @@
                     {{ item.status }}
                   </span>
                 </td>
-                @if (isAdminOrManager) {
+                @if (isAdmin) {
                   <td class="col-actions">
                     <button type="button" class="btn-icon-only" (click)="openDetailModal(item)" title="View Details">
                       <span class="material-symbols-outlined">visibility</span>

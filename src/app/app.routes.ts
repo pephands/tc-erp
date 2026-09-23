@@ -18,6 +18,7 @@ import { BatchReportsComponent } from './components/batch-reports/batch-reports.
 import { BatchSettingsComponent } from './components/batch-settings/batch-settings.component';
 import { ReceivedStatusComponent } from './components/received-status/received-status.component';
 import { OnlineHistoryComponent } from './components/online-history/online-history.component';
+import { LiveBatchComponent } from './components/live-batch/live-batch.component';
 
 import { SendRecordsComponent } from './components/send-records/send-records.component';
 import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
@@ -181,6 +182,11 @@ export const routes: Routes = [
       {
         path: 'approved-records',
         component: ApprovedRecordsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'live-batch',
+        component: LiveBatchComponent,
         canActivate: [deviceAuthGuard],
       },
       {

@@ -19,6 +19,11 @@ export class AttendanceComponent implements OnInit {
   private attendanceService = inject(AttendanceService);
   private authService = inject(AuthService);
 
+  get isAdmin(): boolean {
+    const roles = this.authService.userRoles();
+    return roles.includes('ADMIN');
+  }
+
   get isAdminOrManager(): boolean {
     const roles = this.authService.userRoles();
     return roles.includes('ADMIN') || roles.includes('MANAGER');

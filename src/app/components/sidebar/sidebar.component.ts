@@ -81,6 +81,7 @@ export class SidebarComponent implements OnInit {
   get primaryRole(): string {
     const roles = this.userRoles;
     if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('MANAGER')) return 'MANAGER';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
     return '';
@@ -105,7 +106,7 @@ export class SidebarComponent implements OnInit {
       label: 'Dashboard',
       icon: 'dashboard',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC'],
       route: '/dashboard',
     },
     {
@@ -121,20 +122,20 @@ export class SidebarComponent implements OnInit {
       label: 'Users',
       icon: 'group',
       category: 'Team',
-      allowedRoles: ['ADMIN', 'TL'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
       submenus: [
         {
           id: 'telecaller',
           label: 'Telecaller',
           icon: 'support_agent',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
           route: '/users/telecaller',
         },
         {
           id: 'team_leader',
           label: 'Team Leader',
           icon: 'supervisor_account',
-          allowedRoles: ['ADMIN'],
+          allowedRoles: ['ADMIN', 'MANAGER'],
           route: '/users/team-leader',
         },
         {
@@ -200,7 +201,7 @@ export class SidebarComponent implements OnInit {
       label: 'Attendance Details',
       icon: 'event_available',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC'],
       route: '/attendance',
     },
     {
@@ -256,13 +257,20 @@ export class SidebarComponent implements OnInit {
       label: 'Payment Batches',
       icon: 'sync_alt',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
       submenus: [
+        {
+          id: 'live_batch',
+          label: 'Live Batch',
+          icon: 'speed',
+          allowedRoles: ['ADMIN', 'MANAGER'],
+          route: '/live-batch',
+        },
         {
           id: 'batch_reports',
           label: 'Batch Details',
           icon: 'receipt_long',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
           route: '/batch-reports',
         },
         {
@@ -562,18 +570,19 @@ export class SidebarComponent implements OnInit {
 
   // Computed filtered items based on user role AND search query
   filteredMenuItems = computed(() => {
-    const userRoles = this.userRoles;
+    const activeRole = this.primaryRole;
     const query = this.searchQuery().trim().toLowerCase();
 
     return this.menuItems
       .filter((item) => {
         if (
           item.allowedRoles &&
-          userRoles.length > 0 &&
-          !item.allowedRoles.some((r) => userRoles.includes(r))
+          activeRole &&
+          !item.allowedRoles.includes(activeRole)
         ) {
           return false;
         }
+
         return true;
       })
       .map((item) => {
@@ -581,8 +590,8 @@ export class SidebarComponent implements OnInit {
           ? item.submenus.filter((sub) => {
               if (
                 sub.allowedRoles &&
-                userRoles.length > 0 &&
-                !sub.allowedRoles.some((r) => userRoles.includes(r))
+                activeRole &&
+                !sub.allowedRoles.includes(activeRole)
               ) {
                 return false;
               }

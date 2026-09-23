@@ -33,6 +33,7 @@ export class HeaderComponent {
   get primaryRole(): string {
     const roles = this.userRoles();
     if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('MANAGER')) return 'MANAGER';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
     return '';

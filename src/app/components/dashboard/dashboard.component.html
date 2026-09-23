@@ -39,6 +39,106 @@
     <!-- ==================== LEFT SECTION: CATEGORY GROUPED CARDS ==================== -->
     <div class="left-section">
       @switch (primaryRole) {
+        @case ('MANAGER') {
+          <!-- CATEGORY 1 CARD: MANAGER ATTENDANCE ANALYTICS -->
+          <div class="category-group-card shadow-card">
+            <div class="category-header-bar">
+              <div class="header-title-group">
+                <div class="category-icon-chip chip-attendance">
+                  <span class="material-symbols-outlined">how_to_reg</span>
+                </div>
+                <div>
+                  <h3 class="category-title">Managed Branches Attendance & Workforce Analytics</h3>
+                  <p class="category-sub">Live employee presence across managed locations</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attendance Metric Cards Sub-Grid (5 Square Cards in 1 Row) -->
+            <div class="metrics-cards-grid grid-5-col">
+              <div class="dash-metric-card card-blue">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-blue">
+                    <span class="material-symbols-outlined">domain</span>
+                  </div>
+                  <span class="card-micro-tag tag-blue">Locations</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value">{{ (dashboardMetrics()?.manager?.total_branches || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Managed</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Assigned locations</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-indigo">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-indigo">
+                    <span class="material-symbols-outlined">groups</span>
+                  </div>
+                  <span class="card-micro-tag tag-indigo">Employees</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value">{{ (dashboardMetrics()?.manager?.total_strength || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Strength</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Registered workforce</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-emerald">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-emerald">
+                    <span class="material-symbols-outlined">person_check</span>
+                  </div>
+                  <span class="card-micro-tag tag-emerald">Checked In</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-emerald">{{ (dashboardMetrics()?.manager?.total_present || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Present</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Checked in today</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-rose">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-rose">
+                    <span class="material-symbols-outlined">person_off</span>
+                  </div>
+                  <span class="card-micro-tag tag-rose">Absent</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-rose">{{ (dashboardMetrics()?.manager?.total_absent || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total Absent</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Not checked in</span>
+                </div>
+              </div>
+
+              <div class="dash-metric-card card-purple">
+                <div class="card-top-row">
+                  <div class="dash-metric-icon icon-purple">
+                    <span class="material-symbols-outlined">home_work</span>
+                  </div>
+                  <span class="card-micro-tag tag-purple">Remote</span>
+                </div>
+                <div class="card-center-val">
+                  <h3 class="dash-metric-value text-purple">{{ (dashboardMetrics()?.manager?.total_wfh || 0) | number }}</h3>
+                  <span class="dash-metric-label">Total WFH</span>
+                </div>
+                <div class="card-bottom-sub">
+                  <span class="dash-metric-sub">Remote check-ins</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
         @case ('ADMIN') {
           <!-- CATEGORY 1 CARD: ATTENDANCE & WORKFORCE ANALYTICS -->
           <div class="category-group-card shadow-card">

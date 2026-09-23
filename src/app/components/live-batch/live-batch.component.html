@@ -1,0 +1,60 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">online_prediction</span>
+      <div>
+        <h2 class="page-title">Live Payment Batches (Ungenerated)</h2>
+        <p class="page-sub">Real-time overview of ungenerated batches across branches</p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Table Card -->
+  <div class="table-card shadow-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="material-symbols-outlined spin-icon">refresh</span>
+        <p>Loading live batch data...</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>Branch Name</th>
+              <th>Unique Donors</th>
+              <th>Total Mentioned Amount</th>
+              <th>Ungenerated Records</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (stat of stats(); track stat.branch_id) {
+              <tr>
+                <td class="font-medium text-dark">{{ stat.branch_name }}</td>
+                <td>{{ stat.unique_donors }}</td>
+                <td class="font-semibold text-dark">₹{{ stat.total_amount | number:'1.2-2' }}</td>
+                <td>
+                  <span class="status-badge status-pending">
+                    {{ stat.record_count }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4">
+                  <div class="empty-state">
+                    <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
+                    <p>No live batches found for the selected branch.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</main>

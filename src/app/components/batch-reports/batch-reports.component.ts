@@ -19,6 +19,7 @@ export class BatchReportsComponent implements OnInit {
   private authService = inject(AuthService);
 
   isAdmin = signal<boolean>(false);
+  isManager = signal<boolean>(false);
   activeTab = signal<string>('');
 
   // Data & State for Records
@@ -58,9 +59,16 @@ export class BatchReportsComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
+    this.isManager.set(this.authService.hasRole(['MANAGER']) && !this.isAdmin());
     
     // Set default tab based on role
-    this.activeTab.set(this.isAdmin() ? 'PENDING_BATCHES' : 'RECORDS');
+    if (this.isAdmin()) {
+      this.activeTab.set('PENDING_BATCHES');
+    } else if (this.isManager()) {
+      this.activeTab.set('BATCHES');
+    } else {
+      this.activeTab.set('RECORDS');
+    }
     
     this.fetchDataForActiveTab();
   }
@@ -109,7 +117,7 @@ export class BatchReportsComponent implements OnInit {
     const end = this.endDate();
     const page = this.currentPage();
 
-    this.paymentService.getRecords('EMPTY,RESEND', search, start, end, page).subscribe({
+    this.paymentService.getRecords('EMPTY,RESEND,NEW', search, start, end, page).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;

@@ -44,6 +44,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   get primaryRole(): string {
     const roles = this.userRoles();
     if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('MANAGER')) return 'MANAGER';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
     return '';
@@ -480,6 +481,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const role = this.primaryRole;
     switch (role) {
       case 'ADMIN': return 'badge-admin';
+      case 'MANAGER': return 'badge-manager';
       case 'TL': return 'badge-tl';
       case 'TC': return 'badge-tc';
       default: return '';
