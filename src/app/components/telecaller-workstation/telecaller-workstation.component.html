@@ -19,13 +19,26 @@
       <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
         <button type="button" class="btn-download-assigned" (click)="onDownloadAssignedData()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: #292524; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
           <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
-          <span>Download Assigned Data</span>
+          <span>Download xlsx</span>
         </button>
         <div class="queue-summary-badge">
           <span class="material-symbols-outlined icon">phone_in_talk</span>
-          <span>Pending Queue: {{ totalRecords() }} Donors</span>
+          <span>{{ activeTab() === 'PENDING' ? 'Pending Queue' : (activeTab() === 'COMPLETED' ? 'Completed Queue' : 'All Calls') }}: {{ totalRecords() }} Donors</span>
         </div>
       </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="tabs-container" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e5e5e5; padding-bottom: 0;">
+      <button class="tab-btn" [class.active]="activeTab() === 'PENDING'" (click)="setTab('PENDING')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
+        Pending Calls
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'COMPLETED'" (click)="setTab('COMPLETED')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
+        Completed Calls
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'ALL'" (click)="setTab('ALL')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
+        All Calls
+      </button>
     </div>
 
     <!-- Calling Queue Table Card -->
@@ -51,8 +64,13 @@
               <th>Phone Number</th>
               <th>DOB</th>
               <th>Assigned Date</th>
+              @if (activeTab() === 'COMPLETED' || activeTab() === 'ALL') {
+                <th>Completed Date</th>
+              }
               <th>Status</th>
-              <th class="text-center">Action</th>
+              @if (activeTab() !== 'ALL') {
+                <th class="text-center">Action</th>
+              }
             </tr>
           </thead>
           <tbody>
@@ -71,20 +89,40 @@
                   <td class="font-bold phone-number">{{ item.phoneNumber }}</td>
                   <td class="text-muted">{{ item.dob || '-' }}</td>
                   <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'shortDate') : (item.createdAt ? (item.createdAt | date:'shortDate') : '-') }}</td>
+                  @if (activeTab() === 'COMPLETED' || activeTab() === 'ALL') {
+                    <td class="text-muted">{{ (item.status === 'COMPLETED' && item.updatedAt) ? (item.updatedAt | date:'shortDate') : '-' }}</td>
+                  }
                   <td>
-                    <span class="status-assigned-badge">Assigned to You</span>
+                    <span class="status-assigned-badge" [ngStyle]="{'background': item.status === 'COMPLETED' ? '#ecfccb' : '', 'color': item.status === 'COMPLETED' ? '#4d7c0f' : ''}">
+                      {{ item.status === 'COMPLETED' ? 'Completed' : 'Assigned to You' }}
+                    </span>
                   </td>
-                  <td class="actions-cell">
-                    <button
-                      type="button"
-                      class="btn-call-action"
-                      (click)="onOpenCallModal(item)"
-                      title="Call Donor & Record Remarks"
-                    >
-                      <span class="material-symbols-outlined">call</span>
-                      <span>Call & Update</span>
-                    </button>
-                  </td>
+                  @if (activeTab() !== 'ALL') {
+                    <td class="actions-cell">
+                      @if (isRowEditable(item)) {
+                        <button
+                          type="button"
+                          class="btn-call-action"
+                          (click)="onOpenCallModal(item)"
+                          title="Call Donor & Record Remarks"
+                        >
+                          <span class="material-symbols-outlined">call</span>
+                          <span>Call & Update</span>
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          class="btn-call-action"
+                          disabled
+                          style="opacity: 0.5; cursor: not-allowed; background: #e5e5e5; color: #999;"
+                          title="Cannot edit past completed calls"
+                        >
+                          <span class="material-symbols-outlined">lock</span>
+                          <span>Locked</span>
+                        </button>
+                      }
+                    </td>
+                  }
                 </tr>
               } @empty {
                 <tr>
@@ -201,7 +239,8 @@
               <label>Call Disposition / Outcome *</label>
               <div class="select-wrapper">
                 <select [ngModel]="callDisposition()" (ngModelChange)="callDisposition.set($event)">
-                  @for (opt of dispositionOptions; track opt.value) {
+                  <option value="" disabled>Select Call Disposition</option>
+                  @for (opt of dispositionOptions(); track opt.value) {
                     <option [value]="opt.value">{{ opt.label }}</option>
                   }
                 </select>

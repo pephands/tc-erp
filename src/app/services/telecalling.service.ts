@@ -151,9 +151,10 @@ export class TelecallingService extends BaseHttpService {
   fetchTcQueue(
     page: number = 1,
     pageSize: number = 10,
-    search?: string
+    search?: string,
+    queueType: string = 'pending'
   ): Observable<{ records: MasterDonorRecord[]; totalCount: number; totalPages: number }> {
-    const params: any = { page, page_size: pageSize };
+    const params: any = { page, page_size: pageSize, queue_type: queueType };
     if (search) params.search = search;
 
     return this.httpClient
@@ -180,8 +181,8 @@ export class TelecallingService extends BaseHttpService {
       );
   }
 
-  fetchAllTcQueue(search?: string): Observable<MasterDonorRecord[]> {
-    const params: any = { all: 'true' };
+  fetchAllTcQueue(search?: string, queueType: string = 'pending'): Observable<MasterDonorRecord[]> {
+    const params: any = { all: 'true', queue_type: queueType };
     if (search) params.search = search;
 
     return this.httpClient
@@ -309,6 +310,29 @@ export class TelecallingService extends BaseHttpService {
       responseType: 'blob'
     });
   }
-}
 
+  // Call Dispositions
+  getCallDispositions(isActiveOnly: boolean = true): Observable<any> {
+    let params: any = {};
+    if (isActiveOnly) {
+      params.is_active = 'true';
+    }
+    return this.httpClient.get<any>(this.endPoint.telecallingCallDispositions, {
+      headers: this.headers,
+      params
+    });
+  }
+
+  createCallDisposition(data: any): Observable<any> {
+    return this.httpClient.post<any>(this.endPoint.telecallingCallDispositions, data, {
+      headers: this.headers,
+    });
+  }
+
+  updateCallDisposition(id: number | string, data: any): Observable<any> {
+    return this.httpClient.patch<any>(`${this.endPoint.telecallingCallDispositions}${id}/`, data, {
+      headers: this.headers,
+    });
+  }
+}
 

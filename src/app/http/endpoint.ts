@@ -145,6 +145,10 @@ export class Endpoint {
     return this.baseUrl + `telecalling/allocations/batch/${batchId}/excel/`;
   }
 
+  get telecallingCallDispositions(): string {
+    return this.baseUrl + 'telecalling/call-dispositions/';
+  }
+
   // Payments Domain
   get paymentRecords(): string {
     return this.baseUrl + 'payments/records/';

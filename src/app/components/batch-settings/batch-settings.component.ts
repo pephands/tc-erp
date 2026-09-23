@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
+import { TelecallingService } from '../../services/telecalling.service';
 
 @Component({
   selector: 'app-batch-settings',
@@ -12,11 +13,13 @@ import { PaymentService } from '../../services/payment.service';
 })
 export class BatchSettingsComponent implements OnInit {
   private paymentService = inject(PaymentService);
+  private telecallingService = inject(TelecallingService);
 
-  activeTab = signal<'BATCHES' | 'MODES'>('BATCHES');
+  activeTab = signal<'BATCHES' | 'MODES' | 'DISPOSITIONS'>('BATCHES');
 
   batches = signal<any[]>([]);
   paymentModes = signal<any[]>([]);
+  callDispositions = signal<any[]>([]);
   
   isLoading = signal<boolean>(false);
   isModalOpen = signal<boolean>(false);
@@ -34,10 +37,26 @@ export class BatchSettingsComponent implements OnInit {
   ngOnInit(): void {
     this.fetchBatches();
     this.fetchPaymentModes();
+    this.fetchCallDispositions();
   }
 
-  setTab(tab: 'BATCHES' | 'MODES'): void {
+  setTab(tab: 'BATCHES' | 'MODES' | 'DISPOSITIONS'): void {
     this.activeTab.set(tab);
+  }
+
+  fetchCallDispositions(): void {
+    this.telecallingService.getCallDispositions(false).subscribe({
+      next: (res) => {
+        if (res && res.results) {
+          this.callDispositions.set(res.results);
+        } else if (Array.isArray(res)) {
+          this.callDispositions.set(res);
+        } else if (res && res.data) {
+          this.callDispositions.set(res.data);
+        }
+      },
+      error: (err) => console.error('Error fetching call dispositions:', err)
+    });
   }
 
   fetchPaymentModes(): void {
@@ -293,7 +312,7 @@ export class BatchSettingsComponent implements OnInit {
           }
         });
       }
-    } else {
+    } else if (this.activeTab() === 'MODES') {
       if (!this.formData.name) {
         this.showError("Name is required.");
         return;
@@ -308,6 +327,23 @@ export class BatchSettingsComponent implements OnInit {
         this.paymentService.createPaymentMode(data).subscribe({
           next: () => { this.closeModal(); this.fetchPaymentModes(); },
           error: (err) => { console.error("Error creating mode", err); this.showError("Error creating payment mode."); }
+        });
+      }
+    } else if (this.activeTab() === 'DISPOSITIONS') {
+      if (!this.formData.name) {
+        this.showError("Name is required.");
+        return;
+      }
+      const data = { name: this.formData.name, is_active: this.formData.is_active };
+      if (this.isEditing() && this.editId() !== null) {
+        this.telecallingService.updateCallDisposition(this.editId()!, data).subscribe({
+          next: () => { this.closeModal(); this.fetchCallDispositions(); },
+          error: (err) => { console.error("Error updating call disposition", err); this.showError("Error updating call disposition."); }
+        });
+      } else {
+        this.telecallingService.createCallDisposition(data).subscribe({
+          next: () => { this.closeModal(); this.fetchCallDispositions(); },
+          error: (err) => { console.error("Error creating call disposition", err); this.showError("Error creating call disposition."); }
         });
       }
     }

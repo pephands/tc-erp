@@ -14,6 +14,8 @@ export interface MasterDonorRecord {
   assignedTcAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  latestCallDisposition?: string;
+  latestCallRemarks?: string;
 }
 
 export interface BranchAllocationRequestRecord {
@@ -102,6 +104,8 @@ export function deserializeMasterDonor(json: any): MasterDonorRecord {
     assignedTcAt: json.assigned_tc_at || undefined,
     createdAt: json.created_at || undefined,
     updatedAt: json.updated_at || undefined,
+    latestCallDisposition: json.latest_call_disposition || undefined,
+    latestCallRemarks: json.latest_call_remarks || undefined,
   };
 }
 

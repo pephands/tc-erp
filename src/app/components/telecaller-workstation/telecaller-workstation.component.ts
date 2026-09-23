@@ -18,6 +18,7 @@ export class TelecallerWorkstationComponent implements OnInit {
   queue = this.service.tcQueueSignal;
 
   // Search & Server Pagination State
+  activeTab = signal<'PENDING' | 'COMPLETED' | 'ALL'>('PENDING');
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
@@ -38,21 +39,29 @@ export class TelecallerWorkstationComponent implements OnInit {
   // Call Modal Form Inputs
   donorNameInput = signal<string>('');
   dobInput = signal<string>('');
-  callDisposition = signal<string>('INTERESTED');
+  callDisposition = signal<string>('');
   remarksInput = signal<string>('');
 
-  dispositionOptions = [
-    { value: 'INTERESTED', label: 'Interested' },
-    { value: 'CALLBACK', label: 'Callback Requested' },
-    { value: 'DONATION_PROMISED', label: 'Donation Promised' },
-    { value: 'NOT_INTERESTED', label: 'Not Interested' },
-    { value: 'WRONG_NUMBER', label: 'Wrong Number' },
-    { value: 'INVALID_NUMBER', label: 'Invalid Number' },
-    { value: 'NO_ANSWER', label: 'No Answer / Unreachable' },
-  ];
+  dispositionOptions = signal<{value: string, label: string}[]>([]);
 
   ngOnInit(): void {
     this.fetchQueue();
+    this.fetchCallDispositions();
+  }
+
+  fetchCallDispositions(): void {
+    this.service.getCallDispositions(true).subscribe({
+      next: (res) => {
+        let list: any[] = [];
+        if (res && res.results) list = res.results;
+        else if (Array.isArray(res)) list = res;
+        else if (res && res.data) list = res.data;
+        
+        const options = list.map(d => ({ value: d.name, label: d.name }));
+        this.dispositionOptions.set(options);
+      },
+      error: (err) => console.error('Error fetching call dispositions:', err)
+    });
   }
 
   triggerToast(msg: string): void {
@@ -68,8 +77,9 @@ export class TelecallerWorkstationComponent implements OnInit {
     const search = this.searchQuery().trim();
     const page = this.currentPage();
     const size = this.pageSize();
+    const queueType = this.activeTab().toLowerCase();
 
-    this.service.fetchTcQueue(page, size, search).subscribe({
+    this.service.fetchTcQueue(page, size, search, queueType).subscribe({
       next: (res) => {
         this.totalRecords.set(res.totalCount);
         this.totalPagesSignal.set(res.totalPages);
@@ -131,12 +141,25 @@ export class TelecallerWorkstationComponent implements OnInit {
 
   // Open Call Action Modal
   onOpenCallModal(donor: MasterDonorRecord): void {
+    if (!this.isRowEditable(donor)) return;
+
     this.selectedDonor.set(donor);
     this.donorNameInput.set(donor.donorName);
     this.dobInput.set(donor.dob || '');
-    this.callDisposition.set('INTERESTED');
+    this.callDisposition.set('');
     this.remarksInput.set('');
     this.isCallModalOpen.set(true);
+  }
+
+  isRowEditable(donor: MasterDonorRecord): boolean {
+    if (donor.status === 'ASSIGNED_TO_TC') {
+      return true;
+    } else {
+      // Completed calls only editable if updated today
+      if (!donor.updatedAt) return false;
+      const today = new Date().toISOString().slice(0, 10);
+      return donor.updatedAt.slice(0, 10) === today;
+    }
   }
 
   closeCallModal(): void {
@@ -175,12 +198,19 @@ export class TelecallerWorkstationComponent implements OnInit {
     });
   }
 
+  setTab(tab: 'PENDING' | 'COMPLETED' | 'ALL'): void {
+    this.activeTab.set(tab);
+    this.currentPage.set(1);
+    this.fetchQueue();
+  }
+
   onDownloadAssignedData(): void {
     const search = this.searchQuery().trim();
-    this.service.fetchAllTcQueue(search).subscribe({
+    const queueType = this.activeTab().toLowerCase();
+    this.service.fetchAllTcQueue(search, queueType).subscribe({
       next: (list) => {
         if (!list || list.length === 0) {
-          alert('No assigned data available to download.');
+          alert('No data available to download.');
           return;
         }
 
@@ -190,14 +220,17 @@ export class TelecallerWorkstationComponent implements OnInit {
           'Phone Number': item.phoneNumber || '',
           'DOB': item.dob || '',
           'Assigned Date': item.assignedTcAt ? item.assignedTcAt.slice(0, 10) : (item.createdAt ? item.createdAt.slice(0, 10) : ''),
-          'Status': item.status || '',
+          'Call Completed Date': ((this.activeTab() === 'COMPLETED' || this.activeTab() === 'ALL') && item.status === 'COMPLETED' && item.updatedAt) ? item.updatedAt.slice(0, 10) : '',
+          'Call Disposition': item.latestCallDisposition || '',
+          'Remarks': item.latestCallRemarks || '',
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Assigned Donors');
+        const sheetName = this.activeTab() === 'PENDING' ? 'Pending Donors' : (this.activeTab() === 'COMPLETED' ? 'Completed Donors' : 'All Donors');
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
-        const fileName = `Assigned_Data_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const fileName = `${this.activeTab()}_Data_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(workbook, fileName);
 
         this.triggerToast(`Downloaded ${list.length} assigned donors as Excel (.xlsx).`);
