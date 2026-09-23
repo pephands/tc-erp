@@ -119,8 +119,8 @@ export class Endpoint {
     return this.baseUrl + 'telecalling/assign-tc/';
   }
 
-  get telecallingTcQueue(): string {
-    return this.baseUrl + 'telecalling/tc-queue/';
+  get telecallingWorkstation(): string {
+    return this.baseUrl + 'telecalling/workstation/';
   }
 
   get telecallingCallLog(): string {

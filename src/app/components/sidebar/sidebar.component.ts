@@ -209,7 +209,7 @@ export class SidebarComponent implements OnInit {
       label: 'Workstation',
       icon: 'work',
       category: 'Operations',
-      allowedRoles: ['TC'],
+      allowedRoles: ['ADMIN', 'TL', 'TC'],
       route: '/workstation',
     },
     {
@@ -625,8 +625,8 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/attendance')) return 'attendance';
     if (url.includes('/approve-assign')) return 'approve_assign';
     if (url.includes('/tl-data-management')) return 'tl_data_management';
-    if (url.includes('/work-details') || url.includes('/telecaller-workstation'))
-      return 'work_details';
+    if (url.includes('/work-details') || url.includes('/telecaller-workstation') || url.includes('/workstation'))
+      return 'workstation';
     if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';

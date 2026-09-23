@@ -158,7 +158,7 @@ export class TelecallingService extends BaseHttpService {
     if (search) params.search = search;
 
     return this.httpClient
-      .get(this.endPoint.telecallingTcQueue, {
+      .get(this.endPoint.telecallingWorkstation, {
         headers: this.headers,
         params,
       })
@@ -186,7 +186,7 @@ export class TelecallingService extends BaseHttpService {
     if (search) params.search = search;
 
     return this.httpClient
-      .get(this.endPoint.telecallingTcQueue, {
+      .get(this.endPoint.telecallingWorkstation, {
         headers: this.headers,
         params,
       })
@@ -199,6 +199,22 @@ export class TelecallingService extends BaseHttpService {
           return items.map((item: any) => deserializeMasterDonor(item));
         })
       );
+  }
+
+  fetchTlWorkstation(date?: string, search?: string, branch?: string, page: number = 1): Observable<any> {
+    let params: any = { page };
+    if (date) params.date = date;
+    if (search) params.search = search;
+    if (branch) params.branch = branch;
+    return this.httpClient.get<any>(this.endPoint.telecallingWorkstation, { headers: this.headers, params });
+  }
+
+  fetchTlWorkstationExport(date?: string, search?: string, branch?: string): Observable<any[]> {
+    let params: any = { export: 'true' };
+    if (date) params.date = date;
+    if (search) params.search = search;
+    if (branch) params.branch = branch;
+    return this.httpClient.get<any[]>(this.endPoint.telecallingWorkstation, { headers: this.headers, params });
   }
 
   logCall(

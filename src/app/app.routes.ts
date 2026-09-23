@@ -23,7 +23,7 @@ import { LiveBatchComponent } from './components/live-batch/live-batch.component
 import { SendRecordsComponent } from './components/send-records/send-records.component';
 import { ReceivedRecordsComponent } from './components/received-records/received-records.component';
 import { ApprovedRecordsComponent } from './components/approved-records/approved-records.component';
-import { TelecallerWorkstationComponent } from './components/telecaller-workstation/telecaller-workstation.component';
+import { WorkstationComponent } from './components/workstation/workstation.component';
 import { FeedbacksComponent } from './components/feedbacks/feedbacks.component';
 import { FeedbackDetailsComponent } from './components/feedback-details/feedback-details.component';
 import { VerifiedDonors } from './components/verified-donors/verified-donors';
@@ -146,12 +146,7 @@ export const routes: Routes = [
       },
       {
         path: 'workstation',
-        component: TelecallerWorkstationComponent,
-        canActivate: [deviceAuthGuard],
-      },
-      {
-        path: 'work-details',
-        component: TelecallerWorkstationComponent,
+        component: WorkstationComponent,
         canActivate: [deviceAuthGuard],
       },
       {

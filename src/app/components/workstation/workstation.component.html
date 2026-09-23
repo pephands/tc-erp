@@ -1,3 +1,4 @@
+@if (role() === 'TC') {
 <div class="page-container">
   @if (showToast()) {
     <div class="toast-notification shadow-card">
@@ -68,9 +69,7 @@
                 <th>Completed Date</th>
               }
               <th>Status</th>
-              @if (activeTab() !== 'ALL') {
-                <th class="text-center">Action</th>
-              }
+              <th class="text-center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -97,32 +96,30 @@
                       {{ item.status === 'COMPLETED' ? 'Completed' : 'Assigned to You' }}
                     </span>
                   </td>
-                  @if (activeTab() !== 'ALL') {
-                    <td class="actions-cell">
-                      @if (isRowEditable(item)) {
-                        <button
-                          type="button"
-                          class="btn-call-action"
-                          (click)="onOpenCallModal(item)"
-                          title="Call Donor & Record Remarks"
-                        >
-                          <span class="material-symbols-outlined">call</span>
-                          <span>Call & Update</span>
-                        </button>
-                      } @else {
-                        <button
-                          type="button"
-                          class="btn-call-action"
-                          disabled
-                          style="opacity: 0.5; cursor: not-allowed; background: #e5e5e5; color: #999;"
-                          title="Cannot edit past completed calls"
-                        >
-                          <span class="material-symbols-outlined">lock</span>
-                          <span>Locked</span>
-                        </button>
-                      }
-                    </td>
-                  }
+                  <td class="actions-cell">
+                    @if (isRowEditable(item)) {
+                      <button
+                        type="button"
+                        class="btn-call-action"
+                        (click)="onOpenCallModal(item)"
+                        title="Call Donor & Record Remarks"
+                      >
+                        <span class="material-symbols-outlined">call</span>
+                        <span>Call & Update</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn-call-action"
+                        disabled
+                        style="opacity: 0.5; cursor: not-allowed; background: #e5e5e5; color: #999;"
+                        title="Cannot edit past completed calls"
+                      >
+                        <span class="material-symbols-outlined">lock</span>
+                        <span>Locked</span>
+                      </button>
+                    }
+                  </td>
                 </tr>
               } @empty {
                 <tr>
@@ -280,3 +277,144 @@
     </div>
   }
 </div>
+
+} @else if (role() === 'TL' || role() === 'ADMIN') {
+<main class="content-body">
+    <!-- Header Bar -->
+    <div class="action-header-bar">
+      <div class="header-title-section">
+        <h2 class="section-heading">TL Workstation</h2>
+        <p class="section-subheading">
+          Monitor your branch's telecallers, including their daily assigned, pending, and completed calls.
+        </p>
+      </div>
+  
+      <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
+        <button type="button" class="btn-download-assigned" (click)="downloadTlExcel()" [disabled]="tlIsDownloading()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: #292524; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+          @if (tlIsDownloading()) {
+            <span class="material-symbols-outlined spin-icon" style="font-size: 18px; margin: 0;">progress_activity</span>
+            <span>Downloading...</span>
+          } @else {
+            <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+            <span>Download xlsx</span>
+          }
+        </button>
+      </div>
+    </div>
+  
+    <!-- Calling Queue Table Card -->
+    <div class="table-card">
+      <div class="table-card-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        
+        <div class="date-filter-group" style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="filterDate" style="font-weight: 500; color: #374151; font-size: 0.9rem;">Date:</label>
+            <input 
+              type="date" 
+              id="filterDate" 
+              class="form-control" 
+              style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
+              [(ngModel)]="tlFilterDate" 
+              (change)="onTlFilterChange()"
+            />
+            
+            @if (isAdmin()) {
+              <select 
+                class="form-control"
+                style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; margin-left: 0.5rem;"
+                [(ngModel)]="selectedBranch"
+                (change)="onTlFilterChange()"
+              >
+                <option value="">All Branches</option>
+                @for (branch of branches(); track branch.id) {
+                  <option [value]="branch.id">{{ branch.name }}</option>
+                }
+              </select>
+            }
+        </div>
+
+        <div class="search-box">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input
+            type="text"
+            placeholder="Search TC Name or EMP ID..."
+            [ngModel]="tlSearchQuery()"
+            (ngModelChange)="tlSearchQuery.set($event); onTlSearchChange()"
+          />
+        </div>
+      </div>
+  
+      <div class="table-responsive">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Branch</th>
+              <th>Name</th>
+              <th>EMP ID</th>
+              <th>Total Assigned</th>
+              <th>Pending Calls</th>
+              <th>Completed Calls</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (tlIsLoading()) {
+              <tr>
+                <td colspan="7" class="loading-table-state">
+                  <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                  <p class="loading-title">Fetching workstation data...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (item of tlDataList(); track item.id; let i = $index) {
+                <tr>
+                  <td class="font-medium">{{ i + 1 + (tlCurrentPage() - 1) * 10 }}</td>
+                  <td class="text-muted">{{ item.branch_name }}</td>
+                  <td class="font-semibold donor-name">{{ item.full_name }}</td>
+                  <td class="text-muted">{{ item.username }}</td>
+                  <td class="font-bold text-center">{{ item.total_assigned }}</td>
+                  <td class="font-bold text-center" style="color: #ea580c;">{{ item.pending }}</td>
+                  <td class="font-bold text-center" style="color: #16a34a;">{{ item.completed }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="empty-table-state">
+                    <span class="material-symbols-outlined empty-icon">group_off</span>
+                    <p class="empty-title">No Telecallers Found</p>
+                    <p class="empty-subtitle">Adjust your search or filter date.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        
+        <!-- TL Paginator -->
+        @if (tlTotalPagesSignal() > 1 && !tlIsLoading()) {
+          <div class="pagination-bar">
+            <div class="pagination-controls">
+              <button class="page-btn nav-btn" [disabled]="tlCurrentPage() === 1" (click)="setTlPage(1)">
+                First
+              </button>
+              <button class="page-btn nav-btn" [disabled]="tlCurrentPage() === 1" (click)="setTlPage(tlCurrentPage() - 1)">
+                Prev
+              </button>
+
+              @for (page of tlPagesArray(); track page) {
+                <button class="page-btn" [class.active]="page === tlCurrentPage()" (click)="setTlPage(page)">
+                  {{ page }}
+                </button>
+              }
+
+              <button class="page-btn nav-btn" [disabled]="tlCurrentPage() === tlTotalPagesSignal()" (click)="nextTlPage()">
+                Next
+              </button>
+            </div>
+            <div class="pagination-info">
+              Showing page {{ tlCurrentPage() }} of {{ tlTotalPagesSignal() }} ({{ tlTotalRecords() }} Telecallers)
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </main>
+}
