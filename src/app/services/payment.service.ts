@@ -54,6 +54,18 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  createReceipt(formData: FormData): Observable<any> {
+    return this.httpClient.post<any>(this.endPoint.paymentReceiptCreate, formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
+  updateReceipt(id: number | string, formData: FormData): Observable<any> {
+    return this.httpClient.patch<any>(this.endPoint.paymentReceiptEdit(id), formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
   getBatchReports(startDate: string, endDate: string, status: string, page: number = 1): Observable<any> {
     let params = new HttpParams();
     if (startDate) params = params.set('start_date', startDate);

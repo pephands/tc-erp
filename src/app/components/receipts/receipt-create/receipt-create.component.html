@@ -1,0 +1,284 @@
+<main class="page-container">
+  <div class="form-card shadow-card" style="padding: 0; overflow: hidden;">
+    
+    <!-- Header Bar (moved inside card) -->
+    <div class="page-header-bar" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem;">
+      <span class="material-symbols-outlined header-icon" style="font-size: 1.8rem; color: #334155;">post_add</span>
+      <div>
+        <h2 class="page-title" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b;">Create Receipt</h2>
+        <p class="page-sub" style="margin: 0.2rem 0 0 0; font-size: 0.85rem; color: #64748b;">Enter the online payment details to generate a receipt.</p>
+      </div>
+    </div>
+
+    <div style="padding: 1.5rem 2rem;">
+    @if (errorMessage()) {
+      <div class="alert alert-danger" style="padding: 1rem; background-color: #fee2e2; color: #b91c1c; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #ef4444;">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">error</span>
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success" style="padding: 1rem; background-color: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #10b981;">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">check_circle</span>
+        {{ successMessage() }}
+      </div>
+    }
+
+    <div class="two-column-grid" >
+      <!-- LEFT COLUMN -->
+      <div class="grid-column" >
+        
+        @if (isAdmin()) {
+          <div class="form-group custom-dropdown-container" style="position: relative;">
+            <label>Branch <span class="required-star">*</span></label>
+            <div class="form-control dropdown-trigger" (click)="toggleBranchDropdown()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+              <span>{{ branchName() || 'Select Branch' }}</span>
+              <span class="material-symbols-outlined" style="color: #64748b; font-size: 1.2rem;">arrow_drop_down</span>
+            </div>
+
+            @if (isBranchDropdownOpen()) {
+              <div class="custom-dropdown-menu" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 50; margin-top: 4px; overflow: hidden; display: flex; flex-direction: column; max-height: 250px;">
+                <div class="search-box" style="padding: 8px; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search branch..."
+                    [ngModel]="branchSearch()"
+                    (ngModelChange)="branchSearch.set($event)"
+                    style="margin-bottom: 0;"
+                  />
+                </div>
+                <div class="dropdown-list" style="overflow-y: auto; flex: 1;">
+                  @for (b of filteredBranches(); track b.id) {
+                    <div class="dropdown-item" (click)="selectBranch(b)" style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9;">
+                      {{ b.name }}
+                    </div>
+                  } @empty {
+                    <div class="dropdown-item" style="padding: 10px 12px; color: #94a3b8; text-align: center;">No branches found</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+        <div class="form-group">
+          <label>Payment Date <span class="required-star">*</span></label>
+          <input
+            type="date"
+            class="form-control"
+            [ngModel]="paymentDate()"
+            (ngModelChange)="paymentDate.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Alternate Mobile Number</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Enter alternate mobile number"
+            [ngModel]="altMobileNumber()"
+            (ngModelChange)="altMobileNumber.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Amount <span class="required-star">*</span></label>
+          <input
+            type="number"
+            class="form-control"
+            placeholder="Enter amount"
+            [ngModel]="amount()"
+            (ngModelChange)="amount.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Payment Mode <span class="required-star">*</span></label>
+          <select
+            class="form-control"
+            [ngModel]="modeOfPayment()"
+            (ngModelChange)="modeOfPayment.set($event)"
+            
+          >
+            <option value="">Select Payment Mode</option>
+            @for (mode of paymentModes(); track mode.id) {
+              <option [value]="mode.name">{{ mode.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Donor Type <span class="required-star">*</span></label>
+          <select
+            class="form-control"
+            [ngModel]="donorType()"
+            (ngModelChange)="donorType.set($event)"
+            
+          >
+            <option value="NEW">New</option>
+            <option value="OLD">Old</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>PAN Number</label>
+          <input
+            type="text"
+            class="form-control uppercase-input"
+            placeholder="Enter PAN number"
+            maxlength="10"
+            [ngModel]="panNumber()"
+            (ngModelChange)="panNumber.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Correction Name</label>
+          <input
+            type="text"
+            class="form-control uppercase-input"
+            placeholder="Enter correction name"
+            [ngModel]="correctionName()"
+            (ngModelChange)="correctionName.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Address</label>
+          <textarea
+            class="form-control textarea-control uppercase-input"
+            rows="3"
+            placeholder="Enter full address"
+            [ngModel]="address()"
+            (ngModelChange)="address.set($event)"
+            
+          ></textarea>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="grid-column" >
+        
+        <div class="form-group">
+          <label>Donor Number <span class="required-star">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Enter mobile number"
+            maxlength="10"
+            [ngModel]="mobileNumber()"
+            (ngModelChange)="onMobileNumberChange($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Donor Name <span class="required-star">*</span></label>
+          <input
+            type="text"
+            class="form-control uppercase-input"
+            placeholder="Enter donor name"
+            [ngModel]="donorName()"
+            (ngModelChange)="donorName.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Reference Id <span class="required-star">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Enter reference ID"
+            [ngModel]="referenceId()"
+            (ngModelChange)="referenceId.set($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Slab</label>
+          <input
+            type="text"
+            class="form-control"
+            [ngModel]="slab()"
+            disabled
+            readonly
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Select Payment Proof Screenshot</label>
+          <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.5rem;">Allowed extensions (jpg, png, gif, pdf)</div>
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png,.gif,.pdf"
+            (change)="onFileSelected($event)"
+            
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Remarks</label>
+          <textarea
+            class="form-control textarea-control uppercase-input"
+            rows="3"
+            placeholder="Enter remarks"
+            [ngModel]="remarks()"
+            (ngModelChange)="remarks.set($event)"
+            
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>DOB (DD/MM/YYYY)</label>
+          <input
+            type="date"
+            class="form-control"
+            [ngModel]="dob()"
+            (ngModelChange)="dob.set($event)"
+            
+          />
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Action Footer -->
+    <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+      <button
+        type="button"
+        (click)="onReset()"
+        [disabled]="isSubmitting()"
+        class="btn-reset-grey"
+      >
+        Reset
+      </button>
+
+      <button
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="isSubmitting()"
+        class="btn-submit-orange"
+      >
+        @if (isSubmitting()) {
+          <span class="material-symbols-outlined spin-icon" style="animation: spin 1s linear infinite;">progress_activity</span>
+          <span>Creating...</span>
+        } @else {
+          <span>Create Receipt</span>
+        }
+      </button>
+    </div>
+
+    </div> <!-- Close padding wrapper -->
+  </div>
+</main>

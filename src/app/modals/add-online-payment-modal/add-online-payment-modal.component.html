@@ -82,6 +82,7 @@
           </div>
 
           <!-- 5. Donor Type -->
+          @if (!editRecord) {
           <div class="form-group">
             <label for="donorType">Donor Type <span class="required-star">*</span></label>
             <select
@@ -94,6 +95,7 @@
               <option value="OLD">Old</option>
             </select>
           </div>
+          }
 
           <!-- 6. PAN Number -->
           <div class="form-group">
@@ -110,6 +112,7 @@
           </div>
 
           <!-- 7. Correction Name -->
+          @if (!editRecord) {
           <div class="form-group">
             <label for="correctionName">Correction Name</label>
             <input
@@ -121,6 +124,7 @@
               (ngModelChange)="correctionName.set($event)"
             />
           </div>
+          }
 
           <!-- 8. Address -->
           <div class="form-group">
@@ -179,6 +183,7 @@
           </div>
 
           <!-- 4. Slab -->
+          @if (!editRecord) {
           <div class="form-group">
             <label for="slab">Slab</label>
             <input
@@ -190,16 +195,13 @@
               readonly
             />
           </div>
+          }
 
           <!-- 5. Select Payment Proof Image -->
+          @if (!editRecord) {
           <div class="form-group">
             <label for="promotionImage">Select Payment Proof Screenshot</label>
             <span class="file-allowed-hint">Allowed extensions (jpg, png, gif, pdf)</span>
-            @if (editRecord?.payment_proof_url) {
-              <div class="current-file-hint" style="font-size: 0.8rem; margin-bottom: 0.25rem;">
-                Current file: <a [href]="editRecord!.payment_proof_url" target="_blank" style="color: #2563eb; text-decoration: none; font-weight: 600;">View Proof</a>
-              </div>
-            }
             <div class="file-input-wrapper">
               <input
                 type="file"
@@ -209,8 +211,10 @@
               />
             </div>
           </div>
+          }
 
           <!-- 6. Remarks -->
+          @if (!editRecord) {
           <div class="form-group">
             <label for="remarks">Remarks</label>
             <textarea
@@ -222,6 +226,7 @@
               (ngModelChange)="remarks.set($event)"
             ></textarea>
           </div>
+          }
 
           <!-- 7. DOB -->
           <div class="form-group">

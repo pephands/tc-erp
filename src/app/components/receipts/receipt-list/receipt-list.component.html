@@ -1,0 +1,182 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">receipt_long</span>
+      <div>
+        <h2 class="page-title">Receipts</h2>
+        <p class="page-sub">View and manage receipts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-controls-grid">
+      <!-- Search Input -->
+      <div class="filter-field search-field">
+        <label>Search Records</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">search</span>
+          <input
+            type="text"
+            placeholder="Search by Donor, Mobile, Ref ID..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Branch Filter (Admin/TL/Manager view) -->
+      @if (isAdmin() || isManager() || isTL()) {
+        <div class="filter-field">
+          <label>Branch</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">domain</span>
+            <select
+              [ngModel]="branchFilter()"
+              (ngModelChange)="onBranchChange($event)"
+              [disabled]="!isAdmin() && !isManager() && !isTL()"
+            >
+              <option value="">All Branches</option>
+              @for (b of branches(); track b.id || b.name) {
+                <option [value]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Date Filters -->
+      <div class="filter-field">
+        <label>Start Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input
+            type="date"
+            [ngModel]="startDate()"
+            (ngModelChange)="onStartDateChange($event)"
+            [disabled]="isTC()"
+          />
+        </div>
+      </div>
+      <div class="filter-field">
+        <label>End Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input
+            type="date"
+            [ngModel]="endDate()"
+            (ngModelChange)="onEndDateChange($event)"
+            [disabled]="isTC()"
+          />
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card shadow-card">
+    <div class="table-responsive">
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Donor Number</th>
+            <th>Donor Name</th>
+            <th>Amount</th>
+            <th>Ref Id</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="7" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Loading receipts...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (rec of records(); track rec.id) {
+              <tr>
+                <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                <td class="col-mobile">{{ rec.mobile_number }}</td>
+                <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+                <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
+                <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
+                <td class="col-status">
+                  <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">
+                    {{ rec.status || 'OK' }}
+                  </span>
+                </td>
+                <td class="text-right col-actions" style="white-space: nowrap; display: flex; gap: 8px; justify-content: flex-end;">
+                  <button type="button" class="btn-action-aesthetic btn-view" title="View" (click)="onView(rec)">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                  <button type="button" class="btn-action-aesthetic btn-download" title="Download" (click)="onDownload(rec)">
+                    <span class="material-symbols-outlined">download</span>
+                  </button>
+                  <button type="button" class="btn-action-aesthetic btn-whatsapp" title="Send WhatsApp" (click)="onSendWhatsApp(rec)">
+                    <span class="material-symbols-outlined">chat</span>
+                  </button>
+                  <button type="button" class="btn-action-aesthetic btn-mail" title="Send Mail" (click)="onSendMail(rec)">
+                    <span class="material-symbols-outlined">mail</span>
+                  </button>
+                  
+                  @if (isAdmin()) {
+                    <button type="button" class="btn-action-aesthetic btn-edit" title="Edit" (click)="onEdit(rec)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button type="button" class="btn-action-aesthetic btn-delete" title="Delete" (click)="onDelete(rec)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state">
+                  <span class="material-symbols-outlined empty-icon">receipt_long</span>
+                  <p class="empty-title">No Receipts Found</p>
+                  <p class="empty-sub">No receipt records match your filters.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Bar -->
+    @if (records().length > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total receipts)
+        </div>
+        <div class="pagination-controls">
+          <button type="button" class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">Prev</button>
+          <button type="button" class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Next</button>
+        </div>
+      </div>
+    }
+  </div>
+</main>
+
+@if (showEditModal()) {
+  <app-add-online-payment-modal
+    [editRecord]="editRecord()"
+    (close)="onModalClose()"
+    (submitted)="onModalSubmit()"
+  ></app-add-online-payment-modal>
+}

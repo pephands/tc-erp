@@ -27,6 +27,8 @@ import { WorkstationComponent } from './components/workstation/workstation.compo
 import { FeedbacksComponent } from './components/feedbacks/feedbacks.component';
 import { FeedbackDetailsComponent } from './components/feedback-details/feedback-details.component';
 import { VerifiedDonors } from './components/verified-donors/verified-donors';
+import { ReceiptListComponent } from './components/receipts/receipt-list/receipt-list.component';
+import { ReceiptCreateComponent } from './components/receipts/receipt-create/receipt-create.component';
 
 import {
   TelecallersPageComponent,
@@ -237,6 +239,16 @@ export const routes: Routes = [
       {
         path: 'feedback-details',
         component: FeedbackDetailsComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'receipts/view',
+        component: ReceiptListComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'receipts/create',
+        component: ReceiptCreateComponent,
         canActivate: [deviceAuthGuard],
       },
       {

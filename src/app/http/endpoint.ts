@@ -153,6 +153,14 @@ export class Endpoint {
   get paymentRecords(): string {
     return this.baseUrl + 'payments/records/';
   }
+
+  get paymentReceiptCreate(): string {
+    return this.baseUrl + 'payments/receipts/create/';
+  }
+
+  paymentReceiptEdit(id: number | string): string {
+    return this.baseUrl + `payments/receipts/${id}/edit/`;
+  }
   
   get paymentModes(): string {
     return this.baseUrl + 'payments/modes/';

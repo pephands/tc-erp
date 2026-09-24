@@ -1,24 +1,23 @@
-import { Component, EventEmitter, Output, Input, inject, signal, OnChanges, SimpleChanges, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PaymentService } from '../../services/payment.service';
-import { AuthService } from '../../services/auth.service';
-import { OnlinePaymentRecord } from '../../models/payment.model';
+import { Router } from '@angular/router';
+import { PaymentService } from '../../../services/payment.service';
+import { AuthService } from '../../../services/auth.service';
+import { BranchListService } from '../../../services/branch-list.service';
 
 @Component({
-  selector: 'app-add-online-payment-modal',
+  selector: 'app-receipt-create',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './add-online-payment-modal.component.html',
-  styleUrl: './add-online-payment-modal.component.css'
+  templateUrl: './receipt-create.component.html',
+  styleUrl: './receipt-create.component.css'
 })
-export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
+export class ReceiptCreateComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private authService = inject(AuthService);
-
-  @Input() editRecord: OnlinePaymentRecord | null = null;
-  @Output() close = new EventEmitter<void>();
-  @Output() submitted = new EventEmitter<void>();
+  private router = inject(Router);
+  private branchService = inject(BranchListService);
 
   // Form Fields
   paymentDate = signal<string>(new Date().toISOString().slice(0, 10));
@@ -35,6 +34,19 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   address = signal<string>('');
   dob = signal<string>('');
   remarks = signal<string>('');
+  branch = signal<string>('');
+  branchName = signal<string>('');
+  branches = signal<any[]>([]);
+  isAdmin = signal<boolean>(false);
+
+  isBranchDropdownOpen = signal<boolean>(false);
+  branchSearch = signal<string>('');
+
+  filteredBranches = computed(() => {
+    const q = this.branchSearch().toLowerCase();
+    if (!q) return this.branches();
+    return this.branches().filter(b => (b.name || '').toLowerCase().includes(q));
+  });
 
   selectedFile = signal<File | null>(null);
   selectedFileName = signal<string>('');
@@ -43,6 +55,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
   isSubmitting = signal<boolean>(false);
   errorMessage = signal<string>('');
+  successMessage = signal<string>('');
 
   constructor() {
     const user = this.authService.currentUser();
@@ -52,7 +65,27 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   }
 
   ngOnInit() {
+    const roles = this.authService.userRoles();
+    if (roles.includes('ADMIN')) {
+      this.isAdmin.set(true);
+      this.fetchBranches();
+    }
     this.fetchPaymentModes();
+  }
+
+  fetchBranches() {
+    this.branchService.getData(1, 100, '', 'true').subscribe({
+      next: (res: any) => {
+        if (res && res.results) {
+          this.branches.set(res.results);
+        } else if (res && res.data) {
+          this.branches.set(res.data);
+        } else if (Array.isArray(res)) {
+          this.branches.set(res);
+        }
+      },
+      error: (err: any) => console.error('Error fetching branches:', err)
+    });
   }
 
   fetchPaymentModes() {
@@ -66,25 +99,6 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       },
       error: (err: any) => console.error('Error fetching payment modes:', err)
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['editRecord'] && this.editRecord) {
-      this.paymentDate.set(this.editRecord.payment_date || new Date().toISOString().slice(0, 10));
-      this.mobileNumber.set(this.editRecord.mobile_number || '');
-      this.altMobileNumber.set(this.editRecord.alt_mobile_number || '');
-      this.donorName.set(this.editRecord.donor_name || '');
-      this.amount.set(this.editRecord.amount ? String(this.editRecord.amount) : '');
-      this.referenceId.set(this.editRecord.reference_id || '');
-      this.modeOfPayment.set(this.editRecord.mode_of_payment || '');
-      this.slab.set(this.editRecord.slab || '1');
-      this.donorType.set(this.editRecord.donor_type || 'NEW');
-      this.panNumber.set(this.editRecord.pan_number || '');
-      this.correctionName.set(this.editRecord.correction_name || '');
-      this.address.set(this.editRecord.address || '');
-      this.dob.set(this.editRecord.dob || '');
-      this.remarks.set(this.editRecord.remarks || '');
-    }
   }
 
   onFileSelected(event: any): void {
@@ -132,17 +146,41 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     this.address.set('');
     this.dob.set('');
     this.remarks.set('');
+    this.branchSearch.set('');
+    this.branchName.set('');
     this.selectedFile.set(null);
     this.selectedFileName.set('');
     this.errorMessage.set('');
+    this.successMessage.set('');
   }
 
-  onClose(): void {
-    this.close.emit();
+  toggleBranchDropdown() {
+    this.isBranchDropdownOpen.update(v => !v);
+  }
+
+  selectBranch(b: any) {
+    this.branch.set(b.id);
+    this.branchName.set(b.name);
+    this.isBranchDropdownOpen.set(false);
+    this.branchSearch.set('');
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-dropdown-container')) {
+      this.isBranchDropdownOpen.set(false);
+    }
   }
 
   onSubmit(): void {
     this.errorMessage.set('');
+    this.successMessage.set('');
+
+    if (this.isAdmin() && !this.branch()) {
+      this.errorMessage.set('Branch selection is required.');
+      return;
+    }
 
     if (!this.paymentDate()) {
       this.errorMessage.set('Payment Date is required.');
@@ -205,6 +243,10 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     formData.append('slab', this.slab().trim() || '1');
     formData.append('donor_type', this.donorType());
 
+    if (this.isAdmin() && this.branch()) {
+      formData.append('branch', this.branch());
+    }
+
     if (this.panNumber().trim()) {
       formData.append('pan_number', this.panNumber().trim().toUpperCase());
     }
@@ -224,35 +266,20 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       formData.append('payment_proof', this.selectedFile()!, this.selectedFile()!.name);
     }
 
-    if (this.editRecord) {
-      const updateObs = this.editRecord.status === 'OK' 
-        ? this.paymentService.updateReceipt(this.editRecord.id, formData)
-        : this.paymentService.updateOnlinePayment(this.editRecord.id, formData);
-
-      updateObs.subscribe({
-        next: (res: any) => {
-          this.isSubmitting.set(false);
-          this.submitted.emit();
-        },
-        error: (err: any) => {
-          this.isSubmitting.set(false);
-          this.errorMessage.set(err.error?.message || err.error?.errors?.reference_id?.[0] || 'Failed to update online payment details.');
-          console.error('Error updating online payment:', err);
-        }
-      });
-    } else {
-      this.paymentService.createOnlinePayment(formData).subscribe({
-        next: (res: any) => {
-          this.isSubmitting.set(false);
-          this.submitted.emit();
-        },
-        error: (err: any) => {
-          console.error('Error submitting online payment:', err);
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.error?.errors?.reference_id?.[0] || 'Failed to submit payment details. Please check all fields.';
-          this.errorMessage.set(msg);
-        }
-      });
-    }
+    this.paymentService.createReceipt(formData).subscribe({
+      next: (res: any) => {
+        this.isSubmitting.set(false);
+        this.successMessage.set('Receipt created successfully!');
+        setTimeout(() => {
+          this.router.navigate(['/receipts/view']);
+        }, 1500);
+      },
+      error: (err: any) => {
+        console.error('Error submitting online payment:', err);
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.error?.errors?.reference_id?.[0] || 'Failed to submit payment details. Please check all fields.';
+        this.errorMessage.set(msg);
+      }
+    });
   }
 }
