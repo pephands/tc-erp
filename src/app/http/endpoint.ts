@@ -223,6 +223,14 @@ export class Endpoint {
     return this.baseUrl + 'whatsapp/templates/';
   }
 
+  get whatsappHistory(): string {
+    return this.baseUrl + 'whatsapp/history/';
+  }
+
+  get whatsappHistoryExport(): string {
+    return this.baseUrl + 'whatsapp/history/export/';
+  }
+
   // Internal Feedback Domain
   get feedbacks(): string {
     return this.baseUrl + 'internal/feedbacks/';

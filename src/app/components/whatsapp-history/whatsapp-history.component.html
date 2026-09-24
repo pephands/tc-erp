@@ -1,0 +1,146 @@
+<main class="branches-container">
+  <!-- Header Action Bar -->
+  <div class="action-header-bar">
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search by Campaign Name..." 
+        [(ngModel)]="filters.campaign_name"
+        (keyup.enter)="onFilterChange()"
+      />
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <input 
+        type="date" 
+        class="form-control" 
+        style="padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); outline: none; background: var(--bg-card); color: var(--text-main);"
+        [(ngModel)]="filters.start_date"
+        (change)="onFilterChange()"
+        title="Start Date"
+      />
+      <span style="color: var(--text-muted); font-size: 0.9rem;">to</span>
+      <input 
+        type="date" 
+        class="form-control" 
+        style="padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); outline: none; background: var(--bg-card); color: var(--text-main);"
+        [(ngModel)]="filters.end_date"
+        (change)="onFilterChange()"
+        title="End Date"
+      />
+      <select 
+        class="form-control" 
+        style="padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); outline: none; background: var(--bg-card); color: var(--text-main);"
+        [(ngModel)]="filters.branch" 
+        (change)="onFilterChange()">
+        <option value="">All Branches</option>
+        @for (b of branches; track b.id) {
+          <option [value]="b.id">{{ b.name }}</option>
+        }
+      </select>
+
+      <select 
+        class="form-control" 
+        style="padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); outline: none; background: var(--bg-card); color: var(--text-main);"
+        [(ngModel)]="filters.status" 
+        (change)="onFilterChange()">
+        <option value="">All Statuses</option>
+        <option value="SUCCESS">Success</option>
+        <option value="FAILED">Failed</option>
+      </select>
+      <button type="button" class="btn-add-branch" (click)="resetFilter()" style="background-color: var(--danger-color, #ef4444);">
+        <span class="material-symbols-outlined">restart_alt</span>
+        <span>Reset Filter</span>
+      </button>
+
+      <button type="button" class="btn-add-branch" (click)="exportHistory()" style="background-color: var(--secondary-color, #10b981);">
+        <span class="material-symbols-outlined">download</span>
+        <span>Export</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Card Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Branch</th>
+            <th>EMP ID</th>
+            <th>Name</th>
+            <th>Donor Number</th>
+            <th>Campaign Name</th>
+            <th>Template</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading) {
+            <tr>
+              <td colspan="8" class="no-data">
+                <div class="btn-spinner" style="display:inline-block; border-color:var(--text-color); border-top-color:transparent;"></div>
+                <p>Loading history...</p>
+              </td>
+            </tr>
+          } @else if (historyRecords.length === 0) {
+            <tr>
+              <td colspan="8" class="no-data">
+                <span class="material-symbols-outlined">history</span>
+                <p>No history records found.</p>
+              </td>
+            </tr>
+          } @else {
+            @for (record of historyRecords; track record.id) {
+              <tr>
+                <td class="col-name">{{ record.sent_at | date:'medium' }}</td>
+                <td class="col-name">{{ record.branch_name }}</td>
+                <td class="col-short">{{ record.sent_by_name || 'System' }} <br><span style="font-size: 0.75rem; color: var(--text-muted)">{{ record.tcf_name }}</span></td>
+                <td class="col-name">{{ record.user_name || 'System' }}</td>
+                <td class="col-phone">{{ record.donor_number }}</td>
+                <td>{{ record.campaign_name }}</td>
+                <td>{{ record.template_name }}</td>
+                <td class="col-hide">
+                  <span class="hide-badge" [class.is-true]="record.status !== 'SUCCESS'">
+                    {{ record.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    @if (totalItems > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage }} of {{ totalPages }} (Total: {{ totalItems }})
+        </div>
+
+        <div class="pagination-controls">
+          <button 
+            type="button" 
+            class="page-btn nav-btn" 
+            [disabled]="currentPage === 1"
+            (click)="prevPage()"
+          >
+            Prev
+          </button>
+          
+          <button 
+            type="button" 
+            class="page-btn nav-btn" 
+            [disabled]="currentPage === totalPages"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</main>

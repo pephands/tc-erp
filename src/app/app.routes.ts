@@ -13,6 +13,7 @@ import { WhatsappCampaignsComponent } from './components/whatsapp-campaigns/what
 import { WhatsappAccountsComponent } from './components/whatsapp-accounts/whatsapp-accounts.component';
 import { WhatsappTemplates } from './components/whatsapp-templates/whatsapp-templates.component';
 import { WhatsappSendComponent } from './components/whatsapp-send/whatsapp-send.component';
+import { WhatsappHistoryComponent } from './components/whatsapp-history/whatsapp-history.component';
 
 import { BatchReportsComponent } from './components/batch-reports/batch-reports.component';
 import { BatchSettingsComponent } from './components/batch-settings/batch-settings.component';
@@ -235,6 +236,11 @@ export const routes: Routes = [
       {
         path: 'whatsapp-send',
         component: WhatsappSendComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'whatsapp-history',
+        component: WhatsappHistoryComponent,
         canActivate: [deviceAuthGuard],
       },
       {

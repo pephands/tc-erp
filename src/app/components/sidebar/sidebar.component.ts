@@ -355,6 +355,13 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['TL', 'TC'],
           route: '/whatsapp-send',
         },
+        {
+          id: 'whatsapp_send_history',
+          label: 'Whatsapp History',
+          icon: 'history',
+          allowedRoles: ['ADMIN', 'TL', 'TC'],
+          route: '/whatsapp-history',
+        },
       ],
     },
 
