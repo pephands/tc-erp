@@ -95,22 +95,38 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     }
   }
 
+  matchedDonors = signal<any[]>([]);
+
   onMobileNumberChange(val: string): void {
     this.mobileNumber.set(val);
+    this.matchedDonors.set([]); // Reset on change
+    
     if (val && val.length === 10) {
       this.paymentService.checkVerifiedDonor(val).subscribe({
-        next: (res: any) => {
-          if (res && res.name) {
-            this.donorName.set(res.name);
-            this.correctionName.set(res.name);
-            this.panNumber.set(res.pan_number || '');
-            this.donorType.set('OLD');
+        next: (res: any[]) => {
+          if (res && res.length > 0) {
+            this.matchedDonors.set(res);
+            this.selectMatchedDonor(res[0]);
           }
         },
         error: (err: any) => {
           // Do nothing, skip if not matched
         }
       });
+    }
+  }
+
+  selectMatchedDonor(donorOrValue: any): void {
+    if (donorOrValue === 'new') {
+      this.donorName.set('');
+      this.correctionName.set('');
+      this.panNumber.set('');
+      this.donorType.set('OLD');
+    } else if (donorOrValue) {
+      this.donorName.set(donorOrValue.name);
+      this.correctionName.set(donorOrValue.name);
+      this.panNumber.set(donorOrValue.pan_number || '');
+      this.donorType.set('OLD');
     }
   }
 

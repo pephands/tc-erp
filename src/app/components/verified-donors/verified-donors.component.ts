@@ -150,4 +150,46 @@ export class VerifiedDonorsComponent implements OnInit {
       });
     }
   }
+
+  // Edit Modal State
+  isEditModalOpen = signal<boolean>(false);
+  isSavingEdit = signal<boolean>(false);
+  editData: any = {};
+  currentEditId: number | null = null;
+
+  editDonor(donor: any): void {
+    this.currentEditId = donor.id;
+    this.editData = {
+      name: donor.name,
+      mobile_number: donor.mobile_number,
+      pan_number: donor.pan_number,
+      is_active: donor.is_active
+    };
+    this.isEditModalOpen.set(true);
+  }
+
+  closeEditModal(): void {
+    this.isEditModalOpen.set(false);
+    this.currentEditId = null;
+    this.editData = {};
+  }
+
+  submitEdit(): void {
+    if (!this.currentEditId) return;
+    this.isSavingEdit.set(true);
+    
+    this.paymentService.updateVerifiedDonor(this.currentEditId, this.editData).subscribe({
+      next: (res) => {
+        this.isSavingEdit.set(false);
+        this.toastService.success('Success', 'Verified donor updated successfully.');
+        this.closeEditModal();
+        this.fetchRecords();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isSavingEdit.set(false);
+        this.toastService.error('Update Failed', err.error?.error || err.error?.detail || 'An error occurred.');
+      }
+    });
+  }
+
 }

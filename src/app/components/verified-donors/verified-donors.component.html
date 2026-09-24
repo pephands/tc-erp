@@ -76,6 +76,7 @@
             <th>PAN Number</th>
             <th>Status</th>
             <th>Created At</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -99,6 +100,11 @@
                   </span>
                 </td>
                 <td class="col-date">{{ donor.created_at | date:'dd MMM yyyy, hh:mm a' }}</td>
+                <td class="col-actions">
+                  <button class="action-btn" (click)="editDonor(donor)" title="Edit">
+                    <span class="material-symbols-outlined" style="font-size: 1.1rem; color: var(--primary-color);">edit</span>
+                  </button>
+                </td>
               </tr>
             } @empty {
               <tr>
@@ -144,3 +150,43 @@
     
   </div>
 </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" *ngIf="isEditModalOpen()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Verified Donor</h3>
+        <button class="close-btn" (click)="closeEditModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="submitEdit()">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" class="form-control" [(ngModel)]="editData.name" name="name" required />
+          </div>
+          <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="text" class="form-control" [(ngModel)]="editData.mobile_number" name="mobile_number" required />
+          </div>
+          <div class="form-group">
+            <label>PAN Number</label>
+            <input type="text" class="form-control" [(ngModel)]="editData.pan_number" name="pan_number" />
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="editData.is_active" name="is_active" />
+              Is Active
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-outline" (click)="closeEditModal()">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="isSavingEdit()">
+              {{ isSavingEdit() ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

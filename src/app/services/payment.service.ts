@@ -135,6 +135,13 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  updateVerifiedDonor(id: number | string, data: any): Observable<any> {
+    return this.httpClient.patch<any>(`${this.endPoint.verifiedDonors}${id}/`, data, {
+      headers: this.headers,
+    });
+  }
+
+
   checkVerifiedDonor(mobileNumber: string): Observable<any> {
     let params = new HttpParams().set('mobile_number', mobileNumber);
     return this.httpClient.get<any>(this.endPoint.verifiedDonorsCheck, {
