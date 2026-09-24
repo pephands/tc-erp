@@ -155,10 +155,10 @@
                 </td>
                 <td class="col-file">
                   @if (user.aadharImage) {
-                    <button type="button" class="btn-file-link" (click)="openAadharModal(user)">
+                    <a [href]="user.aadharImage" target="_blank" class="btn-file-link" style="text-decoration: none;">
                       <span class="material-symbols-outlined">badge</span>
                       <span>View</span>
-                    </button>
+                    </a>
                   } @else {
                     <span class="no-file-text">No File</span>
                   }

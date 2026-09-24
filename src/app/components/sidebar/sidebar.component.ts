@@ -588,15 +588,15 @@ export class SidebarComponent implements OnInit {
       .map((item) => {
         const validSubmenus = item.submenus
           ? item.submenus.filter((sub) => {
-              if (
-                sub.allowedRoles &&
-                activeRole &&
-                !sub.allowedRoles.includes(activeRole)
-              ) {
-                return false;
-              }
-              return true;
-            })
+            if (
+              sub.allowedRoles &&
+              activeRole &&
+              !sub.allowedRoles.includes(activeRole)
+            ) {
+              return false;
+            }
+            return true;
+          })
           : undefined;
 
         return {
