@@ -41,6 +41,7 @@ import {
   PublicRelationsPageComponent,
   CounselorsPageComponent,
   SuperintendentsPageComponent,
+  AdminsPageComponent,
 } from './components/role-users/role-user-pages.component';
 
 import { authGuard, loginGuard } from './guards/auth.guard';
@@ -67,6 +68,11 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       // --- Users Module Routes ---
+      {
+        path: 'users/admin',
+        component: AdminsPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
       {
         path: 'users/telecaller',
         component: TelecallersPageComponent,

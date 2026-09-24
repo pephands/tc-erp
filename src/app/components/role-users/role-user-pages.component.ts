@@ -150,3 +150,18 @@ export class CounselorsPageComponent {}
   `
 })
 export class SuperintendentsPageComponent {}
+
+@Component({
+  selector: 'app-admins-page',
+  standalone: true,
+  imports: [UserListComponent],
+  template: `
+    <app-user-list
+      roleCode="ADMIN"
+      roleTitle="Admin"
+      roleIcon="admin_panel_settings"
+      roleDescription="Manage and view all Admin users."
+    ></app-user-list>
+  `
+})
+export class AdminsPageComponent {}

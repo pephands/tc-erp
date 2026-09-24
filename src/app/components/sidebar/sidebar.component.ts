@@ -124,6 +124,7 @@ export class SidebarComponent implements OnInit {
       category: 'Team',
       allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
       submenus: [
+        
         {
           id: 'telecaller',
           label: 'Telecaller',
@@ -139,6 +140,13 @@ export class SidebarComponent implements OnInit {
           route: '/users/team-leader',
         },
         {
+          id: 'backend',
+          label: 'Backend',
+          icon: 'computer',
+          allowedRoles: ['ADMIN'],
+          route: '/users/backend',
+        },
+        {
           id: 'manager',
           label: 'Manager',
           icon: 'manage_accounts',
@@ -146,12 +154,22 @@ export class SidebarComponent implements OnInit {
           route: '/users/manager',
         },
         {
-          id: 'backend',
-          label: 'Backend',
-          icon: 'computer',
+          id: 'admin',
+          label: 'Admin',
+          icon: 'admin_panel_settings',
           allowedRoles: ['ADMIN'],
-          route: '/users/backend',
+          route: '/users/admin',
         },
+      ],
+    },
+    {
+      id: 'trust_users',
+      label: 'Trust Users',
+      icon: 'shield_person',
+      category: 'Team',
+      allowedRoles: ['ADMIN'],
+      submenus: [
+        
         {
           id: 'driver',
           label: 'Driver',
@@ -585,29 +603,59 @@ export class SidebarComponent implements OnInit {
 
   private determineActiveMenuFromUrl(targetUrl?: string): string {
     const url = targetUrl || this.router.url;
+    
+    // Core & Operations
+    if (url.includes('/dashboard')) return 'dashboard';
     if (url.includes('/branches')) return 'branches';
-    if (url.includes('/managers')) return 'managers';
-    if (url.includes('/telecallers')) return 'telecallers';
     if (url.includes('/attendance')) return 'attendance';
+    if (url.includes('/workstation') || url.includes('/work-details') || url.includes('/telecaller-workstation')) return 'workstation';
+    if (url.includes('/send-records')) return 'send-records';
     if (url.includes('/approve-assign')) return 'approve_assign';
     if (url.includes('/tl-data-management')) return 'tl_data_management';
-    if (url.includes('/work-details') || url.includes('/telecaller-workstation') || url.includes('/workstation'))
-      return 'workstation';
+    
+    // Users Submenus
+    if (url.includes('/users/admin') || url.includes('/admins')) return 'admin';
+    if (url.includes('/users/telecaller') || url.includes('/telecallers')) return 'telecaller';
+    if (url.includes('/users/team-leader')) return 'team_leader';
+    if (url.includes('/users/manager') || url.includes('/managers')) return 'manager';
+    if (url.includes('/users/backend')) return 'backend';
+    if (url.includes('/users/driver')) return 'driver';
+    if (url.includes('/users/cook')) return 'cook';
+    if (url.includes('/users/assistant-cook')) return 'assistant_cook';
+    if (url.includes('/users/public-relations')) return 'public_relations';
+    if (url.includes('/users/counselor')) return 'counselor';
+    if (url.includes('/users/superintendent')) return 'superintendent';
+
+    // Payment Batches
+    if (url.includes('/live-batch')) return 'live_batch';
+    if (url.includes('/batch-reports')) return 'batch_reports';
+    if (url.includes('/batch-settings')) return 'batch_settings';
+    if (url.includes('/verified-donors')) return 'verified_donors';
+
+    // Both TC and Admin have history / approved records routes
+    if (url.includes('/approved-records')) return this.primaryRole === 'TC' ? 'approved-records' : 'approved_records_admin';
+    if (url.includes('/online-history')) return this.primaryRole === 'TC' ? 'online_history_tc' : 'online_history';
+
+    // Whatsapp
+    if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
+    if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
+    if (url.includes('/whatsapp-send')) return 'send_whatsapp_message';
+
+    // Receipts
+    if (url.includes('/receipts/view')) return 'view_receipt';
+    if (url.includes('/receipts/create')) return 'create_receipt';
+
+    // Branch Details
     if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';
-    if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
-    if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
-    if (url.includes('/send-records')) return 'send-records';
-    if (url.includes('/approved-records')) return 'approved-records';
+
+    // Miscellaneous
     if (url.includes('/received-records')) return 'received-records';
-    if (url.includes('/batch-reports')) return 'batch_reports';
     if (url.includes('/received-status')) return 'received_status';
-    if (url.includes('/batch-settings')) return 'batch_settings';
-    if (url.includes('/online-history')) return 'online_history';
-    if (url.includes('/live-batch')) return 'live_batch';
-    if (url.includes('/verified-donors')) return 'verified_donors';
-    if (url.includes('/dashboard')) return 'dashboard';
+    if (url.includes('/feedback-details')) return 'feedback_details';
+    if (url.includes('/feedbacks')) return 'feedbacks';
+
     return 'dashboard';
   }
 
