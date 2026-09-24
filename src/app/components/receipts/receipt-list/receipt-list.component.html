@@ -96,7 +96,7 @@
             <th>Amount</th>
             <th>Ref Id</th>
             <th>Status</th>
-            <th class="text-right">Actions</th>
+            <th style="text-align: center;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -120,7 +120,7 @@
                     {{ rec.status || 'OK' }}
                   </span>
                 </td>
-                <td class="text-right col-actions" style="white-space: nowrap; display: flex; gap: 8px; justify-content: flex-end;">
+                <td class="col-actions" style="white-space: nowrap; display: flex; gap: 8px; justify-content: center; align-items: center; border-bottom: none; height: 100%;">
                   <button type="button" class="btn-action-aesthetic btn-view" title="View" (click)="onView(rec)">
                     <span class="material-symbols-outlined">visibility</span>
                   </button>
