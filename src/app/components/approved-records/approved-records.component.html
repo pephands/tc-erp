@@ -38,6 +38,7 @@
             id="startDateApprovedInput"
             [ngModel]="startDate()"
             (ngModelChange)="onStartDateChange($event)"
+            [disabled]="userRole() === 'TC'"
           />
         </div>
       </div>
@@ -52,6 +53,7 @@
             id="endDateApprovedInput"
             [ngModel]="endDate()"
             (ngModelChange)="onEndDateChange($event)"
+            [disabled]="userRole() === 'TC'"
           />
         </div>
       </div>

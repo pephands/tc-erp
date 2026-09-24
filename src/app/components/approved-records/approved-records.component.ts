@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
+import { AuthService } from '../../services/auth.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
 
 @Component({
@@ -13,10 +14,14 @@ import { OnlinePaymentRecord } from '../../models/payment.model';
 })
 export class ApprovedRecordsComponent implements OnInit {
   private paymentService = inject(PaymentService);
+  private authService = inject(AuthService);
 
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
   isLoading = signal<boolean>(false);
+
+  // Role
+  userRole = signal<string>('');
 
   // Filters
   searchQuery = signal<string>('');
@@ -30,6 +35,19 @@ export class ApprovedRecordsComponent implements OnInit {
   totalCount = signal<number>(0);
 
   ngOnInit(): void {
+    const roles = this.authService.userRoles();
+    let role = '';
+    if (roles.includes('ADMIN')) role = 'ADMIN';
+    else if (roles.includes('MANAGER')) role = 'MANAGER';
+    else if (roles.includes('TL')) role = 'TL';
+    else if (roles.includes('TC')) role = 'TC';
+
+    this.userRole.set(role);
+    if (role === 'TC') {
+      const today = new Date().toISOString().slice(0, 10);
+      this.startDate.set(today);
+      this.endDate.set(today);
+    }
     this.fetchApprovedRecords();
   }
 
@@ -91,8 +109,16 @@ export class ApprovedRecordsComponent implements OnInit {
 
   onResetFilters(): void {
     this.searchQuery.set('');
-    this.startDate.set('');
-    this.endDate.set('');
+    
+    if (this.userRole() === 'TC') {
+      const today = new Date().toISOString().slice(0, 10);
+      this.startDate.set(today);
+      this.endDate.set(today);
+    } else {
+      this.startDate.set('');
+      this.endDate.set('');
+    }
+    
     this.isFilterApplied.set(false);
     this.currentPage.set(1);
     this.fetchApprovedRecords();
