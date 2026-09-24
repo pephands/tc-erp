@@ -8,10 +8,10 @@ import { ToastService } from '../../../services/toast.service';
   selector: 'app-add-whatsapp-template-modal',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './add-whatsapp-template-modal.html',
-  styleUrl: './add-whatsapp-template-modal.css'
+  templateUrl: './add-whatsapp-template-modal.component.html',
+  styleUrl: './add-whatsapp-template-modal.component.css'
 })
-export class AddWhatsappTemplateModal implements OnInit, OnChanges {
+export class AddWhatsappTemplateModalComponent implements OnInit, OnChanges {
   @Output() closeModal = new EventEmitter<void>();
   @Output() templateAdded = new EventEmitter<void>();
   @Input() templateToEdit?: any;

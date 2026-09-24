@@ -13,10 +13,10 @@ import * as XLSX from 'xlsx';
   standalone: true,
   imports: [CommonModule, FormsModule],
   selector: 'app-verified-donors',
-  styleUrl: './verified-donors.css',
-  templateUrl: './verified-donors.html',
+  styleUrl: './verified-donors.component.css',
+  templateUrl: './verified-donors.component.html',
 })
-export class VerifiedDonors implements OnInit {
+export class VerifiedDonorsComponent implements OnInit {
   paymentService = inject(PaymentService);
   toastService = inject(ToastService);
   authService = inject(AuthService);

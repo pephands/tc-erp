@@ -26,7 +26,7 @@ import { ApprovedRecordsComponent } from './components/approved-records/approved
 import { WorkstationComponent } from './components/workstation/workstation.component';
 import { FeedbacksComponent } from './components/feedbacks/feedbacks.component';
 import { FeedbackDetailsComponent } from './components/feedback-details/feedback-details.component';
-import { VerifiedDonors } from './components/verified-donors/verified-donors';
+import { VerifiedDonorsComponent } from './components/verified-donors/verified-donors.component';
 import { ReceiptListComponent } from './components/receipts/receipt-list/receipt-list.component';
 import { ReceiptCreateComponent } from './components/receipts/receipt-create/receipt-create.component';
 
@@ -41,7 +41,7 @@ import {
   PublicRelationsPageComponent,
   CounselorsPageComponent,
   SuperintendentsPageComponent,
-} from './components/role-users/role-user-pages';
+} from './components/role-users/role-user-pages.component';
 
 import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
@@ -208,7 +208,7 @@ export const routes: Routes = [
       },
       {
         path: 'verified-donors',
-        component: VerifiedDonors,
+        component: VerifiedDonorsComponent,
         canActivate: [deviceAuthGuard]
       },
       {

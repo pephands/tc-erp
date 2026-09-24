@@ -5,11 +5,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { WhatsappTemplateService } from '../../services/whatsapp-template.service';
 import { ToastService } from '../../services/toast.service';
 import { WhatsappTemplate } from '../../models/whatsapp-campaign.model';
-import { AddWhatsappTemplateModal } from '../modals/add-whatsapp-template-modal/add-whatsapp-template-modal';
+import { AddWhatsappTemplateModalComponent } from '../modals/add-whatsapp-template-modal/add-whatsapp-template-modal.component';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, AddWhatsappTemplateModal],
+  imports: [CommonModule, FormsModule, AddWhatsappTemplateModalComponent],
   selector: 'app-whatsapp-templates',
   styleUrl: './whatsapp-templates.component.css',
   templateUrl: './whatsapp-templates.component.html',
