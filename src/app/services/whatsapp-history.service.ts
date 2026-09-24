@@ -7,8 +7,8 @@ export interface WhatsappHistoryRecord {
   id: number;
   branch_name: string;
   tcf_name: string;
-  sent_by_name: string;
-  user_name: string;
+  username: string;
+  name: string;
   donor_number: string;
   campaign_name: string;
   template_name: string;

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WhatsappHistoryService, WhatsappHistoryRecord } from '../../services/whatsapp-history.service';
 import { BranchListService } from '../../services/branch-list.service';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-whatsapp-history',
@@ -17,6 +19,8 @@ export class WhatsappHistoryComponent implements OnInit {
   currentPage: number = 1;
   totalItems: number = 0;
   totalPages: number = 1;
+  successCount: number = 0;
+  failureCount: number = 0;
   
   filters = {
     status: '',
@@ -27,6 +31,7 @@ export class WhatsappHistoryComponent implements OnInit {
   };
   
   branches: any[] = [];
+  searchSubject = new Subject<string>();
 
   constructor(
     private historyService: WhatsappHistoryService,
@@ -35,8 +40,21 @@ export class WhatsappHistoryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.searchSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged()
+    ).subscribe(searchTerm => {
+      if (!searchTerm || searchTerm.trim().length >= 3) {
+        this.onFilterChange();
+      }
+    });
+
     this.loadBranches();
     this.loadHistory();
+  }
+
+  onSearchChange(value: string): void {
+    this.searchSubject.next(value);
   }
 
   loadBranches(): void {
@@ -66,15 +84,23 @@ export class WhatsappHistoryComponent implements OnInit {
         if (res && res.status === 'success' && res.data) {
            this.historyRecords = res.data;
            this.totalItems = res.count || res.data.length;
+           this.successCount = res.success_count || 0;
+           this.failureCount = res.failure_count || 0;
         } else if (res && res.results) {
            this.historyRecords = res.results;
            this.totalItems = res.count || res.results.length;
+           this.successCount = res.success_count || 0;
+           this.failureCount = res.failure_count || 0;
         } else if (Array.isArray(res)) {
            this.historyRecords = res;
            this.totalItems = res.length;
+           this.successCount = 0;
+           this.failureCount = 0;
         } else {
            this.historyRecords = [];
            this.totalItems = 0;
+           this.successCount = 0;
+           this.failureCount = 0;
         }
         
         this.totalPages = Math.ceil(this.totalItems / 10) || 1;
