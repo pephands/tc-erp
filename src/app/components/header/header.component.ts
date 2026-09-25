@@ -34,9 +34,10 @@ export class HeaderComponent {
     const roles = this.userRoles();
     if (roles.includes('ADMIN')) return 'ADMIN';
     if (roles.includes('MANAGER')) return 'MANAGER';
+    if (roles.includes('SUPERINTENDENT')) return 'SUPERINTENDENT';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
-    return '';
+    return roles.length > 0 ? roles[0] : '';
   }
   availableThemes = this.themeService.availableThemes;
   currentTheme = this.themeService.currentTheme;
@@ -93,9 +94,11 @@ export class HeaderComponent {
     const role = this.primaryRole;
     switch (role) {
       case 'ADMIN': return 'badge-admin';
+      case 'MANAGER': return 'badge-manager';
+      case 'SUPERINTENDENT': return 'badge-superintendent';
       case 'TL': return 'badge-tl';
       case 'TC': return 'badge-tc';
-      default: return '';
+      default: return 'badge-default';
     }
   }
 }

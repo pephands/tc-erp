@@ -42,7 +42,7 @@ export class AddWhatsappAccountModalComponent implements OnInit {
       this.isActive = this.accountData.is_active !== undefined ? this.accountData.is_active : true;
     }
 
-    this.branchService.getData().subscribe({
+    this.branchService.getData(1, 1000).subscribe({
       next: (res: any) => {
         this.branches.set(res.data || res);
       }

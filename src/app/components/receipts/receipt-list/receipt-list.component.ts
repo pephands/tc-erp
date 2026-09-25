@@ -1,5 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import * as XLSX from 'xlsx';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../../services/payment.service';
 import { BranchListService } from '../../../services/branch-list.service';
@@ -11,6 +13,7 @@ import { AddOnlinePaymentModalComponent } from '../../../modals/add-online-payme
   selector: 'app-receipt-list',
   standalone: true,
   imports: [CommonModule, FormsModule, AddOnlinePaymentModalComponent],
+  providers: [DatePipe],
   templateUrl: './receipt-list.component.html',
   styleUrl: './receipt-list.component.css'
 })
@@ -18,12 +21,26 @@ export class ReceiptListComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private branchService = inject(BranchListService);
   private authService = inject(AuthService);
+  private router = inject(Router);
+  private datePipe = inject(DatePipe);
 
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
   isLoading = signal<boolean>(false);
   showEditModal = signal<boolean>(false);
   editRecord = signal<OnlinePaymentRecord | null>(null);
+
+  // Tabs
+  activeTab = signal<string>('All'); // 'All', 'Amount', or 'Goodies'
+  isSuperintendent = signal<boolean>(false);
+
+  filteredRecords = computed(() => {
+    let recs = this.records();
+    if (this.isSuperintendent() && this.activeTab() !== 'All') {
+      recs = recs.filter(r => (r as any).donation_type === this.activeTab() || (!((r as any).donation_type) && this.activeTab() === 'Amount'));
+    }
+    return recs;
+  });
 
   // Filters
   searchQuery = signal<string>('');
@@ -53,9 +70,10 @@ export class ReceiptListComponent implements OnInit {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER']));
-    this.isTC.set(!this.isAdmin() && !this.isManager() && !this.isTL()); // Assume TC if none of above
+    this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
+    this.isTC.set(!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent());
 
-    if (this.isTC()) {
+    if (this.isTC() || this.isSuperintendent()) {
       // TC only sees current month records
       const now = new Date();
       const year = now.getFullYear();
@@ -202,29 +220,82 @@ export class ReceiptListComponent implements OnInit {
     }
   }
 
+  onExportExcel(): void {
+    const search = this.searchQuery().trim();
+    const start = this.startDate();
+    const end = this.endDate();
+    const branch = this.branchFilter();
+    const status = 'OK';
+
+    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true).subscribe({
+      next: (res: any) => {
+        let items: any[] = [];
+        if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+
+        if (this.isSuperintendent() && this.activeTab() !== 'All') {
+          items = items.filter(r => (r.donation_type || 'Amount') === this.activeTab());
+        }
+
+        const exportData = items.map(rec => ({
+          'Date': this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at,
+          'Donor Number': rec.mobile_number,
+          'Donor Name': rec.donor_name,
+          'Donation Type': rec.donation_type || 'Amount',
+          'Amount': rec.amount,
+          'Ref Id': rec.reference_id,
+          'Remarks': rec.remarks || '-',
+          'Status': rec.status || 'OK'
+        }));
+
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Receipts');
+        XLSX.writeFile(wb, `Receipts_Export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      },
+      error: (err: any) => {
+        console.error('Error exporting receipts:', err);
+        alert('Failed to export receipts.');
+      }
+    });
+  }
+
+  onCreateReceipt(): void {
+    this.router.navigate(['/receipts/create']);
+  }
+
   // Actions
   onView(record: OnlinePaymentRecord) {
-    const url = record.generated_receipt_url || record.payment_proof_url;
-    if (url) {
-      window.open(url, '_blank');
-    } else {
-      alert('No receipt file available.');
-    }
+    this.paymentService.downloadReceipt(record.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: () => {
+        alert('Failed to view receipt. It might not be available.');
+      }
+    });
   }
 
   onDownload(record: OnlinePaymentRecord) {
-    const url = record.generated_receipt_url || record.payment_proof_url;
-    if (url) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.download = `Receipt_${record.receipt_id || record.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      alert('No receipt file available.');
-    }
+    this.paymentService.downloadReceipt(record.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Receipt_${record.receipt_id || record.id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        alert('Failed to download receipt. It might not be available.');
+      }
+    });
   }
 
   onSendWhatsApp(record: OnlinePaymentRecord) {
@@ -246,9 +317,17 @@ export class ReceiptListComponent implements OnInit {
   }
 
   onDelete(record: OnlinePaymentRecord) {
-    if (confirm('Are you sure you want to delete this receipt?')) {
-      // Implement delete API call here if available in service
-      alert('Delete triggered for: ' + record.id);
+    if (confirm('Are you sure you want to completely delete this receipt? This action cannot be undone.')) {
+      this.paymentService.deleteReceipt(record.id).subscribe({
+        next: () => {
+          alert('Receipt deleted successfully.');
+          this.fetchReceiptRecords();
+        },
+        error: (err: any) => {
+          console.error('Error deleting receipt:', err);
+          alert('Failed to delete the receipt.');
+        }
+      });
     }
   }
 

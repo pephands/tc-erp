@@ -30,6 +30,46 @@
   align-items: center;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.15rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-add-orange {
+  background: #d97706;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+}
+
+.btn-add-orange:hover {
+  background: #b45309;
+  transform: translateY(-1px);
+}
+
+.btn-export-green {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.btn-export-green:hover {
+  background: #059669;
+}
+
 .page-title-group {
   display: flex;
   align-items: center;

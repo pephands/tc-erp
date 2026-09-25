@@ -2,15 +2,21 @@
   <div class="form-card shadow-card" style="padding: 0; overflow: hidden;">
     
     <!-- Header Bar (moved inside card) -->
-    <div class="page-header-bar" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem;">
-      <span class="material-symbols-outlined header-icon" style="font-size: 1.8rem; color: #334155;">post_add</span>
-      <div>
-        <h2 class="page-title" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b;">Create Receipt</h2>
-        <p class="page-sub" style="margin: 0.2rem 0 0 0; font-size: 0.85rem; color: #64748b;">Enter the online payment details to generate a receipt.</p>
+    <div class="page-header-bar" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span class="material-symbols-outlined header-icon" style="font-size: 1.8rem; color: #334155;">post_add</span>
+        <div>
+          <h2 class="page-title" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b;">Create Receipt</h2>
+          <p class="page-sub" style="margin: 0.2rem 0 0 0; font-size: 0.85rem; color: #64748b;">Enter the online payment details to generate a receipt.</p>
+        </div>
       </div>
+      <button type="button" class="btn-action" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s;" (click)="goBack()" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+        <span class="material-symbols-outlined" style="font-size: 1.2rem;">arrow_back</span>
+        Back to List
+      </button>
     </div>
 
-    <div style="padding: 1.5rem 2rem;">
+    <div style="padding: 1rem 1.5rem;">
     @if (errorMessage()) {
       <div class="alert alert-danger" style="padding: 1rem; background-color: #fee2e2; color: #b91c1c; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #ef4444;">
         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">error</span>
@@ -80,37 +86,68 @@
             class="form-control"
             placeholder="Enter alternate mobile number"
             [ngModel]="altMobileNumber()"
-            (ngModelChange)="altMobileNumber.set($event)"
+            (ngModelChange)="onAltMobileNumberChange($event)"
+            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
             
           />
         </div>
 
-        <div class="form-group">
-          <label>Amount <span class="required-star">*</span></label>
-          <input
-            type="number"
-            class="form-control"
-            placeholder="Enter amount"
-            [ngModel]="amount()"
-            (ngModelChange)="amount.set($event)"
-            
-          />
-        </div>
+        @if (isSuperintendent()) {
+          <div class="form-group">
+            <label>Donation Type <span class="required-star">*</span></label>
+            <div style="display: flex; gap: 10px;">
+              <button 
+                type="button" 
+                style="flex: 1; padding: 10px; border-radius: 6px; font-weight: 500; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
+                [style.background]="donationType() === 'Amount' ? '#eef2ff' : '#fff'"
+                [style.color]="donationType() === 'Amount' ? '#4f46e5' : '#475569'"
+                [style.borderColor]="donationType() === 'Amount' ? '#4f46e5' : '#cbd5e1'"
+                (click)="donationType.set('Amount')">
+                Amount
+              </button>
+              <button 
+                type="button" 
+                style="flex: 1; padding: 10px; border-radius: 6px; font-weight: 500; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
+                [style.background]="donationType() === 'Goodies' ? '#eef2ff' : '#fff'"
+                [style.color]="donationType() === 'Goodies' ? '#4f46e5' : '#475569'"
+                [style.borderColor]="donationType() === 'Goodies' ? '#4f46e5' : '#cbd5e1'"
+                (click)="donationType.set('Goodies')">
+                Goodies
+              </button>
+            </div>
+          </div>
+        }
 
-        <div class="form-group">
-          <label>Payment Mode <span class="required-star">*</span></label>
-          <select
-            class="form-control"
-            [ngModel]="modeOfPayment()"
-            (ngModelChange)="modeOfPayment.set($event)"
-            
-          >
-            <option value="">Select Payment Mode</option>
-            @for (mode of paymentModes(); track mode.id) {
-              <option [value]="mode.name">{{ mode.name }}</option>
-            }
-          </select>
-        </div>
+        @if (!(isSuperintendent() && donationType() === 'Goodies')) {
+          <div class="form-group">
+            <label>Amount <span class="required-star">*</span></label>
+            <input
+              type="number"
+              class="form-control"
+              placeholder="Enter amount"
+              [ngModel]="amount()"
+              (ngModelChange)="amount.set($event)"
+              
+            />
+          </div>
+        }
+
+        @if (!(isSuperintendent() && donationType() === 'Goodies')) {
+          <div class="form-group">
+            <label>Payment Mode <span class="required-star">*</span></label>
+            <select
+              class="form-control"
+              [ngModel]="modeOfPayment()"
+              (ngModelChange)="modeOfPayment.set($event)"
+              
+            >
+              <option value="">Select Payment Mode</option>
+              @for (mode of paymentModes(); track mode.id) {
+                <option [value]="mode.name">{{ mode.name }}</option>
+              }
+            </select>
+          </div>
+        }
 
         <div class="form-group">
           <label>Donor Type <span class="required-star">*</span></label>
@@ -154,7 +191,7 @@
           <label>Address</label>
           <textarea
             class="form-control textarea-control uppercase-input"
-            rows="3"
+            rows="1"
             placeholder="Enter full address"
             [ngModel]="address()"
             (ngModelChange)="address.set($event)"
@@ -176,6 +213,7 @@
             maxlength="10"
             [ngModel]="mobileNumber()"
             (ngModelChange)="onMobileNumberChange($event)"
+            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
           />
           <div *ngIf="matchedDonors().length > 0" style="margin-top: 8px;">
             <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
@@ -200,29 +238,33 @@
           />
         </div>
 
-        <div class="form-group">
-          <label>Reference Id <span class="required-star">*</span></label>
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Enter reference ID"
-            [ngModel]="referenceId()"
-            (ngModelChange)="referenceId.set($event)"
-            
-          />
-        </div>
+        @if (!(isSuperintendent() && donationType() === 'Goodies')) {
+          <div class="form-group">
+            <label>Reference Id <span class="required-star">*</span></label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Enter reference ID"
+              [ngModel]="referenceId()"
+              (ngModelChange)="referenceId.set($event)"
+              
+            />
+          </div>
+        }
 
-        <div class="form-group">
-          <label>Slab</label>
-          <input
-            type="text"
-            class="form-control"
-            [ngModel]="slab()"
-            disabled
-            readonly
-            
-          />
-        </div>
+        @if (!isSuperintendent()) {
+          <div class="form-group">
+            <label>Slab</label>
+            <input
+              type="text"
+              class="form-control"
+              [ngModel]="slab()"
+              disabled
+              readonly
+              
+            />
+          </div>
+        }
 
         <div class="form-group">
           <label>Select Payment Proof Screenshot</label>
@@ -239,7 +281,7 @@
           <label>Remarks</label>
           <textarea
             class="form-control textarea-control uppercase-input"
-            rows="3"
+            rows="1"
             placeholder="Enter remarks"
             [ngModel]="remarks()"
             (ngModelChange)="remarks.set($event)"
@@ -262,7 +304,7 @@
     </div>
 
     <!-- Action Footer -->
-    <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
+    <div class="form-actions" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
       <button
         type="button"
         (click)="onReset()"

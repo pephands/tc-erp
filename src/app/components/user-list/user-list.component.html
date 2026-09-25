@@ -239,12 +239,12 @@
         <div class="modal-body grid-2-col">
           <div class="form-group">
             <label>Employee ID (Manual)</label>
-            <input type="text" [(ngModel)]="formEmployeeId" placeholder="e.g. DAR_2709" />
+            <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" placeholder="e.g. DAR_2709" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
             <label>Full Name <span class="req">*</span></label>
-            <input type="text" [(ngModel)]="formFullName" placeholder="Enter full name" />
+            <input type="text" [ngModel]="formFullName" (ngModelChange)="formFullName = $event.toUpperCase()" placeholder="Enter full name" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
@@ -262,14 +262,53 @@
             <input type="email" [(ngModel)]="formEmail" placeholder="user@domain.com" />
           </div>
 
-          <div class="form-group">
+          <div class="form-group single-select-wrapper" style="position: relative;">
             <label>Home Branch</label>
-            <select [(ngModel)]="formBranchId">
-              <option value="">Select Home Branch</option>
-              @for (b of branches(); track b.id || b.name) {
-                <option [value]="b.id">{{ b.name }}</option>
+            <div class="multi-select-box" (click)="toggleHomeBranchDropdown()" style="cursor: pointer;">
+              @if (!formBranchId) {
+                <span class="placeholder-text">Select Home Branch</span>
+              } @else {
+                <span class="selected-text">{{ getHomeBranchName(formBranchId) }}</span>
               }
-            </select>
+              <span class="material-symbols-outlined dropdown-arrow">
+                {{ isHomeBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
+              </span>
+            </div>
+
+            @if (isHomeBranchDropdownOpen()) {
+              <div class="multi-select-popover" (click)="$event.stopPropagation()">
+                <div class="popover-header">
+                  <div class="popover-search">
+                    <span class="material-symbols-outlined search-icon">search</span>
+                    <input 
+                      type="text" 
+                      placeholder="Search branches..." 
+                      [value]="homeBranchSearchText()" 
+                      (input)="onHomeBranchSearchInput($any($event.target).value)" 
+                    />
+                    @if (homeBranchSearchText()) {
+                      <button type="button" class="btn-clear-search" (click)="onHomeBranchSearchInput('')">×</button>
+                    }
+                  </div>
+                </div>
+
+                <div class="popover-options-list" style="max-height: 250px; overflow-y: auto;">
+                  <label class="popover-option-item" (click)="selectHomeBranch('')" style="cursor: pointer;">
+                     <span class="option-name text-muted">-- Clear Selection --</span>
+                  </label>
+                  @for (b of getFilteredHomeBranches(); track b.id || b.name) {
+                    <label class="popover-option-item" (click)="selectHomeBranch(b.id)" style="cursor: pointer;">
+                      <span class="option-name" [style.font-weight]="formBranchId === b.id.toString() ? 'bold' : 'normal'">{{ b.name }}</span>
+                      @if (b.code) {
+                        <span class="option-code">({{ b.code }})</span>
+                      }
+                    </label>
+                  } @empty {
+                    <div class="no-branches-found">No branches match your search</div>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           @if (roleCode === 'MANAGER') {
@@ -358,15 +397,17 @@
             <input type="text" [(ngModel)]="formSalary" placeholder="₹ Amount" />
           </div>
 
-          <div class="form-group">
-            <label>Slab / Category</label>
-            <select [(ngModel)]="formSlab">
-              <option value="">Select Slab</option>
-              @for (s of slabOptions; track s) {
-                <option [value]="s">{{ s }}</option>
-              }
-            </select>
-          </div>
+          @if (roleCode === 'TC') {
+            <div class="form-group">
+              <label>Slab / Category</label>
+              <select [(ngModel)]="formSlab">
+                <option value="">Select Slab</option>
+                @for (s of slabOptions; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+          }
 
           <div class="form-group">
             <label>Shift Start Time</label>
@@ -403,7 +444,7 @@
 
           <div class="form-group full-width">
             <label>Address</label>
-            <textarea rows="2" [(ngModel)]="formAddress" placeholder="Full residential address..."></textarea>
+            <textarea rows="2" [ngModel]="formAddress" (ngModelChange)="formAddress = $event.toUpperCase()" placeholder="Full residential address..." style="text-transform: uppercase;"></textarea>
           </div>
 
           <div class="form-group full-width">
@@ -439,12 +480,12 @@
         <div class="modal-body grid-2-col">
           <div class="form-group">
             <label>Employee ID</label>
-            <input type="text" [(ngModel)]="formEmployeeId" />
+            <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
             <label>Full Name</label>
-            <input type="text" [(ngModel)]="formFullName" />
+            <input type="text" [ngModel]="formFullName" (ngModelChange)="formFullName = $event.toUpperCase()" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
@@ -462,14 +503,53 @@
             <input type="email" [(ngModel)]="formEmail" />
           </div>
 
-          <div class="form-group">
+          <div class="form-group single-select-wrapper" style="position: relative;">
             <label>Home Branch</label>
-            <select [(ngModel)]="formBranchId">
-              <option value="">Select Home Branch</option>
-              @for (b of branches(); track b.id || b.name) {
-                <option [value]="b.id">{{ b.name }}</option>
+            <div class="multi-select-box" (click)="toggleHomeBranchDropdown()" style="cursor: pointer;">
+              @if (!formBranchId) {
+                <span class="placeholder-text">Select Home Branch</span>
+              } @else {
+                <span class="selected-text">{{ getHomeBranchName(formBranchId) }}</span>
               }
-            </select>
+              <span class="material-symbols-outlined dropdown-arrow">
+                {{ isHomeBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
+              </span>
+            </div>
+
+            @if (isHomeBranchDropdownOpen()) {
+              <div class="multi-select-popover" (click)="$event.stopPropagation()">
+                <div class="popover-header">
+                  <div class="popover-search">
+                    <span class="material-symbols-outlined search-icon">search</span>
+                    <input 
+                      type="text" 
+                      placeholder="Search branches..." 
+                      [value]="homeBranchSearchText()" 
+                      (input)="onHomeBranchSearchInput($any($event.target).value)" 
+                    />
+                    @if (homeBranchSearchText()) {
+                      <button type="button" class="btn-clear-search" (click)="onHomeBranchSearchInput('')">×</button>
+                    }
+                  </div>
+                </div>
+
+                <div class="popover-options-list" style="max-height: 250px; overflow-y: auto;">
+                  <label class="popover-option-item" (click)="selectHomeBranch('')" style="cursor: pointer;">
+                     <span class="option-name text-muted">-- Clear Selection --</span>
+                  </label>
+                  @for (b of getFilteredHomeBranches(); track b.id || b.name) {
+                    <label class="popover-option-item" (click)="selectHomeBranch(b.id)" style="cursor: pointer;">
+                      <span class="option-name" [style.font-weight]="formBranchId === b.id.toString() ? 'bold' : 'normal'">{{ b.name }}</span>
+                      @if (b.code) {
+                        <span class="option-code">({{ b.code }})</span>
+                      }
+                    </label>
+                  } @empty {
+                    <div class="no-branches-found">No branches match your search</div>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
           @if (roleCode === 'MANAGER' || editingUser()?.roleCode === 'MANAGER') {
@@ -566,15 +646,17 @@
             <input type="text" [(ngModel)]="formSalary" />
           </div>
 
-          <div class="form-group">
-            <label>Slab / Category</label>
-            <select [(ngModel)]="formSlab">
-              <option value="">Select Slab</option>
-              @for (s of slabOptions; track s) {
-                <option [value]="s">{{ s }}</option>
-              }
-            </select>
-          </div>
+          @if (roleCode === 'TC') {
+            <div class="form-group">
+              <label>Slab / Category</label>
+              <select [(ngModel)]="formSlab">
+                <option value="">Select Slab</option>
+                @for (s of slabOptions; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+          }
 
           <div class="form-group">
             <label>Date of Joining</label>
@@ -589,6 +671,11 @@
           <div class="form-group">
             <label>Date of Rejoining</label>
             <input type="date" [(ngModel)]="formDateOfRejoining" />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Address</label>
+            <textarea rows="2" [ngModel]="formAddress" (ngModelChange)="formAddress = $event.toUpperCase()" placeholder="Full residential address..." style="text-transform: uppercase;"></textarea>
           </div>
 
           <div class="form-group full-width">

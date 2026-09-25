@@ -45,9 +45,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const roles = this.userRoles();
     if (roles.includes('ADMIN')) return 'ADMIN';
     if (roles.includes('MANAGER')) return 'MANAGER';
+    if (roles.includes('SUPERINTENDENT')) return 'SUPERINTENDENT';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
-    return '';
+    return roles.length > 0 ? roles[0] : '';
   }
 
   // Live Digital Clock & Date

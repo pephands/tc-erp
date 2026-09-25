@@ -42,6 +42,9 @@ export class ReceiptCreateComponent implements OnInit {
   isBranchDropdownOpen = signal<boolean>(false);
   branchSearch = signal<string>('');
 
+  isSuperintendent = signal<boolean>(false);
+  donationType = signal<string>('Amount'); // Options: 'Amount', 'Goodies'
+
   filteredBranches = computed(() => {
     const q = this.branchSearch().toLowerCase();
     if (!q) return this.branches();
@@ -66,6 +69,9 @@ export class ReceiptCreateComponent implements OnInit {
 
   ngOnInit() {
     const roles = this.authService.userRoles();
+    if (roles.includes('SUPERINTENDENT')) {
+      this.isSuperintendent.set(true);
+    }
     if (roles.includes('ADMIN')) {
       this.isAdmin.set(true);
       this.fetchBranches();
@@ -112,6 +118,7 @@ export class ReceiptCreateComponent implements OnInit {
   matchedDonors = signal<any[]>([]);
 
   onMobileNumberChange(val: string): void {
+    val = val.replace(/[^0-9]/g, '');
     this.mobileNumber.set(val);
     this.matchedDonors.set([]); // Reset on change
     
@@ -128,6 +135,11 @@ export class ReceiptCreateComponent implements OnInit {
         }
       });
     }
+  }
+
+  onAltMobileNumberChange(val: string): void {
+    val = val.replace(/[^0-9]/g, '');
+    this.altMobileNumber.set(val);
   }
 
   selectMatchedDonor(donorOrValue: any): void {
@@ -162,6 +174,7 @@ export class ReceiptCreateComponent implements OnInit {
     this.address.set('');
     this.dob.set('');
     this.remarks.set('');
+    this.donationType.set('Amount');
     this.branchSearch.set('');
     this.branchName.set('');
     this.selectedFile.set(null);
@@ -211,17 +224,23 @@ export class ReceiptCreateComponent implements OnInit {
       this.errorMessage.set('Donor Name is required.');
       return;
     }
-    if (!this.amount() || parseFloat(this.amount()) <= 0) {
-      this.errorMessage.set('Please enter a valid amount.');
-      return;
-    }
-    if (!this.referenceId().trim()) {
-      this.errorMessage.set('Reference Id is required.');
-      return;
-    }
-    if (!this.modeOfPayment().trim()) {
-      this.errorMessage.set('Payment Mode is required.');
-      return;
+    
+    if (this.isSuperintendent() && this.donationType() === 'Goodies') {
+      // Allow amount to be empty or 0, we'll set it to 0 before saving
+      // Skip referenceId and modeOfPayment validation
+    } else {
+      if (!this.amount() || parseFloat(this.amount()) <= 0) {
+        this.errorMessage.set('Please enter a valid amount.');
+        return;
+      }
+      if (!this.referenceId().trim()) {
+        this.errorMessage.set('Reference Id is required.');
+        return;
+      }
+      if (!this.modeOfPayment().trim()) {
+        this.errorMessage.set('Payment Mode is required.');
+        return;
+      }
     }
     if (!this.donorType().trim()) {
       this.errorMessage.set('Donor Type is required.');
@@ -253,11 +272,21 @@ export class ReceiptCreateComponent implements OnInit {
       formData.append('alt_mobile_number', this.altMobileNumber().trim());
     }
     formData.append('donor_name', this.donorName().trim().toUpperCase());
-    formData.append('amount', this.amount());
-    formData.append('reference_id', this.referenceId().trim());
-    formData.append('mode_of_payment', this.modeOfPayment().trim().toUpperCase());
+    
+    if (this.isSuperintendent() && this.donationType() === 'Goodies') {
+      formData.append('amount', '0');
+      formData.append('reference_id', 'Goodies');
+      formData.append('mode_of_payment', 'Goodies');
+    } else {
+      formData.append('amount', this.amount());
+      formData.append('reference_id', this.referenceId().trim());
+      formData.append('mode_of_payment', this.modeOfPayment().trim().toUpperCase());
+    }
     formData.append('slab', this.slab().trim() || '1');
     formData.append('donor_type', this.donorType());
+    if (this.isSuperintendent()) {
+      formData.append('donation_type', this.donationType());
+    }
 
     if (this.isAdmin() && this.branch()) {
       formData.append('branch', this.branch());
@@ -297,5 +326,9 @@ export class ReceiptCreateComponent implements OnInit {
         this.errorMessage.set(msg);
       }
     });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/receipts/view']);
   }
 }

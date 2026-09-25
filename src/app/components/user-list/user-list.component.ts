@@ -131,6 +131,11 @@ export class UserListComponent implements OnInit {
   formManagedBranchIds: number[] = [];
   isManagedBranchDropdownOpen = signal<boolean>(false);
   branchSearchText = signal<string>('');
+  
+  // Home Branch Dropdown Signals
+  isHomeBranchDropdownOpen = signal<boolean>(false);
+  homeBranchSearchText = signal<string>('');
+  
   selectedExcelFile: File | null = null;
   isSubmittingForm = signal<boolean>(false);
 
@@ -153,7 +158,7 @@ export class UserListComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.branchService.getData().subscribe({
+    this.branchService.getData(1, 1000).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.data || res.results || []);
         this.branches.set(data);
@@ -354,6 +359,8 @@ export class UserListComponent implements OnInit {
     this.formStatus = user.status;
     this.isManagedBranchDropdownOpen.set(false);
     this.branchSearchText.set('');
+    this.isHomeBranchDropdownOpen.set(false);
+    this.homeBranchSearchText.set('');
     this.selectedAadharFile = null;
     this.isEditModalOpen.set(true);
   }
@@ -386,6 +393,8 @@ export class UserListComponent implements OnInit {
     this.formManagedBranchIds = [];
     this.isManagedBranchDropdownOpen.set(false);
     this.branchSearchText.set('');
+    this.isHomeBranchDropdownOpen.set(false);
+    this.homeBranchSearchText.set('');
     this.selectedAadharFile = null;
   }
 
@@ -412,6 +421,40 @@ export class UserListComponent implements OnInit {
 
   onBranchSearchInput(val: string): void {
     this.branchSearchText.set(val);
+  }
+
+  // Home Branch Methods
+  toggleHomeBranchDropdown(): void {
+    this.isHomeBranchDropdownOpen.update(v => !v);
+  }
+
+  closeHomeBranchDropdown(): void {
+    this.isHomeBranchDropdownOpen.set(false);
+  }
+
+  onHomeBranchSearchInput(val: string): void {
+    this.homeBranchSearchText.set(val);
+  }
+
+  getFilteredHomeBranches(): any[] {
+    const query = this.homeBranchSearchText().toLowerCase().trim();
+    const allBranches = this.branches();
+    if (!query) return allBranches;
+    return allBranches.filter(b => 
+      (b.name && b.name.toLowerCase().includes(query)) || 
+      (b.code && b.code.toLowerCase().includes(query))
+    );
+  }
+
+  selectHomeBranch(branchId: string | number): void {
+    this.formBranchId = branchId.toString();
+    this.closeHomeBranchDropdown();
+  }
+
+  getHomeBranchName(branchId: string): string {
+    if (!branchId) return 'Select Home Branch';
+    const b = this.branches().find((item: any) => item.id.toString() === branchId.toString());
+    return b ? b.name : 'Select Home Branch';
   }
 
   getAvailableBranchesForSelection(): any[] {

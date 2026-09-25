@@ -30,17 +30,19 @@ export class PaymentService extends BaseHttpService {
     page: number = 1,
     excludeStatus: string = '',
     unbatched: boolean = false,
-    branch: string = ''
+    branch: string = '',
+    isExport: boolean = false
   ): Observable<any> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
     if (search) params = params.set('search', search);
     if (startDate) params = params.set('start_date', startDate);
     if (endDate) params = params.set('end_date', endDate);
-    if (page) params = params.set('page', page.toString());
+    if (page && !isExport) params = params.set('page', page.toString());
     if (excludeStatus) params = params.set('exclude_status', excludeStatus);
     if (unbatched) params = params.set('unbatched', 'true');
     if (branch) params = params.set('branch', branch);
+    if (isExport) params = params.set('export', 'true');
 
     return this.httpClient.get<any>(this.endPoint.paymentRecords, {
       headers: this.headers,
@@ -60,9 +62,16 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+
   updateReceipt(id: number | string, formData: FormData): Observable<any> {
     return this.httpClient.patch<any>(this.endPoint.paymentReceiptEdit(id), formData, {
       headers: this.multipartHeaders,
+    });
+  }
+
+  deleteReceipt(id: number | string): Observable<any> {
+    return this.httpClient.delete<any>(`${this.endpoint}${id}/`, {
+      headers: this.headers,
     });
   }
 

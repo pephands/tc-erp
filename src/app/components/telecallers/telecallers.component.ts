@@ -113,7 +113,7 @@ export class TelecallersComponent {
       this.isFilterApplied.set(true);
       this.fetchTelecallersFromApi();
     } else {
-      this.branchService.getData().subscribe({
+      this.branchService.getData(1, 1000).subscribe({
         next: (res: any) => {
           if (res.status === 'success' || (Array.isArray(res) || res.data)) {
             const data = Array.isArray(res) ? res : (res.data || []);

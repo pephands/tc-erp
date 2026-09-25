@@ -98,6 +98,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   matchedDonors = signal<any[]>([]);
 
   onMobileNumberChange(val: string): void {
+    val = val.replace(/[^0-9]/g, '');
     this.mobileNumber.set(val);
     this.matchedDonors.set([]); // Reset on change
     
@@ -114,6 +115,11 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
         }
       });
     }
+  }
+
+  onAltMobileNumberChange(val: string): void {
+    val = val.replace(/[^0-9]/g, '');
+    this.altMobileNumber.set(val);
   }
 
   selectMatchedDonor(donorOrValue: any): void {
@@ -173,18 +179,23 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.errorMessage.set('Donor Name is required.');
       return;
     }
-    if (!this.amount() || parseFloat(this.amount()) <= 0) {
-      this.errorMessage.set('Please enter a valid amount.');
-      return;
+    if (this.editRecord?.donation_type === 'Goodies') {
+      // Skip amount, reference_id, and mode_of_payment validation
+    } else {
+      if (!this.amount() || parseFloat(this.amount()) <= 0) {
+        this.errorMessage.set('Please enter a valid amount.');
+        return;
+      }
+      if (!this.referenceId().trim()) {
+        this.errorMessage.set('Reference Id is required.');
+        return;
+      }
+      if (!this.modeOfPayment().trim()) {
+        this.errorMessage.set('Payment Mode is required.');
+        return;
+      }
     }
-    if (!this.referenceId().trim()) {
-      this.errorMessage.set('Reference Id is required.');
-      return;
-    }
-    if (!this.modeOfPayment().trim()) {
-      this.errorMessage.set('Payment Mode is required.');
-      return;
-    }
+    
     if (!this.donorType().trim()) {
       this.errorMessage.set('Donor Type is required.');
       return;
@@ -215,9 +226,17 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       formData.append('alt_mobile_number', this.altMobileNumber().trim());
     }
     formData.append('donor_name', this.donorName().trim().toUpperCase());
-    formData.append('amount', this.amount());
-    formData.append('reference_id', this.referenceId().trim());
-    formData.append('mode_of_payment', this.modeOfPayment().trim().toUpperCase());
+    
+    if (this.editRecord?.donation_type === 'Goodies') {
+      formData.append('amount', '0');
+      formData.append('reference_id', 'Goodies');
+      formData.append('mode_of_payment', 'Goodies');
+    } else {
+      formData.append('amount', this.amount());
+      formData.append('reference_id', this.referenceId().trim());
+      formData.append('mode_of_payment', this.modeOfPayment().trim().toUpperCase());
+    }
+    
     formData.append('slab', this.slab().trim() || '1');
     formData.append('donor_type', this.donorType());
 

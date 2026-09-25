@@ -14,6 +14,7 @@ export interface OnlinePaymentRecord {
   mode_of_payment: string;
   slab: string;
   donor_type: string;
+  donation_type?: string;
   pan_number?: string;
   correction_name?: string;
   address?: string;

@@ -48,38 +48,43 @@
               class="form-control"
               placeholder="Enter alternate mobile number"
               [ngModel]="altMobileNumber()"
-              (ngModelChange)="altMobileNumber.set($event)"
+              (ngModelChange)="onAltMobileNumberChange($event)"
+              (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
             />
           </div>
 
           <!-- 3. Amount -->
-          <div class="form-group">
-            <label for="amount">Amount <span class="required-star">*</span></label>
-            <input
-              type="number"
-              id="amount"
-              class="form-control"
-              placeholder="Enter amount"
-              [ngModel]="amount()"
-              (ngModelChange)="amount.set($event)"
-            />
-          </div>
+          @if (!(editRecord?.donation_type === 'Goodies')) {
+            <div class="form-group">
+              <label for="amount">Amount <span class="required-star">*</span></label>
+              <input
+                type="number"
+                id="amount"
+                class="form-control"
+                placeholder="Enter amount"
+                [ngModel]="amount()"
+                (ngModelChange)="amount.set($event)"
+              />
+            </div>
+          }
 
           <!-- 4. Payment Mode -->
-          <div class="form-group">
-            <label for="modeOfPayment">Payment Mode <span class="required-star">*</span></label>
-            <select
-              id="modeOfPayment"
-              class="form-control"
-              [ngModel]="modeOfPayment()"
-              (ngModelChange)="modeOfPayment.set($event)"
-            >
-              <option value="">Select Payment Mode</option>
-              @for (mode of paymentModes(); track mode.id) {
-                <option [value]="mode.name">{{ mode.name }}</option>
-              }
-            </select>
-          </div>
+          @if (!(editRecord?.donation_type === 'Goodies')) {
+            <div class="form-group">
+              <label for="modeOfPayment">Payment Mode <span class="required-star">*</span></label>
+              <select
+                id="modeOfPayment"
+                class="form-control"
+                [ngModel]="modeOfPayment()"
+                (ngModelChange)="modeOfPayment.set($event)"
+              >
+                <option value="">Select Payment Mode</option>
+                @for (mode of paymentModes(); track mode.id) {
+                  <option [value]="mode.name">{{ mode.name }}</option>
+                }
+              </select>
+            </div>
+          }
 
           <!-- 5. Donor Type -->
           @if (!editRecord) {
@@ -153,6 +158,7 @@
               maxlength="10"
               [ngModel]="mobileNumber()"
               (ngModelChange)="onMobileNumberChange($event)"
+              (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
             />
             <div *ngIf="matchedDonors().length > 0" style="margin-top: 8px;">
               <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
@@ -179,17 +185,19 @@
           </div>
 
           <!-- 3. Reference Id -->
-          <div class="form-group">
-            <label for="referenceId">Reference Id <span class="required-star">*</span></label>
-            <input
-              type="text"
-              id="referenceId"
-              class="form-control"
-              placeholder="Enter reference ID"
-              [ngModel]="referenceId()"
-              (ngModelChange)="referenceId.set($event)"
-            />
-          </div>
+          @if (!(editRecord?.donation_type === 'Goodies')) {
+            <div class="form-group">
+              <label for="referenceId">Reference Id <span class="required-star">*</span></label>
+              <input
+                type="text"
+                id="referenceId"
+                class="form-control"
+                placeholder="Enter reference ID"
+                [ngModel]="referenceId()"
+                (ngModelChange)="referenceId.set($event)"
+              />
+            </div>
+          }
 
           <!-- 4. Slab -->
           @if (!editRecord) {

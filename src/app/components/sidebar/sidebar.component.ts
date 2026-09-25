@@ -82,9 +82,10 @@ export class SidebarComponent implements OnInit {
     const roles = this.userRoles;
     if (roles.includes('ADMIN')) return 'ADMIN';
     if (roles.includes('MANAGER')) return 'MANAGER';
+    if (roles.includes('SUPERINTENDENT')) return 'SUPERINTENDENT';
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('TC')) return 'TC';
-    return '';
+    return roles.length > 0 ? roles[0] : '';
   }
 
   // Sidebar expanded / collapsed state (desktop)
@@ -371,22 +372,7 @@ export class SidebarComponent implements OnInit {
       icon: 'receipt_long',
       category: 'Finance',
       allowedRoles: ['ADMIN', 'TL', 'TC', 'SUPERINTENDENT'],
-      submenus: [
-        {
-          id: 'view_receipt',
-          label: 'View Receipt',
-          icon: 'receipt',
-          allowedRoles: ['ADMIN', 'TL', 'TC', 'SUPERINTENDENT'],
-          route: '/receipts/view',
-        },
-        {
-          id: 'create_receipt',
-          label: 'Create Receipt',
-          icon: 'post_add',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/receipts/create',
-        },
-      ],
+      route: '/receipts/view',
     },
 
     {

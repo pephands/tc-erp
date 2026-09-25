@@ -8,7 +8,54 @@
         <p class="page-sub">View and manage receipts.</p>
       </div>
     </div>
+    <div class="header-actions">
+      @if (isAdmin() || isSuperintendent()) {
+        <button type="button" class="btn-action btn-add-orange" (click)="onCreateReceipt()">
+          <span class="material-symbols-outlined">add_circle</span>
+          <span>Create Receipt</span>
+        </button>
+      }
+      <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Export to Excel</span>
+      </button>
+    </div>
   </div>
+
+  @if (isSuperintendent()) {
+    <div class="tabs-container" style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+      <button 
+        type="button" 
+        style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-weight: 500; font-size: 1rem; position: relative;"
+        [style.color]="activeTab() === 'All' ? '#4f46e5' : '#64748b'"
+        (click)="activeTab.set('All')">
+        All Receipts
+        @if (activeTab() === 'All') {
+          <div style="position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background-color: #4f46e5; border-radius: 3px 3px 0 0;"></div>
+        }
+      </button>
+      <button 
+        type="button" 
+        style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-weight: 500; font-size: 1rem; position: relative;"
+        [style.color]="activeTab() === 'Amount' ? '#4f46e5' : '#64748b'"
+        (click)="activeTab.set('Amount')">
+        Amount Donation Receipts
+        @if (activeTab() === 'Amount') {
+          <div style="position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background-color: #4f46e5; border-radius: 3px 3px 0 0;"></div>
+        }
+      </button>
+      <button 
+        type="button" 
+        style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-weight: 500; font-size: 1rem; position: relative;"
+        [style.color]="activeTab() === 'Goodies' ? '#4f46e5' : '#64748b'"
+        (click)="activeTab.set('Goodies')">
+        Goodies Donation
+        @if (activeTab() === 'Goodies') {
+          <div style="position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background-color: #4f46e5; border-radius: 3px 3px 0 0;"></div>
+        }
+      </button>
+    </div>
+  }
 
   <!-- Filter Card -->
   <div class="filter-card shadow-card">
@@ -93,8 +140,10 @@
             <th>Date</th>
             <th>Donor Number</th>
             <th>Donor Name</th>
+            <th>Donation Type</th>
             <th>Amount</th>
             <th>Ref Id</th>
+            <th>Remarks</th>
             <th>Status</th>
             <th style="text-align: center;">Actions</th>
           </tr>
@@ -102,39 +151,51 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="7" class="loading-state">
+              <td colspan="9" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading receipts...</p>
               </td>
             </tr>
           } @else {
-            @for (rec of records(); track rec.id) {
+            @for (rec of filteredRecords(); track rec.id) {
               <tr>
-                <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
                 <td class="col-mobile">{{ rec.mobile_number }}</td>
                 <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+                <td class="col-type">
+                  <span class="status-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #38bdf8;">
+                    {{ rec.donation_type || 'Amount' }}
+                  </span>
+                </td>
                 <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
                 <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
+                <td class="col-remarks">{{ rec.remarks || '-' }}</td>
                 <td class="col-status">
                   <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">
                     {{ rec.status || 'OK' }}
                   </span>
                 </td>
                 <td class="col-actions" style="white-space: nowrap; display: flex; gap: 8px; justify-content: center; align-items: center; border-bottom: none; height: 100%;">
-                  <button type="button" class="btn-action-aesthetic btn-view" title="View" (click)="onView(rec)">
-                    <span class="material-symbols-outlined">visibility</span>
-                  </button>
-                  <button type="button" class="btn-action-aesthetic btn-download" title="Download" (click)="onDownload(rec)">
-                    <span class="material-symbols-outlined">download</span>
-                  </button>
-                  <button type="button" class="btn-action-aesthetic btn-whatsapp" title="Send WhatsApp" (click)="onSendWhatsApp(rec)">
-                    <span class="material-symbols-outlined">chat</span>
-                  </button>
-                  <button type="button" class="btn-action-aesthetic btn-mail" title="Send Mail" (click)="onSendMail(rec)">
-                    <span class="material-symbols-outlined">mail</span>
-                  </button>
                   
-                  @if (isAdmin()) {
+                  @if ((rec.donation_type || 'Amount') === 'Amount') {
+                    <button type="button" class="btn-action-aesthetic btn-view" title="View Receipt" (click)="onView(rec)">
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <button type="button" class="btn-action-aesthetic btn-download" title="Download Receipt" (click)="onDownload(rec)">
+                      <span class="material-symbols-outlined">download</span>
+                    </button>
+                    <button type="button" class="btn-action-aesthetic btn-whatsapp" title="Send WhatsApp" (click)="onSendWhatsApp(rec)">
+                      <span class="material-symbols-outlined">chat</span>
+                    </button>
+                    <button type="button" class="btn-action-aesthetic btn-mail" title="Send Mail" (click)="onSendMail(rec)">
+                      <span class="material-symbols-outlined">mail</span>
+                    </button>
+                  } @else {
+                    <!-- For Goodies, just a placeholder or alternative view if needed. No receipt generation. -->
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No Receipt</span>
+                  }
+                  
+                  @if (isAdmin() || isSuperintendent()) {
                     <button type="button" class="btn-action-aesthetic btn-edit" title="Edit" (click)="onEdit(rec)">
                       <span class="material-symbols-outlined">edit</span>
                     </button>
@@ -146,7 +207,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="7" class="empty-state">
+                <td colspan="9" class="empty-state">
                   <span class="material-symbols-outlined empty-icon">receipt_long</span>
                   <p class="empty-title">No Receipts Found</p>
                   <p class="empty-sub">No receipt records match your filters.</p>
