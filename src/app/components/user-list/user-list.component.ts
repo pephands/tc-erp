@@ -5,11 +5,12 @@ import { UserListService } from '../../services/user-list.service';
 import { BranchListService } from '../../services/branch-list.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
+import { RoleListService } from '../../services/role-list.service';
 
 export interface UserRecord {
   id: string; // Used for UI display (Employee ID)
   dbId: number;
-  username: string;
+  employee_Id: string;
   fullName: string;
   originalName: string;
   personalNo: string;
@@ -17,6 +18,7 @@ export interface UserRecord {
   gender: 'Female' | 'Male' | 'Other';
   role: string;
   roleCode: string;
+  designation: string;
   slab: string;
   salary: string;
   dateOfJoining: string;
@@ -50,6 +52,7 @@ export class UserListComponent implements OnInit {
   private branchService = inject(BranchListService);
   private toastService = inject(ToastService);
   private authService = inject(AuthService);
+  private roleService = inject(RoleListService);
 
   @Input() roleCode: string = 'TC';
   @Input() roleTitle: string = 'User';
@@ -113,6 +116,7 @@ export class UserListComponent implements OnInit {
   formEmail = '';
   formBranchId = '';
   formGender: 'Male' | 'Female' | 'Other' = 'Male';
+  formDesignation = '';
   formSlab = '';
   formSalary = '0';
   formShiftStart = '09:00 AM';
@@ -140,6 +144,9 @@ export class UserListComponent implements OnInit {
   selectedExcelFile: File | null = null;
   isSubmittingForm = signal<boolean>(false);
 
+  systemRolesList: { code: string; name: string }[] = [];
+  formRoleCode = '';
+
   slabOptions: string[] = ['SLAB-1', 'SLAB-2', 'SLAB-3', 'SLAB-4', 'SLAB-5'];
 
   shiftTimeSlots: string[] = [
@@ -155,7 +162,24 @@ export class UserListComponent implements OnInit {
     } else {
       this.loadBranches();
     }
+    
+    if (this.isAdminUser) {
+      this.loadRoles();
+    }
+    
     this.fetchUsers();
+  }
+
+  loadRoles(): void {
+    this.roleService.getRoles().subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || res.results || []);
+        this.systemRolesList = data.map((r: any) => ({ code: r.code, name: r.name }));
+      },
+      error: (err: any) => {
+        console.error('Failed to fetch system roles', err);
+      }
+    });
   }
 
   loadBranches(): void {
@@ -211,16 +235,17 @@ export class UserListComponent implements OnInit {
   private mapApiUserToRecord(u: any): UserRecord {
     const primaryRole = u.roles?.[0];
     return {
-      id: u.username || `EMP_${u.id}`,
+      id: u.employee_Id || `EMP_${u.id}`,
       dbId: u.id,
-      username: u.username || '',
-      fullName: u.full_name || u.username || '',
+      employee_Id: u.employee_Id || '',
+      fullName: u.full_name || u.employee_Id || '',
       originalName: u.full_name || '',
-      personalNo: u.phone || u.username || '',
+      personalNo: u.phone || '',
       officialNo: u.office_phone || '',
       gender: u.gender === 'Female' ? 'Female' : 'Male',
       role: primaryRole?.name || this.roleTitle,
       roleCode: primaryRole?.code || this.roleCode,
+      designation: u.designation || '',
       slab: u.slab || '',
       salary: u.salary || '0',
       dateOfJoining: u.date_of_joining ? u.date_of_joining.slice(0, 10) : '',
@@ -329,6 +354,8 @@ export class UserListComponent implements OnInit {
     this.formEmail = user.email;
     this.formBranchId = user.branchId ? user.branchId.toString() : '';
     this.formGender = user.gender;
+    this.formDesignation = user.designation;
+    this.formRoleCode = user.roleCode;
     
     let slabVal = user.slab ? user.slab.trim() : '';
     if (slabVal) {
@@ -380,6 +407,8 @@ export class UserListComponent implements OnInit {
     this.formEmail = '';
     this.formBranchId = '';
     this.formGender = 'Male';
+    this.formDesignation = this.roleTitle === 'Backend Staff' ? 'Backend' : this.roleTitle;
+    this.formRoleCode = '';
     this.formSlab = '';
     this.formSalary = '0';
     this.formShiftStart = '09:00 AM';
@@ -518,15 +547,20 @@ export class UserListComponent implements OnInit {
       this.toastService.error('Validation Error', 'Mobile number is required.');
       return;
     }
+    if ((this.formDesignation.trim().toLowerCase() === 'telecaller' || this.roleCode === 'TC') && !this.formSlab.trim()) {
+      this.toastService.error('Validation Error', 'Slab is required for Telecaller designation.');
+      return;
+    }
 
     this.isSubmittingForm.set(true);
     const formData = new FormData();
-    const usernameVal = this.formEmployeeId.trim() || this.formMobile.trim();
-    formData.append('username', usernameVal);
+    const employee_IdVal = this.formEmployeeId.trim() || this.formMobile.trim();
+    formData.append('employee_Id', employee_IdVal);
     formData.append('full_name', this.formFullName.trim());
     formData.append('phone', this.formMobile.trim());
     formData.append('password', 'Welcome@123');
     formData.append('gender', this.formGender);
+    if (this.formDesignation.trim()) formData.append('designation', this.formDesignation.trim());
     formData.append('status', this.formStatus);
     formData.append('target_role', this.roleCode);
 
@@ -575,14 +609,24 @@ export class UserListComponent implements OnInit {
   onSubmitEditUser(): void {
     const u = this.editingUser();
     if (!u) return;
+    
+    if ((this.formDesignation.trim().toLowerCase() === 'telecaller' || this.roleCode === 'TC') && !this.formSlab.trim()) {
+      this.toastService.error('Validation Error', 'Slab is required for Telecaller designation.');
+      return;
+    }
 
     this.isSubmittingForm.set(true);
     const formData = new FormData();
-    if (this.formEmployeeId.trim()) formData.append('username', this.formEmployeeId.trim());
+    if (this.formEmployeeId.trim()) formData.append('employee_Id', this.formEmployeeId.trim());
     formData.append('full_name', this.formFullName.trim());
     formData.append('phone', this.formMobile.trim());
     formData.append('gender', this.formGender);
+    if (this.formDesignation.trim()) formData.append('designation', this.formDesignation.trim());
     formData.append('status', this.formStatus);
+
+    if (this.isAdminUser && this.formRoleCode) {
+      formData.append('target_role', this.formRoleCode);
+    }
 
     if (this.formOfficialPhone.trim()) formData.append('office_phone', this.formOfficialPhone.trim());
     if (this.formEmail.trim()) formData.append('email', this.formEmail.trim());

@@ -1,6 +1,6 @@
 export interface Manager {
   id: string; // Database PK
-  employeeId?: string; // Employee ID (username)
+  employeeId?: string; // Employee ID (employee_Id)
   fullName: string;
   originalName?: string;
   mobile: string;

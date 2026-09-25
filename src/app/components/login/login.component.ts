@@ -18,7 +18,7 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  username = '';
+  employee_Id = '';
   password = '';
   showPassword = signal(false);
   errorMessage = signal<string | null>(null);
@@ -29,15 +29,15 @@ export class LoginComponent {
   }
 
   onLogin(): void {
-    if (!this.username.trim() || !this.password.trim()) {
-      this.errorMessage.set('Please enter both username and password.');
+    if (!this.employee_Id.trim() || !this.password.trim()) {
+      this.errorMessage.set('Please enter both employee_Id and password.');
       return;
     }
 
     this.errorMessage.set(null);
     this.isLoading.set(true);
 
-    this.authService.login(this.username, this.password).subscribe(result => {
+    this.authService.login(this.employee_Id, this.password).subscribe(result => {
       this.isLoading.set(false);
       if (result.success) {
         this.navigateAfterLogin();

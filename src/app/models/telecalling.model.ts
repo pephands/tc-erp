@@ -56,7 +56,7 @@ export interface MasterSummaryData {
 
 export interface TelecallerUserOption {
   id: number;
-  username: string;
+  employee_Id: string;
   full_name: string;
   branch_name?: string;
 }

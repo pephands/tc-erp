@@ -224,7 +224,7 @@
             <select class="form-input" [ngModel]="selectedTelecallerFilter()" (ngModelChange)="selectedTelecallerFilter.set($event); onFilterChange()">
               <option value="">All Telecallers</option>
               @for (tc of telecallersList(); track tc.id) {
-                <option [value]="tc.id">{{ tc.full_name || tc.username }}</option>
+                <option [value]="tc.id">{{ tc.full_name || tc.employee_Id }}</option>
               }
             </select>
           </div>
@@ -360,10 +360,10 @@
               <div class="select-wrapper">
                 <select [ngModel]="submitCategory()" (ngModelChange)="submitCategory.set($event)">
                   <option value="BASE">
-                    Base ({{ (masterSummary()?.unallocated_base_count || 0) | number }})
+                    Base
                   </option>
                   <option value="NON BASE">
-                    Non Base ({{ (masterSummary()?.unallocated_non_base_count || 0) | number }})
+                    Non Base
                   </option>
                 </select>
                 <span class="material-symbols-outlined select-arrow">expand_more</span>
@@ -444,8 +444,8 @@
                       style="pointer-events: none;"
                     />
                     <div class="tc-info">
-                      <span class="tc-name">{{ tc.full_name || tc.username }}</span>
-                      <span class="tc-user">@{{ tc.username }}</span>
+                      <span class="tc-name">{{ tc.full_name || tc.employee_Id }}</span>
+                      <span class="tc-user">@{{ tc.employee_Id }}</span>
                     </div>
                   </div>
                 } @empty {

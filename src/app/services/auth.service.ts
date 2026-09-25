@@ -61,8 +61,8 @@ export class AuthService {
     return null;
   }
 
-  login(username: string, password: string): Observable<{ success: boolean; message: string; user?: User; mustResetPassword?: boolean }> {
-    return this.loginService.getData({ username, password }).pipe(
+  login(employee_Id: string, password: string): Observable<{ success: boolean; message: string; user?: User; mustResetPassword?: boolean }> {
+    return this.loginService.getData({ employee_Id, password }).pipe(
       map((response: any) => {
         if (response.status === 'success' || response.token) {
           const session: AuthSession = {

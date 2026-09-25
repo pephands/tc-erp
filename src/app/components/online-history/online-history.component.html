@@ -40,6 +40,7 @@
             (ngModelChange)="onStartDateChange($event)"
             [min]="minDate()"
             [max]="maxDate()"
+            [disabled]="!isAdmin() && !isManager()"
           />
         </div>
       </div>
@@ -56,6 +57,7 @@
             (ngModelChange)="onEndDateChange($event)"
             [min]="minDate()"
             [max]="maxDate()"
+            [disabled]="!isAdmin() && !isManager()"
           />
         </div>
       </div>
@@ -141,7 +143,7 @@
                 <td class="col-date">{{ rec.approved_at ? (rec.approved_at | date:'yyyy-MM-dd HH:mm') : (rec.created_at | date:'yyyy-MM-dd') }}</td>
                 <td class="col-date">{{ rec.payment_date }}</td>
                 <td><strong>{{ rec.branch_name || '-' }}</strong></td>
-                <td>{{ rec.telecaller_name || rec.telecaller_username || '-' }}</td>
+                <td>{{ rec.telecaller_name || rec.telecaller_employee_Id || '-' }}</td>
                 <td class="col-ref"><code>{{ rec.receipt_id || '-' }}</code></td>
                 <td class="col-mobile">{{ rec.mobile_number }}</td>
                 <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>

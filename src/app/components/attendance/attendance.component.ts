@@ -180,8 +180,8 @@ export class AttendanceComponent implements OnInit {
 
   private mapApiToAttendanceRecord(item: any): AttendanceRecord {
     const user = item.user_details || {};
-    const tcId = user.username || (user.id ? String(user.id) : (item.user ? String(item.user) : ''));
-    const tcName = user.full_name || user.username || '';
+    const tcId = user.employee_Id || (user.id ? String(user.id) : (item.user ? String(item.user) : ''));
+    const tcName = user.full_name || user.employee_Id || '';
     const tcDetails = tcId && tcName ? `${tcId}-${tcName}` : (tcName || tcId || 'N/A');
     const branchName = item.branch_name || user.branch_name || 'N/A';
 

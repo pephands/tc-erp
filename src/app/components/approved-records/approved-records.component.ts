@@ -44,9 +44,12 @@ export class ApprovedRecordsComponent implements OnInit {
 
     this.userRole.set(role);
     if (role === 'TC') {
-      const today = new Date().toISOString().slice(0, 10);
-      this.startDate.set(today);
-      this.endDate.set(today);
+      const today = new Date();
+      const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const startStr = new Date(sevenDaysAgo.getTime() - sevenDaysAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      this.startDate.set(startStr);
+      this.endDate.set(endStr);
     }
     this.fetchApprovedRecords();
   }
@@ -111,9 +114,12 @@ export class ApprovedRecordsComponent implements OnInit {
     this.searchQuery.set('');
     
     if (this.userRole() === 'TC') {
-      const today = new Date().toISOString().slice(0, 10);
-      this.startDate.set(today);
-      this.endDate.set(today);
+      const today = new Date();
+      const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const startStr = new Date(sevenDaysAgo.getTime() - sevenDaysAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      this.startDate.set(startStr);
+      this.endDate.set(endStr);
     } else {
       this.startDate.set('');
       this.endDate.set('');

@@ -15,10 +15,12 @@
           <span>Create Receipt</span>
         </button>
       }
-      <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
-        <span class="material-symbols-outlined">download</span>
-        <span>Export to Excel</span>
-      </button>
+      @if (!isTC()) {
+        <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
+          <span class="material-symbols-outlined">download</span>
+          <span>Export to Excel</span>
+        </button>
+      }
     </div>
   </div>
 

@@ -698,7 +698,7 @@
               <select class="modern-select-sm" [ngModel]="selectedStaffId()" (ngModelChange)="selectedStaffId.set($event)">
                 <option [ngValue]="null">-- Choose Staff Member --</option>
                 @for (staff of staffUsers(); track staff.id) {
-                  <option [ngValue]="staff.id">{{ staff.full_name || staff.username }} ({{ staff.username }})</option>
+                  <option [ngValue]="staff.id">{{ staff.full_name || staff.employee_Id }} ({{ staff.employee_Id }})</option>
                 }
               </select>
             </div>
@@ -720,7 +720,7 @@
             @if (lastGeneratedPasscode()) {
               <div class="generated-alert-sm">
                 <div class="alert-info">
-                  <span class="user-label">{{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.username }}</span>
+                  <span class="user-label">{{ lastGeneratedPasscode()?.user_details?.full_name || lastGeneratedPasscode()?.user_details?.employee_Id }}</span>
                   <code class="code-badge-sm">{{ lastGeneratedPasscode()?.passcode }}</code>
                 </div>
                 <button
@@ -749,7 +749,7 @@
                   <tbody>
                     @for (item of todayPasscodes(); track item.id) {
                       <tr>
-                        <td class="staff-cell">{{ item.user_details?.full_name || item.user_details?.username }}</td>
+                        <td class="staff-cell">{{ item.user_details?.full_name || item.user_details?.employee_Id }}</td>
                         <td>{{ item.user_details?.branch_name || '-' }}</td>
                         <td><code>{{ item.passcode }}</code></td>
                         <td>

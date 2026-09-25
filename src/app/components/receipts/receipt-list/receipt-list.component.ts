@@ -73,8 +73,14 @@ export class ReceiptListComponent implements OnInit {
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
     this.isTC.set(!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent());
 
-    if (this.isTC() || this.isSuperintendent()) {
-      // TC only sees current month records
+    if (this.isTC()) {
+      const today = new Date();
+      const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const startStr = new Date(sevenDaysAgo.getTime() - sevenDaysAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      this.startDate.set(startStr);
+      this.endDate.set(endStr);
+    } else if (this.isSuperintendent()) {
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth();
@@ -184,6 +190,13 @@ export class ReceiptListComponent implements OnInit {
   onResetFilters(): void {
     this.searchQuery.set('');
     if (this.isTC()) {
+      const today = new Date();
+      const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const startStr = new Date(sevenDaysAgo.getTime() - sevenDaysAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      this.startDate.set(startStr);
+      this.endDate.set(endStr);
+    } else if (this.isSuperintendent()) {
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);

@@ -8,7 +8,7 @@ import { MasterDonorRecord } from '../../models/telecalling.model';
 
 interface TCWorkstationData {
   id: number;
-  username: string;
+  employee_Id: string;
   full_name: string;
   total_assigned: number;
   completed: number;
@@ -34,7 +34,7 @@ export class WorkstationComponent implements OnInit {
   // ----------------------------------------------------
   queue = this.service.tcQueueSignal;
 
-  activeTab = signal<'PENDING' | 'COMPLETED' | 'ALL'>('PENDING');
+  activeTab = signal<'PENDING' | 'COMPLETED'>('PENDING');
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
@@ -266,7 +266,7 @@ export class WorkstationComponent implements OnInit {
     });
   }
 
-  setTab(tab: 'PENDING' | 'COMPLETED' | 'ALL'): void {
+  setTab(tab: 'PENDING' | 'COMPLETED'): void {
     this.activeTab.set(tab);
     this.currentPage.set(1);
     this.fetchQueue();
@@ -288,14 +288,14 @@ export class WorkstationComponent implements OnInit {
           'Phone Number': item.phoneNumber || '',
           'DOB': item.dob || '',
           'Assigned Date': item.assignedTcAt ? item.assignedTcAt.slice(0, 10) : (item.createdAt ? item.createdAt.slice(0, 10) : ''),
-          'Call Completed Date': ((this.activeTab() === 'COMPLETED' || this.activeTab() === 'ALL') && item.status === 'COMPLETED' && item.updatedAt) ? item.updatedAt.slice(0, 10) : '',
+          'Call Completed Date': (this.activeTab() === 'COMPLETED' && item.status === 'COMPLETED' && item.updatedAt) ? item.updatedAt.slice(0, 10) : '',
           'Call Disposition': item.latestCallDisposition || '',
           'Remarks': item.latestCallRemarks || '',
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
-        const sheetName = this.activeTab() === 'PENDING' ? 'Pending Donors' : (this.activeTab() === 'COMPLETED' ? 'Completed Donors' : 'All Donors');
+        const sheetName = this.activeTab() === 'PENDING' ? 'Pending Donors' : 'Completed Donors';
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
         const fileName = `${this.activeTab()}_Data_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(workbook, fileName);

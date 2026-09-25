@@ -265,10 +265,10 @@ export class TelecallersComponent {
 
   private mapApiUserToTelecaller(u: any): Telecaller {
     return {
-      id: u.username || `TC_${u.id}`,
-      fullName: u.full_name || u.username || '',
+      id: u.employee_Id || `TC_${u.id}`,
+      fullName: u.full_name || u.employee_Id || '',
       originalName: u.full_name || '',
-      personalNo: u.phone || u.username || '',
+      personalNo: u.phone || '',
       officialNo: u.office_phone || '',
       gender: u.gender === 'Female' ? 'Female' : 'Male',
       role: u.roles?.[0]?.name || 'Tele Caller',

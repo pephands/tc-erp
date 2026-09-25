@@ -2,7 +2,7 @@ export interface FeedbackRecord {
   id: number;
   telecaller: number;
   telecaller_name?: string;
-  telecaller_username?: string;
+  telecaller_employee_Id?: string;
   branch?: number;
   branch_name?: string;
   subject: string;

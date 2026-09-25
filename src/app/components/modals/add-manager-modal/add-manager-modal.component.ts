@@ -43,7 +43,7 @@ export class AddManagerModalComponent {
     const branchId = branchObj ? branchObj.id : null;
 
     const payload = {
-      username: this.formMobile.trim(),
+      employee_Id: this.formMobile.trim(),
       phone: this.formMobile.trim(),
       full_name: this.formFullName.trim(),
       gender: this.formGender,

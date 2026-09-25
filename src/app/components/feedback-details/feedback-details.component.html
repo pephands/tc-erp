@@ -85,7 +85,7 @@
                 <tr>
                   <td class="text-muted">{{ item.created_at | date:'short' }}</td>
                   <td class="font-semibold">{{ item.branch_name || 'N/A' }}</td>
-                  <td class="font-bold text-primary">{{ item.telecaller_name || item.telecaller_username }}</td>
+                  <td class="font-bold text-primary">{{ item.telecaller_name || item.telecaller_employee_Id }}</td>
                   <td class="font-semibold">{{ item.subject }}</td>
                   <td>
                     <span class="category-pill">{{ getCategoryLabel(item.category) }}</span>
@@ -126,7 +126,7 @@
         </div>
         <div class="modal-body">
           <div class="meta-banner">
-            <div><strong>Telecaller:</strong> {{ selectedFeedback()?.telecaller_name }} ({{ selectedFeedback()?.telecaller_username }})</div>
+            <div><strong>Telecaller:</strong> {{ selectedFeedback()?.telecaller_name }} ({{ selectedFeedback()?.telecaller_employee_Id }})</div>
             <div><strong>Branch:</strong> {{ selectedFeedback()?.branch_name || 'N/A' }}</div>
             <div><strong>Category:</strong> {{ getCategoryLabel(selectedFeedback()!.category) }}</div>
             <div><strong>Submitted On:</strong> {{ selectedFeedback()?.created_at | date:'medium' }}</div>
