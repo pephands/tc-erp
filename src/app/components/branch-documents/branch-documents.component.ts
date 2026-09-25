@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { BranchDocumentService } from '../../services/branch-document.service';
 import { BranchListService } from '../../services/branch-list.service';
 import { BranchDocumentRecord } from '../../models/branch-document.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-branch-documents',
@@ -15,6 +16,9 @@ import { BranchDocumentRecord } from '../../models/branch-document.model';
 export class BranchDocumentsComponent implements OnInit {
   private service = inject(BranchDocumentService);
   private branchListService = inject(BranchListService);
+  private authService = inject(AuthService);
+
+  isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']));
 
   documents = this.service.getDocuments();
 
@@ -204,6 +208,9 @@ export class BranchDocumentsComponent implements OnInit {
     if (file) {
       formData.append('document', file);
     }
+    
+    // Explicitly set is_active to true to avoid default false from FormData behavior
+    formData.append('is_active', 'true');
 
     this.isSubmitting.set(true);
 
@@ -264,16 +271,17 @@ export class BranchDocumentsComponent implements OnInit {
     this.isUploadModalOpen.set(true);
   }
 
-  onDeleteDocument(doc: BranchDocumentRecord): void {
-    if (confirm(`Are you sure you want to delete document "${doc.documentName}"?`)) {
+  onToggleStatus(doc: BranchDocumentRecord): void {
+    const action = doc.isActive ? 'deactivate' : 'activate';
+    if (confirm(`Are you sure you want to ${action} document "${doc.documentName}"?`)) {
       this.service.deleteDocument(doc.id).subscribe({
-        next: () => {
-          alert(`Document "${doc.documentName}" deleted successfully.`);
+        next: (res: any) => {
+          alert(res.message || `Document status changed successfully.`);
           this.fetchDocumentsFromApi();
         },
         error: (err: any) => {
-          console.error('Error deleting document:', err);
-          alert('Failed to delete document. Please try again.');
+          console.error(`Error trying to ${action} document:`, err);
+          alert(`Failed to ${action} document. Please try again.`);
         }
       });
     }

@@ -154,6 +154,7 @@
             <th>Amount (₹)</th>
             <th>Branch Name</th>
             <th>Remarks</th>
+            <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
         </thead>
@@ -174,6 +175,13 @@
                 <td class="col-amount font-bold text-success">₹ {{ item.amount | number:'1.2-2' }}</td>
                 <td class="col-branch">{{ item.branchName }}</td>
                 <td class="col-remarks text-muted">{{ item.remarks || '-' }}</td>
+                <td>
+                  @if (item.isActive) {
+                    <span class="badge badge-success" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Active</span>
+                  } @else {
+                    <span class="badge badge-danger" style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Inactive</span>
+                  }
+                </td>
                 <td class="actions-cell">
                   <div class="action-btn-trio">
                     <button
@@ -195,14 +203,17 @@
                         <span class="material-symbols-outlined">edit</span>
                       </button>
 
-                      <button
-                        type="button"
-                        class="btn-action-icon btn-delete"
-                        (click)="onDeleteExpense(item)"
-                        title="Delete Expense"
-                      >
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
+                      @if (canDeleteExpense) {
+                        <button
+                          type="button"
+                          class="btn-action-icon"
+                          [ngClass]="{'btn-delete': item.isActive, 'btn-view': !item.isActive}"
+                          (click)="onToggleStatus(item)"
+                          [title]="item.isActive ? 'Deactivate Expense' : 'Activate Expense'"
+                        >
+                          <span class="material-symbols-outlined">{{ item.isActive ? 'block' : 'check_circle' }}</span>
+                        </button>
+                      }
                     }
                   </div>
                 </td>

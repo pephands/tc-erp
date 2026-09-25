@@ -107,7 +107,7 @@ export class SidebarComponent implements OnInit {
       label: 'Dashboard',
       icon: 'dashboard',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT'],
       route: '/dashboard',
     },
     {

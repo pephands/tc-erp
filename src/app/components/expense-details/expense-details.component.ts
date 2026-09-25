@@ -18,6 +18,8 @@ export class ExpenseDetailsComponent implements OnInit {
   private branchListService = inject(BranchListService);
   private authService = inject(AuthService);
 
+  isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']));
+
   expenses = this.service.getExpenses();
 
   // Role permissions
@@ -32,7 +34,11 @@ export class ExpenseDetailsComponent implements OnInit {
   }
 
   get canCreateExpense(): boolean {
-    return this.isAdmin || this.isTl;
+    return this.isAdmin || this.isTl || this.isSuperintendent();
+  }
+
+  get canDeleteExpense(): boolean {
+    return this.isAdmin;
   }
 
   get canDownloadExpense(): boolean {
@@ -381,6 +387,9 @@ export class ExpenseDetailsComponent implements OnInit {
     if (file) {
       formData.append('file', file);
     }
+    
+    // Explicitly set is_active to true to avoid default false from FormData behavior
+    formData.append('is_active', 'true');
 
     this.isSubmitting.set(true);
 
@@ -430,16 +439,17 @@ export class ExpenseDetailsComponent implements OnInit {
     }
   }
 
-  onDeleteExpense(expense: BranchExpenseRecord): void {
-    if (confirm(`Are you sure you want to delete expense "${expense.expenseName}" (₹${expense.amount})?`)) {
+  onToggleStatus(expense: BranchExpenseRecord): void {
+    const action = expense.isActive ? 'deactivate' : 'activate';
+    if (confirm(`Are you sure you want to ${action} expense "${expense.expenseName}" (₹${expense.amount})?`)) {
       this.service.deleteExpense(expense.id).subscribe({
-        next: () => {
-          this.triggerToast(`Expense "${expense.expenseName}" soft-deleted successfully.`);
+        next: (res: any) => {
+          this.triggerToast(res.message || `Expense status changed successfully.`);
           this.fetchExpensesFromApi();
         },
         error: (err: any) => {
-          console.error('Error deleting expense:', err);
-          alert('Failed to delete expense. Please try again.');
+          console.error(`Error trying to ${action} expense:`, err);
+          alert(`Failed to ${action} expense. Please try again.`);
         }
       });
     }

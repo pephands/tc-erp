@@ -22,12 +22,14 @@
         </button>
       </div>
 
-      <!-- Right Action Button (Upload File) -->
+      <!-- Right Action Button (Create) -->
       <div class="right-action-group">
-        <button type="button" class="btn-upload-file" (click)="onUploadFile()">
-          <span class="material-symbols-outlined">upload</span>
-          <span>Upload File</span>
-        </button>
+        @if (!isSuperintendent()) {
+          <button type="button" class="btn-primary-action" (click)="onUploadFile()">
+            <span class="material-symbols-outlined">add</span>
+            <span>Create</span>
+          </button>
+        }
       </div>
     </div>
 
@@ -59,6 +61,7 @@
               <th>Document Name</th>
               <th>Branch name</th>
               <th>Expiry Date</th>
+              <th>Status</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
@@ -78,6 +81,13 @@
                   <td class="font-semibold doc-name">{{ item.documentName }}</td>
                   <td class="branch-name">{{ item.branchName }}</td>
                   <td class="text-muted expiry-date">{{ item.expiryDate || '-' }}</td>
+                  <td>
+                    @if (item.isActive) {
+                      <span class="badge badge-success" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Active</span>
+                    } @else {
+                      <span class="badge badge-danger" style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Inactive</span>
+                    }
+                  </td>
                   <td class="actions-cell">
                     <div class="action-btn-trio">
                       <button 
@@ -88,22 +98,25 @@
                       >
                         <span class="material-symbols-outlined">visibility</span>
                       </button>
-                      <button 
-                        type="button" 
-                        class="btn-action-icon btn-edit" 
-                        (click)="onEditDocument(item)" 
-                        title="Edit Document"
-                      >
-                        <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button 
-                        type="button" 
-                        class="btn-action-icon btn-delete" 
-                        (click)="onDeleteDocument(item)" 
-                        title="Delete Document"
-                      >
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
+                      @if (!isSuperintendent()) {
+                        <button 
+                          type="button" 
+                          class="btn-action-icon btn-edit" 
+                          (click)="onEditDocument(item)" 
+                          title="Edit Document"
+                        >
+                          <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          class="btn-action-icon" 
+                          [ngClass]="{'btn-delete': item.isActive, 'btn-view': !item.isActive}"
+                          (click)="onToggleStatus(item)" 
+                          [title]="item.isActive ? 'Deactivate Document' : 'Activate Document'"
+                        >
+                          <span class="material-symbols-outlined">{{ item.isActive ? 'block' : 'check_circle' }}</span>
+                        </button>
+                      }
                     </div>
                   </td>
                 </tr>

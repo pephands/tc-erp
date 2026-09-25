@@ -39,7 +39,7 @@
 
 .branch-select-wrapper select {
   background: #f59e0b;
-  color: #ffffff;
+  color: var(--bg-card);
   font-weight: 600;
   font-size: 0.875rem;
   padding: 0.55rem 2.2rem 0.55rem 1rem;
@@ -58,22 +58,22 @@
 }
 
 .branch-select-wrapper option {
-  background: #ffffff;
-  color: #1c1917;
+  background: var(--bg-card);
+  color: var(--text-main);
 }
 
 .select-arrow {
   position: absolute;
   right: 0.6rem;
-  color: #ffffff;
+  color: var(--bg-card);
   pointer-events: none;
   font-size: 20px;
 }
 
 /* Filter Submit Button */
 .btn-filter-submit {
-  background: #ea580c;
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--bg-card);
   border: none;
   padding: 0.55rem 1.25rem;
   font-size: 0.875rem;
@@ -85,17 +85,17 @@
 }
 
 .btn-filter-submit:hover {
-  background: #c2410c;
+  background: var(--primary-hover);
   transform: translateY(-1px);
 }
 
 /* Right Upload File Button */
-.btn-upload-file {
+.btn-primary-action {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: #ea580c;
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--bg-card);
   border: none;
   padding: 0.55rem 1.25rem;
   font-size: 0.875rem;
@@ -106,12 +106,12 @@
   transition: all 0.2s ease;
 }
 
-.btn-upload-file .material-symbols-outlined {
+.btn-primary-action .material-symbols-outlined {
   font-size: 18px;
 }
 
-.btn-upload-file:hover {
-  background: #c2410c;
+.btn-primary-action:hover {
+  background: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -215,12 +215,12 @@
 }
 
 .doc-name {
-  color: #1c1917;
+  color: var(--text-main);
   letter-spacing: 0.01em;
 }
 
 .file-name {
-  color: #57534e;
+  color: var(--text-muted);
 }
 
 .branch-name {
@@ -265,7 +265,7 @@
 
 .btn-view {
   background: #10b981;
-  color: #ffffff;
+  color: var(--bg-card);
 }
 
 .btn-view:hover {
@@ -275,7 +275,7 @@
 
 .btn-edit {
   background: #10b981;
-  color: #ffffff;
+  color: var(--bg-card);
 }
 
 .btn-edit:hover {
@@ -285,7 +285,7 @@
 
 .btn-delete {
   background: #ef4444;
-  color: #ffffff;
+  color: var(--bg-card);
 }
 
 .btn-delete:hover {
@@ -322,7 +322,7 @@
 }
 
 .page-btn {
-  background: #ffffff;
+  background: var(--bg-card);
   border: none;
   border-right: 1px solid var(--border-color);
   padding: 0.4rem 0.85rem;
@@ -338,12 +338,12 @@
 
 .page-btn:hover:not(:disabled) {
   background: #f5f5f4;
-  color: #1c1917;
+  color: var(--text-main);
 }
 
 .page-btn.active {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--bg-card);
   font-weight: 700;
 }
 
@@ -380,7 +380,7 @@
 .modal-card {
   width: 100%;
   max-width: 660px;
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: var(--radius-md);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   display: flex;
@@ -406,13 +406,13 @@
 .modal-title-header h2 {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-main);
 }
 
 .modal-close-btn {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.2rem;
   border-radius: 4px;
@@ -423,35 +423,35 @@
 }
 
 .modal-close-btn:hover {
-  background: #f1f5f9;
+  background: var(--bg-input);
   color: #0f172a;
 }
 
 /* Inner Box Card */
 .modal-body-box {
   margin: 0.75rem 1.5rem 1.5rem 1.5rem;
-  border: 1px solid #cbd5e1;
-  border-top: 3px solid #ea580c;
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--primary);
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--bg-card);
   overflow: hidden;
 }
 
 .box-header-bar {
   padding: 0.85rem 1.25rem;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .box-header-bar h3 {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--text-main);
 }
 
 .box-header-bar .subtext {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   display: block;
   margin-top: 0.15rem;
 }
@@ -471,9 +471,9 @@
 }
 
 .btn-file-choose {
-  background: #f1f5f9;
-  border: 1px solid #94a3b8;
-  color: #1e293b;
+  background: var(--bg-input);
+  border: 1px solid var(--text-dim);
+  color: var(--text-main);
   padding: 0.4rem 0.85rem;
   font-size: 0.85rem;
   font-weight: 500;
@@ -484,12 +484,12 @@
 }
 
 .btn-file-choose:hover {
-  background: #e2e8f0;
+  background: var(--border-color);
 }
 
 .file-chosen-name {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 /* Form Styles */
@@ -502,23 +502,23 @@
 .form-group label {
   font-size: 0.825rem;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-main);
 }
 
 .form-group input {
   width: 100%;
   padding: 0.55rem 0.85rem;
   font-size: 0.875rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: #ffffff;
+  background: var(--bg-card);
   color: #0f172a;
   outline: none;
   transition: border-color 0.15s ease;
 }
 
 .form-group input:focus {
-  border-color: #ea580c;
+  border-color: var(--primary);
 }
 
 .margin-top-sm {
@@ -536,9 +536,9 @@
   width: 100%;
   padding: 0.55rem 2.2rem 0.55rem 0.85rem;
   font-size: 0.875rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: #ffffff;
+  background: var(--bg-card);
   color: #0f172a;
   outline: none;
   appearance: none;
@@ -548,13 +548,13 @@
 }
 
 .select-wrapper select:focus {
-  border-color: #ea580c;
+  border-color: var(--primary);
 }
 
 .select-arrow {
   position: absolute;
   right: 0.6rem;
-  color: #64748b;
+  color: var(--text-muted);
   pointer-events: none;
   font-size: 20px;
 }
@@ -568,8 +568,8 @@
 }
 
 .btn-modal-submit {
-  background: #ea580c;
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--bg-card);
   border: none;
   padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
@@ -580,13 +580,13 @@
 }
 
 .btn-modal-submit:hover {
-  background: #c2410c;
+  background: var(--primary-hover);
 }
 
 .btn-modal-reset {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
   padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -596,7 +596,7 @@
 }
 
 .btn-modal-reset:hover {
-  background: #f1f5f9;
+  background: var(--bg-input);
   color: #0f172a;
 }
 

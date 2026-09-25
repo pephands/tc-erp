@@ -7,8 +7,9 @@ import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 
 export interface UserRecord {
-  id: string;
+  id: string; // Used for UI display (Employee ID)
   dbId: number;
+  username: string;
   fullName: string;
   originalName: string;
   personalNo: string;
@@ -212,6 +213,7 @@ export class UserListComponent implements OnInit {
     return {
       id: u.username || `EMP_${u.id}`,
       dbId: u.id,
+      username: u.username || '',
       fullName: u.full_name || u.username || '',
       originalName: u.full_name || '',
       personalNo: u.phone || u.username || '',
