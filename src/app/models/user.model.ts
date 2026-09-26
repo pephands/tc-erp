@@ -11,7 +11,7 @@ export interface Branch {
 
 export interface User {
   id: number | string;
-  username: string;
+  employee_Id: string;
   phone?: string;
   office_phone?: string;
   email: string;

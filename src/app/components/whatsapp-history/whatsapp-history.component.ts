@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WhatsappHistoryService, WhatsappHistoryRecord } from '../../services/whatsapp-history.service';
 import { BranchListService } from '../../services/branch-list.service';
+import { AuthService } from '../../services/auth.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -32,14 +33,22 @@ export class WhatsappHistoryComponent implements OnInit {
   
   branches: any[] = [];
   searchSubject = new Subject<string>();
+  isTC: boolean = false;
 
   constructor(
     private historyService: WhatsappHistoryService,
     private branchService: BranchListService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    const roles = this.authService.userRoles();
+    if (!roles.includes('ADMIN') && !roles.includes('MANAGER') && roles.includes('TC')) {
+      this.isTC = true;
+    }
+    this.setDefaultDates();
+
     this.searchSubject.pipe(
       debounceTime(500),
       distinctUntilChanged()
@@ -119,6 +128,18 @@ export class WhatsappHistoryComponent implements OnInit {
     this.loadHistory(1);
   }
 
+  setDefaultDates(): void {
+    if (this.isTC) {
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      this.filters.start_date = todayStr;
+      this.filters.end_date = todayStr;
+    } else {
+      this.filters.start_date = '';
+      this.filters.end_date = '';
+    }
+  }
+
   resetFilter(): void {
     this.filters = {
       status: '',
@@ -127,6 +148,7 @@ export class WhatsappHistoryComponent implements OnInit {
       start_date: '',
       end_date: ''
     };
+    this.setDefaultDates();
     this.loadHistory(1);
   }
 

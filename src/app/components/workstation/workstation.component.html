@@ -18,13 +18,10 @@
       </div>
 
       <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
-        <button type="button" class="btn-download-assigned" (click)="onDownloadAssignedData()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: #292524; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
-          <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
-          <span>Download xlsx</span>
-        </button>
+
         <div class="queue-summary-badge">
           <span class="material-symbols-outlined icon">phone_in_talk</span>
-          <span>{{ activeTab() === 'PENDING' ? 'Pending Queue' : (activeTab() === 'COMPLETED' ? 'Completed Queue' : 'All Calls') }}: {{ totalRecords() }} Donors</span>
+          <span>{{ activeTab() === 'PENDING' ? 'Pending Queue' : 'Completed Queue' }}: {{ totalRecords() }} Donors</span>
         </div>
       </div>
     </div>
@@ -36,9 +33,6 @@
       </button>
       <button class="tab-btn" [class.active]="activeTab() === 'COMPLETED'" (click)="setTab('COMPLETED')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
         Completed Calls
-      </button>
-      <button class="tab-btn" [class.active]="activeTab() === 'ALL'" (click)="setTab('ALL')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
-        All Calls
       </button>
     </div>
 
@@ -65,7 +59,7 @@
               <th>Phone Number</th>
               <th>DOB</th>
               <th>Assigned Date</th>
-              @if (activeTab() === 'COMPLETED' || activeTab() === 'ALL') {
+              @if (activeTab() === 'COMPLETED') {
                 <th>Completed Date</th>
               }
               <th>Status</th>
@@ -88,7 +82,7 @@
                   <td class="font-bold phone-number">{{ item.phoneNumber }}</td>
                   <td class="text-muted">{{ item.dob || '-' }}</td>
                   <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'shortDate') : (item.createdAt ? (item.createdAt | date:'shortDate') : '-') }}</td>
-                  @if (activeTab() === 'COMPLETED' || activeTab() === 'ALL') {
+                  @if (activeTab() === 'COMPLETED') {
                     <td class="text-muted">{{ (item.status === 'COMPLETED' && item.updatedAt) ? (item.updatedAt | date:'shortDate') : '-' }}</td>
                   }
                   <td>
@@ -370,7 +364,7 @@
                   <td class="font-medium">{{ i + 1 + (tlCurrentPage() - 1) * 10 }}</td>
                   <td class="text-muted">{{ item.branch_name }}</td>
                   <td class="font-semibold donor-name">{{ item.full_name }}</td>
-                  <td class="text-muted">{{ item.username }}</td>
+                  <td class="text-muted">{{ item.employee_Id }}</td>
                   <td class="font-bold text-center">{{ item.total_assigned }}</td>
                   <td class="font-bold text-center" style="color: #ea580c;">{{ item.pending }}</td>
                   <td class="font-bold text-center" style="color: #16a34a;">{{ item.completed }}</td>

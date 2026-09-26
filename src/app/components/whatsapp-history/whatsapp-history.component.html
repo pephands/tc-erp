@@ -19,6 +19,7 @@
         [(ngModel)]="filters.start_date"
         (change)="onFilterChange()"
         title="Start Date"
+        [disabled]="isTC"
       />
       <span style="color: var(--text-muted); font-size: 0.9rem;">to</span>
       <input 
@@ -28,6 +29,7 @@
         [(ngModel)]="filters.end_date"
         (change)="onFilterChange()"
         title="End Date"
+        [disabled]="isTC"
       />
       <select 
         class="form-control" 
@@ -129,7 +131,7 @@
                 <td class="col-name">{{ record.sent_at | date:'medium' }}</td>
                 <td class="col-name">{{ record.branch_name }}</td>
                 <td class="col-short">
-                  {{ record.username || 'System' }} 
+                  {{ record.employee_Id || 'System' }} 
                   <br *ngIf="record.tcf_name">
                   <span *ngIf="record.tcf_name" style="font-size: 0.75rem; color: var(--text-muted)">{{ record.tcf_name }}</span>
                 </td>

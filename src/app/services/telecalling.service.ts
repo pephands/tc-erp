@@ -243,16 +243,16 @@ export class TelecallingService extends BaseHttpService {
         const list = res.data || res.results || (Array.isArray(res) ? res : []);
         return list.map((item: any) => ({
           id: item.id,
-          username: item.username || item.email || '',
-          full_name: item.full_name || item.name || item.username || '',
+          employee_Id: item.employee_Id || item.email || '',
+          full_name: item.full_name || item.name || item.employee_Id || '',
           branch_name: item.branch_name || item.branch?.name || '',
         }));
       })
     );
   }
 
-  fetchBranches(): Observable<any[]> {
-    return this.httpClient.get<any>(this.endPoint.branches, { headers: this.headers }).pipe(
+  fetchBranches(params?: any): Observable<any[]> {
+    return this.httpClient.get<any>(this.endPoint.branches, { headers: this.headers, params }).pipe(
       map((res: any) => {
         const list = res.data || res.results || (Array.isArray(res) ? res : []);
         return list.map((item: any) => ({

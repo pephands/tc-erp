@@ -8,7 +8,7 @@ export interface WFHPasscodeRecord {
   user: number;
   user_details?: {
     id: number;
-    username: string;
+    employee_Id: string;
     full_name: string;
     branch_name?: string;
   };
@@ -19,7 +19,7 @@ export interface WFHPasscodeRecord {
   created_by?: number;
   created_by_details?: {
     id: number;
-    username: string;
+    employee_Id: string;
     full_name: string;
   };
   created_at: string;

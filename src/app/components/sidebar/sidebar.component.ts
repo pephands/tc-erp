@@ -371,7 +371,7 @@ export class SidebarComponent implements OnInit {
       label: 'Receipts',
       icon: 'receipt_long',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL', 'TC', 'SUPERINTENDENT'],
+      allowedRoles: ['ADMIN', 'TL', 'TC','PUBLIC_RELATIONS'],
       route: '/receipts/view',
     },
 
@@ -380,28 +380,35 @@ export class SidebarComponent implements OnInit {
       label: 'Branch Details',
       icon: 'location_city',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'TL', 'SUPERINTENDENT'],
+      allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
       submenus: [
         {
           id: 'branch_documents',
           label: 'Branch Documents',
           icon: 'folder_shared',
-          allowedRoles: ['ADMIN', 'TL', 'TC', 'SUPERINTENDENT'],
+          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
           route: '/branch-documents',
         },
         {
           id: 'expense_details',
           label: 'Expense Details',
           icon: 'receipt',
-          allowedRoles: ['ADMIN', 'TL', 'SUPERINTENDENT'],
+          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
           route: '/expense-details',
         },
         {
           id: 'expense_report',
           label: 'Expense Report',
           icon: 'summarize',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
+          allowedRoles: ['ADMIN'],
           route: '/expense-report',
+        },
+        {
+          id: 'trust_children',
+          label: 'Trust Children',
+          icon: 'child_care',
+          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
+          route: '/trust-children',
         },
       ],
     },
@@ -642,6 +649,7 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';
+    if (url.includes('/trust-children')) return 'trust_children';
 
     // Miscellaneous
     if (url.includes('/received-records')) return 'received-records';

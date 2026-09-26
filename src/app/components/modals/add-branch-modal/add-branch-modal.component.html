@@ -16,9 +16,15 @@
         
         <!-- General Info -->
         <div class="form-section">
-          <h3 class="form-section-title">
-            <span class="material-symbols-outlined">info</span> General Information
-          </h3>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="form-section-title" style="margin: 0;">
+              <span class="material-symbols-outlined">info</span> General Information
+            </h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="formIsTrust" style="margin: 0; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--primary);">Is Trust?</label>
+              <input type="checkbox" id="formIsTrust" name="formIsTrust" [(ngModel)]="formIsTrust" style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary);" />
+            </div>
+          </div>
           
           <div class="form-row">
             <div class="form-group full-width">

@@ -65,6 +65,10 @@ export class ApproveAssignComponent implements OnInit {
   assignBranchId = signal<number | string>('');
   assignBranchCategory = signal<'BASE' | 'NON BASE'>('BASE');
   assignBranchQuantity = signal<number | null>(null);
+  
+  // Custom dropdown search for Branch Assign
+  assignBranchSearchQuery = signal<string>('');
+  isAssignBranchDropdownOpen = signal<boolean>(false);
 
   ngOnInit(): void {
     this.loadData();
@@ -72,7 +76,7 @@ export class ApproveAssignComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.service.fetchBranches().subscribe({
+    this.service.fetchBranches({ page_size: 1000 }).subscribe({
       next: (branches) => this.branchesList.set(branches),
       error: (err) => console.error('Error fetching branches:', err),
     });
@@ -387,6 +391,8 @@ export class ApproveAssignComponent implements OnInit {
     this.assignBranchId.set('');
     this.assignBranchCategory.set('BASE');
     this.assignBranchQuantity.set(null);
+    this.assignBranchSearchQuery.set('');
+    this.isAssignBranchDropdownOpen.set(false);
     this.modalError.set('');
     this.isAssignBranchModalOpen.set(true);
   }
@@ -394,6 +400,38 @@ export class ApproveAssignComponent implements OnInit {
   closeAssignBranchModal(): void {
     this.modalError.set('');
     this.isAssignBranchModalOpen.set(false);
+  }
+
+  toggleAssignBranchDropdown(): void {
+    this.isAssignBranchDropdownOpen.update((v) => !v);
+  }
+
+  closeAssignBranchDropdown(): void {
+    this.isAssignBranchDropdownOpen.set(false);
+  }
+
+  selectAssignBranch(branchId: number | string): void {
+    this.assignBranchId.set(branchId);
+    this.closeAssignBranchDropdown();
+  }
+
+  getFilteredAssignBranches(): any[] {
+    const query = this.assignBranchSearchQuery().toLowerCase().trim();
+    if (!query) {
+      return this.branchesList();
+    }
+    return this.branchesList().filter(
+      (b) =>
+        b.name.toLowerCase().includes(query) ||
+        b.code.toLowerCase().includes(query)
+    );
+  }
+
+  getAssignBranchName(): string {
+    const id = this.assignBranchId();
+    if (!id) return 'Select Branch';
+    const b = this.branchesList().find((item) => item.id == id);
+    return b ? `${b.code} - ${b.name}` : 'Select Branch';
   }
 
   onSubmitAssignBranch(): void {

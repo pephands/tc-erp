@@ -52,14 +52,10 @@ export class OnlineHistoryComponent implements OnInit {
     this.isManager.set(this.authService.hasRole(['MANAGER']));
 
     if (!this.isAdmin() && !this.isManager()) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
-
-      const startStr = this.formatDate(firstDay);
-      const endStr = this.formatDate(lastDay);
+      const today = new Date();
+      const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const startStr = new Date(sevenDaysAgo.getTime() - sevenDaysAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
       this.startDate.set(startStr);
       this.endDate.set(endStr);
@@ -172,8 +168,12 @@ export class OnlineHistoryComponent implements OnInit {
   onResetFilters(): void {
     this.searchQuery.set('');
     if (!this.isAdmin() && !this.isManager()) {
-      this.startDate.set(this.minDate());
-      this.endDate.set(this.maxDate());
+      const today = new Date();
+      const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const startStr = new Date(sevenDaysAgo.getTime() - sevenDaysAgo.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      this.startDate.set(startStr);
+      this.endDate.set(endStr);
     } else {
       this.startDate.set('');
       this.endDate.set('');

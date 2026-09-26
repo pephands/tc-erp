@@ -89,7 +89,7 @@ export class ManagersComponent implements OnInit {
         
         const mapped: Manager[] = rawData.map((u: any) => ({
           id: String(u.id),
-          employeeId: u.username,
+          employeeId: u.employee_Id,
           fullName: u.full_name,
           mobile: u.phone || '',
           officialNumber: u.office_phone || '',

@@ -107,7 +107,7 @@
             <th>Full Name</th>
             <th>Gender</th>
             <th>Branch</th>
-            <th>Role</th>
+            <th>Designation</th>
             <th>Personal Phone</th>
             <th>Office Phone</th>
             <th>Shift Time</th>
@@ -130,7 +130,7 @@
             @for (user of users(); track user.id) {
               <tr>
                 <td class="col-id">
-                  <code>{{ user.username }}</code>
+                  <code>{{ user.employee_Id }}</code>
                 </td>
                 <td class="col-name">
                   <strong>{{ user.fullName }}</strong>
@@ -140,7 +140,7 @@
                 </td>
                 <td><span class="gender-tag">{{ user.gender }}</span></td>
                 <td><span class="branch-tag">{{ user.branch || 'Global' }}</span></td>
-                <td><span class="role-pill">{{ user.role }}</span></td>
+                <td><span class="role-pill">{{ user.designation || user.role }}</span></td>
                 <td class="col-phone">{{ user.personalNo }}</td>
                 <td class="col-phone">{{ user.officialNo || '-' }}</td>
                 <td class="col-shift">{{ user.loginTime }} - {{ user.logOffTime }}</td>
@@ -245,6 +245,11 @@
           <div class="form-group">
             <label>Full Name <span class="req">*</span></label>
             <input type="text" [ngModel]="formFullName" (ngModelChange)="formFullName = $event.toUpperCase()" placeholder="Enter full name" style="text-transform: uppercase;" />
+          </div>
+
+          <div class="form-group">
+            <label>Designation</label>
+            <input type="text" [(ngModel)]="formDesignation" placeholder="e.g. Senior Telecaller" />
           </div>
 
           <div class="form-group">
@@ -487,6 +492,22 @@
             <label>Full Name</label>
             <input type="text" [ngModel]="formFullName" (ngModelChange)="formFullName = $event.toUpperCase()" style="text-transform: uppercase;" />
           </div>
+
+          <div class="form-group">
+            <label>Designation</label>
+            <input type="text" [(ngModel)]="formDesignation" placeholder="e.g. Senior Telecaller" />
+          </div>
+
+          @if (isAdminUser) {
+            <div class="form-group">
+              <label>System Role</label>
+              <select [(ngModel)]="formRoleCode">
+                @for (r of systemRolesList; track r.code) {
+                  <option [value]="r.code">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+          }
 
           <div class="form-group">
             <label>Personal Mobile Number</label>

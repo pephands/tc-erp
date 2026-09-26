@@ -28,16 +28,16 @@
     <!-- Manual Login Form -->
     <form (ngSubmit)="onLogin()" class="login-form">
       <div class="form-group">
-        <label for="username">Username</label>
+        <label for="employee_Id">Employee ID</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">person</span>
           <input 
             type="text" 
-            id="username" 
-            name="username" 
-            [(ngModel)]="username" 
+            id="employee_Id" 
+            name="employee_Id" 
+            [(ngModel)]="employee_Id" 
             placeholder="e.g. admin, tl_rajesh, tc_priya" 
-            autocomplete="username"
+            autocomplete="employee_Id"
             required 
           />
         </div>
