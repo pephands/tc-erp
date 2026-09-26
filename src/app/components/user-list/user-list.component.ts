@@ -770,11 +770,11 @@ export class UserListComponent implements OnInit {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `sample_${roleLower}_users.xlsx`;
+        a.download = `staff creation sample format.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        this.toastService.success('Sample Downloaded', `sample_${roleLower}_users.xlsx downloaded.`);
+        this.toastService.success('Sample Downloaded', `staff creation sample format.xlsx downloaded.`);
       },
       error: () => {
         const headers = [

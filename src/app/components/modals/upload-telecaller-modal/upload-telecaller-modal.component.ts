@@ -87,11 +87,11 @@ export class UploadTelecallerModalComponent {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', 'sample_telecallers.xlsx');
+        link.setAttribute('download', 'staff creation sample format.xlsx');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        this.toastService.info('Sample Downloaded', 'sample_telecallers.xlsx downloaded from server.');
+        this.toastService.info('Sample Downloaded', 'staff creation sample format.xlsx downloaded from server.');
       },
       error: () => {
         // Fallback to generating template file directly

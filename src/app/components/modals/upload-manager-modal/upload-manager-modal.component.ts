@@ -87,11 +87,11 @@ export class UploadManagerModalComponent {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', 'sample_managers.xlsx');
+        link.setAttribute('download', 'staff creation sample format.xlsx');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        this.toastService.info('Sample Downloaded', 'sample_managers.xlsx downloaded from server.');
+        this.toastService.info('Sample Downloaded', 'staff creation sample format.xlsx downloaded from server.');
       },
       error: () => {
         const headers = [
