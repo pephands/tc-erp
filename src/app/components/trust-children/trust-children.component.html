@@ -1,0 +1,422 @@
+<div class="page-container">
+
+    <!-- Main Content Body -->
+    <main class="content-body">
+  
+      <!-- Top Toolbar Header Bar -->
+      <div class="top-toolbar" style="flex-wrap: wrap; gap: 10px;">
+        <!-- Filter Controls -->
+        <div class="left-filter-group" style="flex-wrap: wrap; flex: 1;">
+          
+          <div class="branch-select-wrapper">
+            <select [ngModel]="filterBranch()" (ngModelChange)="filterBranch.set($event); onFilterSubmit()">
+              <option value="" selected>All Trust</option>
+              @for (b of branchesList(); track b.id) {
+                <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
+              }
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+
+          <div class="branch-select-wrapper">
+            <select [ngModel]="filterGender()" (ngModelChange)="filterGender.set($event); onFilterSubmit()">
+              <option value="" selected>All Genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+
+          <div class="branch-select-wrapper">
+            <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event); onFilterSubmit()">
+              <option value="" selected>All Statuses</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+
+          <div class="branch-select-wrapper">
+            <select [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event); onFilterSubmit()">
+              <option value="" selected>All Categories</option>
+              <option value="NORMAL CHILDREN">NORMAL CHILDREN</option>
+              <option value="SPECIAL CHILDREN">SPECIAL CHILDREN</option>
+              <option value="ADOPTION CHILD">ADOPTION CHILD</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <label style="font-size: 0.75rem; color: #64748b;">DOJ:</label>
+            <input type="date" class="filter-input" style="padding: 0.35rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.8rem;" [ngModel]="filterDoj()" (ngModelChange)="filterDoj.set($event); onFilterSubmit()" />
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <label style="font-size: 0.75rem; color: #64748b;">Discharge:</label>
+            <input type="date" class="filter-input" style="padding: 0.35rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.8rem;" [ngModel]="filterDischarge()" (ngModelChange)="filterDischarge.set($event); onFilterSubmit()" />
+          </div>
+
+          <button type="button" class="btn-filter-submit" (click)="onClearFilters()">
+            Clear
+          </button>
+        </div>
+  
+        <!-- Right Action Group -->
+        <div class="right-action-group" style="display: flex; gap: 10px;">
+          <button type="button" class="btn-primary-action" (click)="downloadExcel()">
+            <span class="material-symbols-outlined">download</span>
+            <span>Export XLSX</span>
+          </button>
+
+          <button type="button" class="btn-primary-action" (click)="onCreateNew()">
+            <span class="material-symbols-outlined">add</span>
+            <span>Create</span>
+          </button>
+        </div>
+      </div>
+  
+      <!-- Data Table Card -->
+      <div class="table-card">
+  
+        <!-- Table Header Bar (Search Input) -->
+        <div class="table-header-bar">
+          <div class="search-box">
+            <input 
+              type="text" 
+              placeholder="Child Name, License..." 
+              [ngModel]="searchQuery()" 
+              (ngModelChange)="searchQuery.set($event); currentPage.set(1); onFilterSubmit()" 
+            />
+            <button type="button" class="search-btn" title="Search" (click)="onFilterSubmit()">
+              <span class="material-symbols-outlined">search</span>
+            </button>
+          </div>
+        </div>
+  
+        <!-- Responsive Table Container -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Child Name</th>
+                <th>Trust Name</th>
+                <th>License No</th>
+                <th>Gender/Category</th>
+                <th>Date of Joining</th>
+                <th>Discharge Date</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (isLoading()) {
+                <tr>
+                  <td colspan="9" class="empty-state-cell">
+                    <span class="material-symbols-outlined empty-icon spin-icon">progress_activity</span>
+                    <p>Loading trust children...</p>
+                  </td>
+                </tr>
+              } @else {
+                @for (item of paginatedChildren(); track item.id; let i = $index) {
+                  <tr>
+                    <td class="font-medium cell-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+                    <td class="font-semibold doc-name">{{ item.children_name }}</td>
+                    <td class="branch-name">{{ item.trust_branch_name }}</td>
+                    <td class="text-muted">{{ item.license_no }}</td>
+                    <td class="text-muted">{{ item.gender }} / {{ item.category }}</td>
+                    <td class="text-muted expiry-date">{{ item.date_of_joining }}</td>
+                    <td class="text-muted">{{ item.discharge_date || '-' }}</td>
+                    <td>
+                      @if (item.is_active) {
+                        <span class="badge badge-success" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Active</span>
+                      } @else {
+                        <span class="badge badge-danger" style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Inactive</span>
+                      }
+                    </td>
+                    <td class="actions-cell">
+                      <div class="action-btn-trio">
+                        <button 
+                          type="button" 
+                          class="btn-action-icon btn-view" 
+                          (click)="onViewDocument(item)" 
+                          title="View Document"
+                          [disabled]="!item.document"
+                          [style.opacity]="!item.document ? 0.5 : 1"
+                        >
+                          <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          class="btn-action-icon btn-edit" 
+                          (click)="onEditChild(item)" 
+                          title="Edit Child"
+                        >
+                          <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        @if (!isSuperintendent()) {
+                          <button 
+                            type="button" 
+                            class="btn-action-icon" 
+                            [ngClass]="{'btn-delete': item.is_active, 'btn-view': !item.is_active}"
+                            (click)="onToggleStatus(item)" 
+                            [title]="item.is_active ? 'Deactivate Child' : 'Activate Child'"
+                          >
+                            <span class="material-symbols-outlined">{{ item.is_active ? 'block' : 'check_circle' }}</span>
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="9" class="empty-state-cell">
+                      <span class="material-symbols-outlined empty-icon">child_care</span>
+                      <p>No trust children records found</p>
+                    </td>
+                  </tr>
+                }
+              }
+  
+            </tbody>
+          </table>
+        </div>
+  
+        <!-- Pagination Footer Bar -->
+        @if (totalCount() > 0) {
+          <div class="pagination-footer">
+            <div class="pagination-btn-group">
+              @for (page of pagesArray(); track page) {
+                <button 
+                  type="button" 
+                  class="page-btn" 
+                  [class.active]="currentPage() === page"
+                  (click)="setPage(page)"
+                >
+                  {{ page }}
+                </button>
+              }
+              @if (totalPages() > 1) {
+                <button 
+                  type="button" 
+                  class="page-btn" 
+                  [disabled]="currentPage() === totalPages()"
+                  (click)="nextPage()"
+                >
+                  Next
+                </button>
+                <button 
+                  type="button" 
+                  class="page-btn" 
+                  [disabled]="currentPage() === totalPages()"
+                  (click)="lastPage()"
+                >
+                  Last
+                </button>
+              }
+            </div>
+          </div>
+        }
+  
+      </div>
+  
+    </main>
+  
+    <!-- ==========================================
+         MODAL: UPLOAD / EDIT TRUST CHILDREN DETAILS
+         ========================================== -->
+    @if (isModalOpen()) {
+      <div class="modal-backdrop" (click)="closeModal()">
+        <div class="modal-card" style="max-width: 800px; max-height: 90vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+          <!-- Modal Top Title Header -->
+          <div class="modal-title-header">
+            <h2>{{ modalMode() === 'create' ? 'Add Trust Child Details' : 'Edit Trust Child Details' }}</h2>
+            <button type="button" class="modal-close-btn" (click)="closeModal()" title="Close">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+  
+          <!-- Inner Box Card -->
+          <form [formGroup]="childForm" (ngSubmit)="onSubmitForm()">
+            <div class="modal-body-box">
+              <div class="box-header-bar">
+                <h3>Child Information</h3>
+                <span class="subtext">Please fill in the necessary details below</span>
+              </div>
+  
+              <div class="box-content-area" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <!-- Column 1 -->
+                <div>
+                  <div class="form-group margin-top-sm">
+                    <label>Child Name *</label>
+                    <input type="text" formControlName="children_name" placeholder="Full Name" style="text-transform: uppercase;" />
+                  </div>
+  
+                  <div class="form-group margin-top-sm single-select-wrapper" style="position: relative;">
+                    <label>Branch *</label>
+                    <div class="multi-select-box" (click)="toggleBranchDropdown()">
+                      @if (!childForm.value.trust_name) {
+                        <span class="placeholder-text">Select Branch</span>
+                      } @else {
+                        <span class="selected-text">{{ getBranchName(childForm.value.trust_name) }}</span>
+                      }
+                      <span class="material-symbols-outlined dropdown-arrow">
+                        {{ isBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
+                      </span>
+                    </div>
+
+                    @if (isBranchDropdownOpen()) {
+                      <div class="multi-select-popover" (click)="$event.stopPropagation()">
+                        <div class="popover-header">
+                          <div class="popover-search">
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <input 
+                              type="text" 
+                              placeholder="Search branches..." 
+                              [ngModel]="branchSearchTerm()" 
+                              (ngModelChange)="branchSearchTerm.set($event)" 
+                              [ngModelOptions]="{standalone: true}" 
+                            />
+                            @if (branchSearchTerm()) {
+                              <button type="button" class="btn-clear-search" (click)="branchSearchTerm.set('')">×</button>
+                            }
+                          </div>
+                        </div>
+
+                        <div class="popover-options-list">
+                          <label class="popover-option-item" (click)="selectBranch('')">
+                             <span class="option-name text-muted">-- Clear Selection --</span>
+                          </label>
+                          @for (b of filteredModalBranches(); track b.id) {
+                            <label class="popover-option-item" (click)="selectBranch(b.id)">
+                              <span class="option-name" [style.font-weight]="childForm.value.trust_name == b.id ? 'bold' : 'normal'">{{ b.name }}</span>
+                              @if (b.code) {
+                                <span class="option-code">({{ b.code }})</span>
+                              }
+                            </label>
+                          } @empty {
+                            <div class="no-branches-found">No branches match your search</div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>License No *</label>
+                    <input type="text" formControlName="license_no" placeholder="License Number" />
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>Aadhar No *</label>
+                    <input type="text" formControlName="aadhar_no" placeholder="Aadhar Number" maxlength="12" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>Gender *</label>
+                    <div class="select-wrapper">
+                      <select formControlName="gender">
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <span class="material-symbols-outlined select-arrow">expand_more</span>
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- Column 2 -->
+                <div>
+                  <div class="form-group margin-top-sm">
+                    <label>Mobile Number *</label>
+                    <input type="text" formControlName="mobile_number" placeholder="Mobile Number" maxlength="10" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>Category *</label>
+                    <div class="select-wrapper">
+                      <select formControlName="category">
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="NORMAL CHILDREN">NORMAL CHILDREN</option>
+                        <option value="SPECIAL CHILDREN">SPECIAL CHILDREN</option>
+                        <option value="ADOPTION CHILD">ADOPTION CHILD</option>
+                      </select>
+                      <span class="material-symbols-outlined select-arrow">expand_more</span>
+                    </div>
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>Date of Joining *</label>
+                    <input type="date" formControlName="date_of_joining" />
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>Discharge Date</label>
+                    <input type="date" formControlName="discharge_date" />
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Setting this automatically marks record as inactive.</span>
+                  </div>
+  
+                  <!-- File Upload Row -->
+                  <div class="form-group margin-top-sm">
+                    <label>Upload Document (PDF/Image)</label>
+                    <div class="file-upload-row" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 10px;">
+                      <label class="btn-file-choose">
+                        Choose file
+                        <input type="file" accept=".pdf,.png,.jpg,.jpeg" (change)="onFileChange($event)" hidden />
+                      </label>
+                      <span class="file-chosen-name">{{ uploadFileName() }}</span>
+                      
+                      @if (existingDocumentUrl() && !removeDocumentFlag()) {
+                        <a [href]="existingDocumentUrl()" target="_blank" class="btn-action-icon btn-view" title="View Document" style="margin-left: auto;">
+                          <span class="material-symbols-outlined" style="font-size: 1.2rem;">visibility</span>
+                        </a>
+                        <button type="button" class="btn-action-icon btn-delete" (click)="onRemoveDocument()" title="Remove Document">
+                          <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- Full Width -->
+                <div style="grid-column: span 2;">
+                  <div class="form-group margin-top-sm">
+                    <label>Parent Details *</label>
+                    <textarea formControlName="parent_details" rows="2" style="width: 100%; padding: 0.55rem 0.85rem; font-size: 0.875rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical; text-transform: uppercase;"></textarea>
+                  </div>
+  
+                  <div class="form-group margin-top-sm">
+                    <label>Address *</label>
+                    <textarea formControlName="address" rows="2" style="width: 100%; padding: 0.55rem 0.85rem; font-size: 0.875rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical; text-transform: uppercase;"></textarea>
+                  </div>
+                </div>
+  
+                <!-- Modal Action Buttons (Bottom Left) -->
+                <div class="modal-actions-footer" style="grid-column: span 2; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                  <button 
+                    type="submit" 
+                    class="btn-modal-submit" 
+                    [disabled]="isSubmitting() || childForm.invalid"
+                    style="display: flex; align-items: center; justify-content: center;"
+                  >
+                    @if (isSubmitting()) {
+                      <span class="material-symbols-outlined spin-icon" style="font-size: 18px; margin-right: 4px;">progress_activity</span>
+                      Saving...
+                    } @else {
+                      Save
+                    }
+                  </button>
+                  <button type="button" class="btn-modal-reset" (click)="onResetForm()">
+                    Reset Form
+                  </button>
+                </div>
+  
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+  </div>

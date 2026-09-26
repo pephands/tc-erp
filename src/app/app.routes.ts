@@ -264,6 +264,11 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       {
+        path: 'trust-children',
+        loadComponent: () => import('./components/trust-children/trust-children.component').then(m => m.TrustChildrenComponent),
+        canActivate: [deviceAuthGuard],
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
