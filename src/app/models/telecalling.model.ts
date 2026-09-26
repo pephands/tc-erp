@@ -3,6 +3,7 @@ export interface MasterDonorRecord {
   donorName: string;
   phoneNumber: string;
   dob?: string;
+  anniversary?: string;
   category: 'BASE' | 'NON BASE' | 'NON_BASE';
   status: 'UNASSIGNED' | 'APPROVED_TO_BRANCH' | 'ASSIGNED_TO_TC' | 'COMPLETED' | 'ARCHIVED';
   currentBranch?: number;
@@ -93,6 +94,7 @@ export function deserializeMasterDonor(json: any): MasterDonorRecord {
     donorName: json.donor_name || '',
     phoneNumber: json.phone_number || '',
     dob: json.dob || undefined,
+    anniversary: json.anniversary || undefined,
     category: json.category || 'BASE',
     status: json.status || 'UNASSIGNED',
     currentBranch: json.current_branch || undefined,
@@ -101,9 +103,9 @@ export function deserializeMasterDonor(json: any): MasterDonorRecord {
     assignedTc: json.assigned_tc || undefined,
     assignedTcName: json.assigned_tc_name || undefined,
     assignedBranchAt: json.assigned_branch_at || undefined,
-    assignedTcAt: json.assigned_tc_at || undefined,
+    assignedTcAt: json.assigned_tc_at || json.assigned_at || undefined,
     createdAt: json.created_at || undefined,
-    updatedAt: json.updated_at || undefined,
+    updatedAt: json.completed_at || json.updated_at || undefined,
     latestCallDisposition: json.latest_call_disposition || undefined,
     latestCallRemarks: json.latest_call_remarks || undefined,
   };

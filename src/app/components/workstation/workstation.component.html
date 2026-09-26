@@ -58,6 +58,7 @@
               <th>Donor Name</th>
               <th>Phone Number</th>
               <th>DOB</th>
+              <th>Anniversary</th>
               <th>Assigned Date</th>
               @if (activeTab() === 'COMPLETED') {
                 <th>Completed Date</th>
@@ -81,6 +82,7 @@
                   <td class="font-semibold donor-name">{{ item.donorName }}</td>
                   <td class="font-bold phone-number">{{ item.phoneNumber }}</td>
                   <td class="text-muted">{{ item.dob || '-' }}</td>
+                  <td class="text-muted">{{ item.anniversary || '-' }}</td>
                   <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'shortDate') : (item.createdAt ? (item.createdAt | date:'shortDate') : '-') }}</td>
                   @if (activeTab() === 'COMPLETED') {
                     <td class="text-muted">{{ (item.status === 'COMPLETED' && item.updatedAt) ? (item.updatedAt | date:'shortDate') : '-' }}</td>
@@ -203,7 +205,7 @@
           </div>
 
           <div class="box-content-area">
-            <!-- Form Row 1: Donor Name & DOB -->
+            <!-- Form Row 1: Donor Name, DOB, Anniversary -->
             <div class="form-row">
               <div class="form-group flex-1">
                 <label>Donor Name *</label>
@@ -221,6 +223,15 @@
                   type="date"
                   [ngModel]="dobInput()"
                   (ngModelChange)="dobInput.set($event)"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <label>Anniversary</label>
+                <input
+                  type="date"
+                  [ngModel]="anniversaryInput()"
+                  (ngModelChange)="anniversaryInput.set($event)"
                 />
               </div>
             </div>
@@ -284,7 +295,7 @@
       </div>
   
       <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
-        <button type="button" class="btn-download-assigned" (click)="downloadTlExcel()" [disabled]="tlIsDownloading()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: #292524; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+        <button type="button" class="btn-download-assigned" (click)="downloadTlExcel()" [disabled]="tlIsDownloading()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
           @if (tlIsDownloading()) {
             <span class="material-symbols-outlined spin-icon" style="font-size: 18px; margin: 0;">progress_activity</span>
             <span>Downloading...</span>
@@ -300,16 +311,35 @@
     <div class="table-card">
       <div class="table-card-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
         
-        <div class="date-filter-group" style="display: flex; align-items: center; gap: 0.5rem;">
-            <label for="filterDate" style="font-weight: 500; color: #374151; font-size: 0.9rem;">Date:</label>
+        <div class="date-filter-group" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <label style="font-weight: 500; color: #374151; font-size: 0.9rem;">From:</label>
             <input 
               type="date" 
-              id="filterDate" 
               class="form-control" 
               style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
-              [(ngModel)]="tlFilterDate" 
+              [(ngModel)]="tlFilterStartDate" 
               (change)="onTlFilterChange()"
             />
+            
+            <label style="font-weight: 500; color: #374151; font-size: 0.9rem; margin-left: 0.25rem;">To:</label>
+            <input 
+              type="date" 
+              class="form-control" 
+              style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
+              [(ngModel)]="tlFilterEndDate" 
+              (change)="onTlFilterChange()"
+            />
+
+            <select 
+              class="form-control"
+              style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; margin-left: 0.5rem;"
+              [(ngModel)]="tlFilterAssignStatus"
+              (change)="onTlFilterChange()"
+            >
+              <option value="">Assign Status (All)</option>
+              <option value="ASSIGNED">Assigned</option>
+              <option value="UNASSIGNED">Not Assigned</option>
+            </select>
             
             @if (isAdmin()) {
               <select 
@@ -324,6 +354,10 @@
                 }
               </select>
             }
+            
+            <button type="button" (click)="resetTlFilters()" style="display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: #f3f4f6; color: #4b5563; font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-left: 0.5rem;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Reset
+            </button>
         </div>
 
         <div class="search-box">

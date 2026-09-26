@@ -26,6 +26,11 @@
           <span class="material-symbols-outlined">assignment_ind</span>
           <span>Assign to Telecaller</span>
         </button>
+
+        <button type="button" class="btn-toolbar btn-submit" (click)="openTlUploadModal()">
+          <span class="material-symbols-outlined">upload_file</span>
+          <span>TL Base Upload</span>
+        </button>
       </div>
     </div>
 
@@ -77,6 +82,9 @@
       </button>
       <button class="tab-btn" [class.active-tab]="currentTab() === 'SUMMARY'" (click)="setTab('SUMMARY')">
         Allocation Summary
+      </button>
+      <button class="tab-btn" [class.active-tab]="currentTab() === 'TL_UPLOADS'" (click)="setTab('TL_UPLOADS')">
+        TL Base Uploads
       </button>
     </div>
 
@@ -284,6 +292,42 @@
           </tbody>
         </table>
       </div>
+
+      <!-- History Pagination Controls -->
+      @if (allocationHistory().length > 0) {
+        <div class="pagination-footer">
+          <div class="pagination-btn-group">
+            @for (page of historyPagesArray(); track page) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="historyCurrentPage() === page"
+                (click)="setHistoryPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            @if (historyTotalPages() > 1) {
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="historyCurrentPage() === historyTotalPages()"
+                (click)="setHistoryPage(historyCurrentPage() + 1)"
+              >
+                Next
+              </button>
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="historyCurrentPage() === historyTotalPages()"
+                (click)="setHistoryPage(historyTotalPages())"
+              >
+                Last
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
     }
 
@@ -332,6 +376,145 @@
           </tbody>
         </table>
       </div>
+      
+      <!-- Summary Pagination Controls -->
+      @if (allocationSummary().length > 0) {
+        <div class="pagination-footer">
+          <div class="pagination-btn-group">
+            @for (page of summaryPagesArray(); track page) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="summaryCurrentPage() === page"
+                (click)="setSummaryPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            @if (summaryTotalPages() > 1) {
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="summaryCurrentPage() === summaryTotalPages()"
+                (click)="setSummaryPage(summaryCurrentPage() + 1)"
+              >
+                Next
+              </button>
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="summaryCurrentPage() === summaryTotalPages()"
+                (click)="setSummaryPage(summaryTotalPages())"
+              >
+                Last
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    }
+
+    <!-- TL UPLOADS TAB -->
+    @if (currentTab() === 'TL_UPLOADS') {
+    <div class="table-card margin-top-sm">
+      <div class="table-header-bar flex-column">
+        <div class="header-top">
+          <h3 class="table-title">TL Direct Uploads History</h3>
+          
+        </div>
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Start Date</label>
+            <input type="date" class="form-input" [ngModel]="startDate()" (ngModelChange)="startDate.set($event); onFilterChange()">
+          </div>
+          <div class="filter-group">
+            <label>End Date</label>
+            <input type="date" class="form-input" [ngModel]="endDate()" (ngModelChange)="endDate.set($event); onFilterChange()">
+          </div>
+          <div class="filter-group">
+            <label>Telecaller</label>
+            <select class="form-input" [ngModel]="selectedTelecallerFilter()" (ngModelChange)="selectedTelecallerFilter.set($event); onFilterChange()">
+              <option value="">All Telecallers</option>
+              @for (tc of telecallersList(); track tc.id) {
+                <option [value]="tc.id">{{ tc.full_name || tc.employee_Id }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Branch</th>
+              <th>Uploaded By</th>
+              <th>Telecaller</th>
+              <th>Quantity</th>
+              <th style="width: 80px; text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (batch of tlUploadsList(); track batch.id) {
+              <tr>
+                <td>{{ batch.created_at | date:'short' }}</td>
+                <td><strong>{{ batch.branch_name }}</strong></td>
+                <td><span class="text-secondary">{{ batch.assigned_by_name }}</span></td>
+                <td><strong>{{ batch.telecaller_name }}</strong></td>
+                <td><strong>{{ batch.assigned_count | number }}</strong></td>
+                <td style="text-align: center;">
+                  <button type="button" class="action-icon-btn" (click)="onDownloadBatchRecords(batch)" title="Download Records">
+                    <span class="material-symbols-outlined text-primary" style="font-size: 1.25rem;">download</span>
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (tlUploadsList().length === 0) {
+              <tr>
+                <td colspan="6" class="empty-state">No TL upload history found for the selected filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TL Uploads Pagination Controls -->
+      @if (tlUploadsList().length > 0) {
+        <div class="pagination-footer">
+          <div class="pagination-btn-group">
+            @for (page of tlUploadsPagesArray(); track page) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="tlUploadsCurrentPage() === page"
+                (click)="setTlUploadsPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            @if (tlUploadsTotalPages() > 1) {
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="tlUploadsCurrentPage() === tlUploadsTotalPages()"
+                (click)="setTlUploadsPage(tlUploadsCurrentPage() + 1)"
+              >
+                Next
+              </button>
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="tlUploadsCurrentPage() === tlUploadsTotalPages()"
+                (click)="setTlUploadsPage(tlUploadsTotalPages())"
+              >
+                Last
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
     }
   </main>
@@ -532,7 +715,7 @@
             </button>
           </div>
 
-          <div class="box-content-area" style="max-height: 400px; overflow-y: auto;">
+          <div class="box-content-area" style="max-height: 400px; overflow-y: auto;" (scroll)="onModalScroll($event)">
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
@@ -567,7 +750,7 @@
                           </span>
                         </td>
                         <td>{{ donor.status }}</td>
-                        <td class="text-muted">{{ donor.assigned_tc_at ? (donor.assigned_tc_at | date:'short') : '-' }}</td>
+                        <td class="text-muted">{{ donor.assigned_at ? (donor.assigned_at | date:'short') : '-' }}</td>
                       </tr>
                     } @empty {
                       <tr>
@@ -578,8 +761,87 @@
                       </tr>
                     }
                   }
+                  @if (isLoadingMoreModal()) {
+                    <tr>
+                      <td colspan="5" class="loading-table-state" style="padding: 1rem; text-align: center;">
+                        <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                        <p class="loading-title" style="margin-top: 0.5rem;">Loading more records...</p>
+                      </td>
+                    </tr>
+                  }
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==========================================
+       MODAL: TL DIRECT UPLOAD
+  =========================================== -->
+  @if (isTlUploadModalOpen()) {
+    <div class="modal-backdrop" (click)="closeTlUploadModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-title-header">
+          <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="material-symbols-outlined">upload_file</span>
+            TL Base Upload
+          </h2>
+          <button type="button" class="modal-close-btn" (click)="closeTlUploadModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Upload Data Direct to Branch</h3>
+          </div>
+
+          <div class="box-content-area">
+            <div style="background-color: #fff3cd; color: #856404; padding: 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+              <span class="material-symbols-outlined">info</span>
+              <p style="margin: 0; font-size: 0.9rem;">Upload a list of donor numbers directly to the branch pool. 
+                 Download the sample format below to ensure your columns match exactly.</p>
+            </div>
+
+            <div class="form-group margin-bottom-md" style="margin-bottom: 1.5rem;">
+              <button 
+                type="button" 
+                (click)="downloadTlUploadSample()"
+                style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: white; border: 1px solid #ddd; padding: 0.75rem; border-radius: 4px; cursor: pointer;"
+              >
+                <span class="material-symbols-outlined text-primary">download</span>
+                <span style="font-weight: 500;">Download Sample Excel Format</span>
+              </button>
+            </div>
+
+            <div class="form-group margin-bottom-md">
+              <label>Select Excel File (.xlsx) *</label>
+              <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+                <input type="file" accept=".xlsx" (change)="onTlUploadFileSelected($event)" style="flex: 1;" />
+              </div>
+            </div>
+
+            <div class="modal-actions-footer margin-top-lg" style="display: flex; gap: 1rem; justify-content: flex-end;">
+              <button
+                type="button"
+                class="btn-outline-secondary"
+                (click)="closeTlUploadModal()"
+                [disabled]="isLoading()"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isLoading() || !selectedTlUploadFile()"
+                (click)="onTlDirectUploadSubmit()"
+              >
+                {{ isLoading() ? 'Uploading...' : 'Upload Base' }}
+              </button>
             </div>
           </div>
         </div>

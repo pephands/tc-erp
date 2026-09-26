@@ -386,6 +386,27 @@ export class ApproveAssignComponent implements OnInit {
     );
   }
 
+  onDownloadRequestRecords(req: BranchAllocationRequestRecord): void {
+    const url = `${this.service.endPoint.telecallingRequests}${req.id}/export/`;
+    this.service.httpClient.get(url, { headers: this.service.headers, responseType: 'blob' }).subscribe({
+      next: (blob: Blob) => {
+        const fileUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.download = `Allocation_Request_${req.id}_Records.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(fileUrl);
+        this.triggerToast('Export downloaded successfully.');
+      },
+      error: (err: any) => {
+        console.error('Error downloading records:', err);
+        this.triggerToast('Failed to download exported records.', 'error');
+      },
+    });
+  }
+
   // Admin Action: Assign Data Directly to Branch
   onOpenAssignBranchModal(): void {
     this.assignBranchId.set('');

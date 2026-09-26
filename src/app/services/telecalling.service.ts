@@ -52,6 +52,22 @@ export class TelecallingService extends BaseHttpService {
     });
   }
 
+  downloadTLDirectSampleTemplate(): Observable<Blob> {
+    const url = `${this.endPoint.baseUrl}accounts/users/sample-template/?role=tl_direct`;
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      responseType: 'blob',
+    });
+  }
+
+  downloadBatchAllocatedBases(batchId: number): Observable<Blob> {
+    const url = `${this.endPoint.baseUrl}telecalling/allocations/batch/${batchId}/excel/`;
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      responseType: 'blob',
+    });
+  }
+
   fetchMasterSummary(): Observable<any> {
     return this.httpClient.get(this.endPoint.telecallingMasterSummary, {
       headers: this.headers,
@@ -148,6 +164,14 @@ export class TelecallingService extends BaseHttpService {
     });
   }
 
+  uploadTLDirect(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.httpClient.post(`${this.endPoint.baseUrl}telecalling/allocations/tl-direct-upload/`, formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
   fetchTcQueue(
     page: number = 1,
     pageSize: number = 10,
@@ -201,17 +225,21 @@ export class TelecallingService extends BaseHttpService {
       );
   }
 
-  fetchTlWorkstation(date?: string, search?: string, branch?: string, page: number = 1): Observable<any> {
+  fetchTlWorkstation(startDate?: string, endDate?: string, assignStatus?: string, search?: string, branch?: string, page: number = 1): Observable<any> {
     let params: any = { page };
-    if (date) params.date = date;
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    if (assignStatus) params.assign_status = assignStatus;
     if (search) params.search = search;
     if (branch) params.branch = branch;
     return this.httpClient.get<any>(this.endPoint.telecallingWorkstation, { headers: this.headers, params });
   }
 
-  fetchTlWorkstationExport(date?: string, search?: string, branch?: string): Observable<any[]> {
+  fetchTlWorkstationExport(startDate?: string, endDate?: string, assignStatus?: string, search?: string, branch?: string): Observable<any[]> {
     let params: any = { export: 'true' };
-    if (date) params.date = date;
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    if (assignStatus) params.assign_status = assignStatus;
     if (search) params.search = search;
     if (branch) params.branch = branch;
     return this.httpClient.get<any[]>(this.endPoint.telecallingWorkstation, { headers: this.headers, params });
@@ -222,7 +250,8 @@ export class TelecallingService extends BaseHttpService {
     disposition: string,
     remarks?: string,
     updatedName?: string,
-    updatedDob?: string
+    updatedDob?: string,
+    updatedAnniversary?: string
   ): Observable<any> {
     const payload: any = {
       telecalling_data_id: telecallingDataId,
@@ -230,6 +259,7 @@ export class TelecallingService extends BaseHttpService {
       remarks: remarks || '',
       updated_donor_name: updatedName || '',
       updated_dob: updatedDob || null,
+      updated_anniversary: updatedAnniversary || null,
     };
 
     return this.httpClient.post(this.endPoint.telecallingCallLog, payload, {

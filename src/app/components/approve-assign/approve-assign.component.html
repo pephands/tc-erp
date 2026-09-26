@@ -178,6 +178,15 @@
                           <span class="material-symbols-outlined">close</span>
                         </button>
                       </div>
+                    } @else if (item.status === 'APPROVED') {
+                      <button
+                        type="button"
+                        class="btn-action-icon btn-download-icon"
+                        (click)="onDownloadRequestRecords(item)"
+                        title="Download Allocated Records"
+                      >
+                        <span class="material-symbols-outlined">download</span>
+                      </button>
                     } @else {
                       <span class="text-muted-sm">-</span>
                     }

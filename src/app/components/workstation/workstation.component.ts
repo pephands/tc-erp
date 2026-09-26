@@ -52,6 +52,7 @@ export class WorkstationComponent implements OnInit {
 
   donorNameInput = signal<string>('');
   dobInput = signal<string>('');
+  anniversaryInput = signal<string>('');
   callDisposition = signal<string>('');
   remarksInput = signal<string>('');
 
@@ -80,9 +81,13 @@ export class WorkstationComponent implements OnInit {
   // ----------------------------------------------------
   tlIsLoading = signal<boolean>(false);
   tlDataList = signal<TCWorkstationData[]>([]);
-  tlFilterDate = signal<string>(
+  tlFilterStartDate = signal<string>(
     new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)
   );
+  tlFilterEndDate = signal<string>(
+    new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+  );
+  tlFilterAssignStatus = signal<string>('');
   tlSearchQuery = signal<string>('');
   isAdmin = signal<boolean>(false);
   branches = signal<any[]>([]);
@@ -222,6 +227,7 @@ export class WorkstationComponent implements OnInit {
     this.selectedDonor.set(donor);
     this.donorNameInput.set(donor.donorName);
     this.dobInput.set(donor.dob || '');
+    this.anniversaryInput.set(donor.anniversary || '');
     this.callDisposition.set(donor.latestCallDisposition || '');
     this.remarksInput.set(donor.latestCallRemarks || '');
     this.isCallModalOpen.set(true);
@@ -243,6 +249,7 @@ export class WorkstationComponent implements OnInit {
     const remarks = this.remarksInput().trim();
     const updatedName = this.donorNameInput().trim();
     const updatedDob = this.dobInput().trim();
+    const updatedAnniversary = this.anniversaryInput().trim();
 
     if (!disposition) {
       alert('Please select a Call Disposition.');
@@ -250,7 +257,7 @@ export class WorkstationComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.service.logCall(donor.id, disposition, remarks, updatedName, updatedDob).subscribe({
+    this.service.logCall(donor.id, disposition, remarks, updatedName, updatedDob, updatedAnniversary).subscribe({
       next: (res: any) => {
         this.isSubmitting.set(false);
         this.closeCallModal();
@@ -320,7 +327,14 @@ export class WorkstationComponent implements OnInit {
 
   fetchTlData(): void {
     this.tlIsLoading.set(true);
-    this.service.fetchTlWorkstation(this.tlFilterDate(), this.tlSearchQuery(), this.selectedBranch(), this.tlCurrentPage()).subscribe({
+    this.service.fetchTlWorkstation(
+      this.tlFilterStartDate(),
+      this.tlFilterEndDate(),
+      this.tlFilterAssignStatus(),
+      this.tlSearchQuery(),
+      this.selectedBranch(),
+      this.tlCurrentPage()
+    ).subscribe({
       next: (res: any) => {
         let list = res;
         if (res && res.results) {
@@ -352,9 +366,25 @@ export class WorkstationComponent implements OnInit {
     this.fetchTlData();
   }
 
+  resetTlFilters(): void {
+    this.tlFilterStartDate.set(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10));
+    this.tlFilterEndDate.set(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10));
+    this.tlFilterAssignStatus.set('');
+    this.selectedBranch.set('');
+    this.tlSearchQuery.set('');
+    this.tlCurrentPage.set(1);
+    this.fetchTlData();
+  }
+
   downloadTlExcel(): void {
     this.tlIsDownloading.set(true);
-    this.service.fetchTlWorkstationExport(this.tlFilterDate(), this.tlSearchQuery(), this.selectedBranch()).subscribe({
+    this.service.fetchTlWorkstationExport(
+      this.tlFilterStartDate(),
+      this.tlFilterEndDate(),
+      this.tlFilterAssignStatus(),
+      this.tlSearchQuery(),
+      this.selectedBranch()
+    ).subscribe({
       next: (res: any) => {
         this.tlIsDownloading.set(false);
         let list = res;
@@ -366,6 +396,7 @@ export class WorkstationComponent implements OnInit {
           'S.No': index + 1,
           'Branch': item['Branch'],
           'TC Name': item['TC Name'],
+          'Employee ID': item['TC Employee ID'],
           'Donor Name': item['Donor Name'],
           'Phone Number': item['Phone Number'],
           'DOB': item['DOB'],
@@ -377,7 +408,7 @@ export class WorkstationComponent implements OnInit {
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'TL Call Logs');
-        const fileName = `TL_CallLogs_${this.tlFilterDate()}.xlsx`;
+        const fileName = `TL_CallLogs_${this.tlFilterStartDate()}_to_${this.tlFilterEndDate()}.xlsx`;
         XLSX.writeFile(workbook, fileName);
       },
       error: (err) => {

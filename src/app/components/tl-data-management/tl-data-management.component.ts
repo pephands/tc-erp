@@ -26,9 +26,10 @@ export class TlDataManagementComponent implements OnInit {
   telecallersList = signal<TelecallerUserOption[]>([]);
   
   // New features
-  currentTab = signal<'REQUESTS' | 'HISTORY' | 'SUMMARY'>('REQUESTS');
+  currentTab = signal<'REQUESTS' | 'HISTORY' | 'SUMMARY' | 'TL_UPLOADS'>('REQUESTS');
   allocationHistory = signal<any[]>([]);
   allocationSummary = signal<any[]>([]);
+  tlUploadsList = signal<any[]>([]);
 
   // Allocated Bases details modal
   isAllocatedBasesModalOpen = signal<boolean>(false);
@@ -36,10 +37,33 @@ export class TlDataManagementComponent implements OnInit {
   selectedTelecallerForBases = signal<any>(null);
   isLoadingAllocatedBases = signal<boolean>(false);
   
+  modalPage = signal<number>(1);
+  hasMoreModalRecords = signal<boolean>(true);
+  isLoadingMoreModal = signal<boolean>(false);
+
+  // TL Upload Modal
+  isTlUploadModalOpen = signal<boolean>(false);
+  selectedTlUploadFile = signal<File | null>(null);
+  
   // Filters for new features
   startDate = signal<string>('');
   endDate = signal<string>('');
   selectedTelecallerFilter = signal<string>('');
+  
+  // Summary pagination
+  summaryCurrentPage = signal<number>(1);
+  summaryTotalPages = signal<number>(1);
+  summaryPagesArray = computed(() => Array.from({ length: Math.min(this.summaryTotalPages(), 6) }, (_, i) => i + 1));
+
+  // History pagination
+  historyCurrentPage = signal<number>(1);
+  historyTotalPages = signal<number>(1);
+  historyPagesArray = computed(() => Array.from({ length: Math.min(this.historyTotalPages(), 6) }, (_, i) => i + 1));
+
+  // TL Uploads pagination
+  tlUploadsCurrentPage = signal<number>(1);
+  tlUploadsTotalPages = signal<number>(1);
+  tlUploadsPagesArray = computed(() => Array.from({ length: Math.min(this.tlUploadsTotalPages(), 6) }, (_, i) => i + 1));
 
   // Loading & State flags
   isLoading = signal<boolean>(false);
@@ -174,12 +198,13 @@ export class TlDataManagementComponent implements OnInit {
       },
     });
     
-    // Load History and Summary initially
+    // Load History, Summary, and Uploads initially
     this.loadAllocationHistory();
     this.loadAllocationSummary();
+    this.loadTlUploads();
   }
 
-  setTab(tab: 'REQUESTS' | 'HISTORY' | 'SUMMARY') {
+  setTab(tab: 'REQUESTS' | 'HISTORY' | 'SUMMARY' | 'TL_UPLOADS') {
     this.currentTab.set(tab);
   }
 
@@ -192,28 +217,58 @@ export class TlDataManagementComponent implements OnInit {
 
   loadAllocationHistory(): void {
     const params = this.getFilterParams();
+    params.page = this.historyCurrentPage();
     if (this.selectedTelecallerFilter()) {
       params.telecaller_id = this.selectedTelecallerFilter();
     }
     
     this.service.fetchTCAllocationHistory(params).subscribe({
       next: (res: any) => {
-        if (res && res.status === 'success') {
-          this.allocationHistory.set(res.data);
-        } else if (res && res.results) {
+        if (res && res.results) {
           this.allocationHistory.set(res.results);
+          this.historyTotalPages.set(Math.ceil(res.count / 10));
+        } else if (res && res.status === 'success') {
+          this.allocationHistory.set(res.data);
+          this.historyTotalPages.set(1);
         }
       },
       error: (err) => console.error('Error fetching allocation history:', err),
     });
   }
 
+  loadTlUploads(): void {
+    const params = this.getFilterParams();
+    params.page = this.tlUploadsCurrentPage();
+    params.source = 'TL_DIRECT';
+    if (this.selectedTelecallerFilter()) {
+      params.telecaller_id = this.selectedTelecallerFilter();
+    }
+    
+    this.service.fetchTCAllocationHistory(params).subscribe({
+      next: (res: any) => {
+        if (res && res.results) {
+          this.tlUploadsList.set(res.results);
+          this.tlUploadsTotalPages.set(Math.ceil(res.count / 10));
+        } else if (res && res.status === 'success') {
+          this.tlUploadsList.set(res.data);
+          this.tlUploadsTotalPages.set(1);
+        }
+      },
+      error: (err) => console.error('Error fetching TL uploads history:', err),
+    });
+  }
+
   loadAllocationSummary(): void {
     const params = this.getFilterParams();
+    params.page = this.summaryCurrentPage();
     this.service.fetchTCAllocationSummary(params).subscribe({
       next: (res: any) => {
-        if (res && res.status === 'success') {
+        if (res && res.results) {
+          this.allocationSummary.set(res.results);
+          this.summaryTotalPages.set(Math.ceil(res.count / 10));
+        } else if (res && res.status === 'success') {
           this.allocationSummary.set(res.data);
+          this.summaryTotalPages.set(1);
         }
       },
       error: (err) => console.error('Error fetching allocation summary:', err),
@@ -221,8 +276,33 @@ export class TlDataManagementComponent implements OnInit {
   }
 
   onFilterChange(): void {
+    this.summaryCurrentPage.set(1);
+    this.historyCurrentPage.set(1);
+    this.tlUploadsCurrentPage.set(1);
     this.loadAllocationHistory();
     this.loadAllocationSummary();
+    this.loadTlUploads();
+  }
+
+  setHistoryPage(page: number): void {
+    if (page >= 1 && page <= this.historyTotalPages()) {
+      this.historyCurrentPage.set(page);
+      this.loadAllocationHistory();
+    }
+  }
+
+  setSummaryPage(page: number): void {
+    if (page >= 1 && page <= this.summaryTotalPages()) {
+      this.summaryCurrentPage.set(page);
+      this.loadAllocationSummary();
+    }
+  }
+
+  setTlUploadsPage(page: number): void {
+    if (page >= 1 && page <= this.tlUploadsTotalPages()) {
+      this.tlUploadsCurrentPage.set(page);
+      this.loadTlUploads();
+    }
   }
 
   onDownloadHistory(): void {
@@ -301,18 +381,61 @@ export class TlDataManagementComponent implements OnInit {
     this.isAllocatedBasesModalOpen.set(true);
     this.isLoadingAllocatedBases.set(true);
     this.allocatedBasesList.set([]);
+    this.modalPage.set(1);
+    this.hasMoreModalRecords.set(true);
 
     const params = this.getFilterParams();
+    params.page = 1;
     this.service.fetchTCAllocatedBases(item.telecaller_id, params).subscribe({
       next: (res: any) => {
-        if (res && res.status === 'success') {
+        if (res && res.results) {
+          this.allocatedBasesList.set(res.results);
+          this.hasMoreModalRecords.set(!!res.next);
+        } else if (res && res.status === 'success') {
           this.allocatedBasesList.set(res.data);
+          this.hasMoreModalRecords.set(false);
         }
         this.isLoadingAllocatedBases.set(false);
       },
       error: (err) => {
         console.error('Error fetching allocated bases:', err);
         this.isLoadingAllocatedBases.set(false);
+      }
+    });
+  }
+
+  onModalScroll(event: any): void {
+    const el = event.target;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+      if (!this.isLoadingMoreModal() && this.hasMoreModalRecords()) {
+        this.loadMoreModalRecords();
+      }
+    }
+  }
+
+  loadMoreModalRecords(): void {
+    const item = this.selectedTelecallerForBases();
+    if (!item) return;
+
+    this.isLoadingMoreModal.set(true);
+    this.modalPage.update(p => p + 1);
+    
+    const params = this.getFilterParams();
+    params.page = this.modalPage();
+
+    this.service.fetchTCAllocatedBases(item.telecaller_id, params).subscribe({
+      next: (res: any) => {
+        if (res && res.results) {
+          this.allocatedBasesList.update(curr => [...curr, ...res.results]);
+          this.hasMoreModalRecords.set(!!res.next);
+        } else if (res && res.status === 'success') {
+          this.hasMoreModalRecords.set(false);
+        }
+        this.isLoadingMoreModal.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching more records:', err);
+        this.isLoadingMoreModal.set(false);
       }
     });
   }
@@ -388,6 +511,82 @@ export class TlDataManagementComponent implements OnInit {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
+  }
+
+  // --- TL Direct Upload ---
+
+  openTlUploadModal(): void {
+    this.selectedTlUploadFile.set(null);
+    this.isTlUploadModalOpen.set(true);
+  }
+
+  closeTlUploadModal(): void {
+    this.isTlUploadModalOpen.set(false);
+    this.selectedTlUploadFile.set(null);
+  }
+
+  onTlUploadFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedTlUploadFile.set(file);
+    }
+  }
+
+  downloadTlUploadSample(): void {
+    this.service.downloadTLDirectSampleTemplate().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tl_direct_upload_sample.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Error downloading sample:', err),
+    });
+  }
+
+  onTlDirectUploadSubmit(): void {
+    const file = this.selectedTlUploadFile();
+    if (!file) {
+      this.triggerToast('Please select a file to upload');
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.service.uploadTLDirect(file).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        this.triggerToast(res.message || 'TL Base Upload successful');
+        this.closeTlUploadModal();
+        this.currentTab.set('TL_UPLOADS');
+        this.loadTlUploads();
+        this.loadData();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.triggerToast(err.error?.message || 'Error uploading file');
+      },
+    });
+  }
+
+  onDownloadBatchRecords(batch: any): void {
+    if (!batch.id) return;
+    this.service.downloadBatchAllocatedBases(batch.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const filename = `TC_Allocation_Batch_${batch.id}.xlsx`;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error downloading batch records:', err);
+        this.triggerToast('Failed to download batch records');
+      }
+    });
   }
 
   nextPage(): void {
