@@ -107,20 +107,21 @@
             <th>Donor Number</th>
             <th>Campaign Name</th>
             <th>Template</th>
+            <th>Meta Template</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
           @if (loading) {
             <tr>
-              <td colspan="8" class="no-data">
+              <td colspan="9" class="no-data">
                 <div class="btn-spinner" style="display:inline-block; border-color:var(--text-color); border-top-color:transparent;"></div>
                 <p>Loading history...</p>
               </td>
             </tr>
           } @else if (historyRecords.length === 0) {
             <tr>
-              <td colspan="8" class="no-data">
+              <td colspan="9" class="no-data">
                 <span class="material-symbols-outlined">history</span>
                 <p>No history records found.</p>
               </td>
@@ -139,6 +140,7 @@
                 <td class="col-phone">{{ record.donor_number }}</td>
                 <td>{{ record.campaign_name }}</td>
                 <td>{{ record.template_name }}</td>
+                <td>{{ record.meta_template_name || '-' }}</td>
                 <td class="col-hide">
                   <span class="hide-badge" [class.is-true]="record.status !== 'SUCCESS'">
                     {{ record.status }}

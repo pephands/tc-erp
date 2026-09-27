@@ -186,14 +186,44 @@
 
 .actions-cell { text-align: center; width: 140px; }
 
-.btn-call-action {
+.btn-call-only {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+}
+
+@media (min-width: 769px) {
+  .btn-call-only {
+    display: none !important;
+  }
+}
+
+.btn-call-only:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-call-only .material-symbols-outlined { font-size: 16px; }
+
+.btn-update-only {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   background: #059669;
   color: #ffffff;
   border: none;
-  padding: 0.4rem 0.85rem;
+  padding: 0.4rem 0.65rem;
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 4px;
@@ -202,12 +232,12 @@
   transition: all 0.15s ease;
 }
 
-.btn-call-action:hover {
+.btn-update-only:hover {
   background: #047857;
   transform: translateY(-1px);
 }
 
-.btn-call-action .material-symbols-outlined { font-size: 16px; }
+.btn-update-only .material-symbols-outlined { font-size: 16px; }
 
 .loading-table-state, .empty-table-state {
   text-align: center;

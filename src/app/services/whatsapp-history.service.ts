@@ -12,6 +12,7 @@ export interface WhatsappHistoryRecord {
   donor_number: string;
   campaign_name: string;
   template_name: string;
+  meta_template_name: string;
   status: string;
   sent_at: string;
 }

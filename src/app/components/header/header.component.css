@@ -388,7 +388,31 @@
 }
 
 @media (max-width: 768px) {
+  .top-header {
+    padding: 0 1rem;
+  }
+  
+  .top-header-left, .top-header-right {
+    gap: 0.5rem;
+  }
+
   .mobile-menu-btn {
     display: flex;
+  }
+
+  .page-main-heading {
+    font-size: 1rem;
+  }
+
+  .theme-btn-label {
+    display: none;
+  }
+
+  .dd-user-info {
+    display: none;
+  }
+
+  .trigger-chevron {
+    display: none;
   }
 }

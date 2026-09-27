@@ -108,19 +108,29 @@
                   </td>
                   <td class="actions-cell">
                     @if (isRowEditable(item)) {
-                      <button
-                        type="button"
-                        class="btn-call-action"
-                        (click)="onOpenCallModal(item)"
-                        title="Call Donor & Record Remarks"
-                      >
-                        <span class="material-symbols-outlined">call</span>
-                        <span>Call & Update</span>
-                      </button>
+                      <div class="action-buttons-group" style="display: flex; gap: 0.5rem; justify-content: center;">
+                        <a
+                          [href]="'tel:' + item.phoneNumber"
+                          class="btn-call-only"
+                          title="Call Donor"
+                        >
+                          <span class="material-symbols-outlined">call</span>
+                          <span>Call</span>
+                        </a>
+                        <button
+                          type="button"
+                          class="btn-update-only"
+                          (click)="onOpenCallModal(item)"
+                          title="Update Call Details"
+                        >
+                          <span class="material-symbols-outlined">edit_note</span>
+                          <span>Update</span>
+                        </button>
+                      </div>
                     } @else {
                       <button
                         type="button"
-                        class="btn-call-action"
+                        class="btn-update-only"
                         disabled
                         style="opacity: 0.5; cursor: not-allowed; background: #e5e5e5; color: #999;"
                         title="Cannot edit past completed calls"

@@ -25,238 +25,232 @@
       }
 
       <div class="two-column-grid">
-        <!-- LEFT COLUMN -->
-        <div class="grid-column">
-          <!-- 1. Payment Date -->
-          <div class="form-group">
-            <label for="paymentDate">Payment Date <span class="required-star">*</span></label>
-            <input
-              type="date"
-              id="paymentDate"
-              class="form-control"
-              [ngModel]="paymentDate()"
-              (ngModelChange)="paymentDate.set($event)"
-            />
-          </div>
+        <!-- 1. Payment Date -->
+        <div class="form-group fg-payment-date">
+          <label for="paymentDate">Payment Date <span class="required-star">*</span></label>
+          <input
+            type="date"
+            id="paymentDate"
+            class="form-control"
+            [ngModel]="paymentDate()"
+            (ngModelChange)="paymentDate.set($event)"
+          />
+        </div>
 
-          <!-- 2. Alternate Mobile Number -->
-          <div class="form-group">
-            <label for="altMobileNumber">Alternate Mobile Number</label>
-            <input
-              type="text"
-              id="altMobileNumber"
-              class="form-control"
-              placeholder="Enter alternate mobile number"
-              [ngModel]="altMobileNumber()"
-              (ngModelChange)="onAltMobileNumberChange($event)"
-              (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
-            />
-          </div>
-
-          <!-- 3. Amount -->
-          @if (!(editRecord?.donation_type === 'Goodies')) {
-            <div class="form-group">
-              <label for="amount">Amount <span class="required-star">*</span></label>
-              <input
-                type="number"
-                id="amount"
-                class="form-control"
-                placeholder="Enter amount"
-                [ngModel]="amount()"
-                (ngModelChange)="amount.set($event)"
-              />
-            </div>
-          }
-
-          <!-- 4. Payment Mode -->
-          @if (!(editRecord?.donation_type === 'Goodies')) {
-            <div class="form-group">
-              <label for="modeOfPayment">Payment Mode <span class="required-star">*</span></label>
-              <select
-                id="modeOfPayment"
-                class="form-control"
-                [ngModel]="modeOfPayment()"
-                (ngModelChange)="modeOfPayment.set($event)"
-              >
-                <option value="">Select Payment Mode</option>
-                @for (mode of paymentModes(); track mode.id) {
-                  <option [value]="mode.name">{{ mode.name }}</option>
-                }
-              </select>
-            </div>
-          }
-
-          <!-- 5. Donor Type -->
-          @if (!editRecord) {
-          <div class="form-group">
-            <label for="donorType">Donor Type <span class="required-star">*</span></label>
-            <select
-              id="donorType"
-              class="form-control"
-              [ngModel]="donorType()"
-              (ngModelChange)="donorType.set($event)"
-            >
-              <option value="NEW">New</option>
-              <option value="OLD">Old</option>
+        <!-- 2. Donor Number -->
+        <div class="form-group fg-donor-number">
+          <label for="mobileNumber">Donor Number <span class="required-star">*</span></label>
+          <input
+            type="text"
+            id="mobileNumber"
+            class="form-control"
+            placeholder="Enter mobile number"
+            maxlength="10"
+            [ngModel]="mobileNumber()"
+            (ngModelChange)="onMobileNumberChange($event)"
+            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
+          />
+          <div *ngIf="matchedDonors().length > 0" style="margin-top: 8px;">
+            <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
+            <select class="form-control" style="padding: 6px; font-size: 13px;" (change)="$any($event.target).value === 'new' ? selectMatchedDonor('new') : selectMatchedDonor(matchedDonors()[$any($event.target).value])">
+              <option *ngFor="let d of matchedDonors(); let idx = index" [value]="idx">
+                {{ d.name }} {{ d.pan_number ? '(PAN: ' + d.pan_number + ')' : '' }}
+              </option>
+              <option value="new">+ Enter New Name/PAN</option>
             </select>
           </div>
-          }
-
-          <!-- 6. PAN Number -->
-          <div class="form-group">
-            <label for="panNumber">PAN Number</label>
-            <input
-              type="text"
-              id="panNumber"
-              class="form-control uppercase-input"
-              placeholder="Enter PAN number"
-              maxlength="10"
-              [ngModel]="panNumber()"
-              (ngModelChange)="panNumber.set($event)"
-            />
-          </div>
-
-          <!-- 7. Correction Name -->
-          @if (!editRecord) {
-          <div class="form-group">
-            <label for="correctionName">Correction Name</label>
-            <input
-              type="text"
-              id="correctionName"
-              class="form-control uppercase-input"
-              placeholder="Enter correction name"
-              [ngModel]="correctionName()"
-              (ngModelChange)="correctionName.set($event)"
-            />
-          </div>
-          }
-
-          <!-- 8. Address -->
-          <div class="form-group">
-            <label for="address">Address</label>
-            <textarea
-              id="address"
-              class="form-control textarea-control uppercase-input"
-              rows="3"
-              placeholder="Enter full address"
-              [ngModel]="address()"
-              (ngModelChange)="address.set($event)"
-            ></textarea>
-          </div>
         </div>
 
-        <!-- RIGHT COLUMN -->
-        <div class="grid-column">
-          <!-- 1. Donor Number -->
-          <div class="form-group">
-            <label for="mobileNumber">Donor Number <span class="required-star">*</span></label>
+        <!-- 3. Donor Name -->
+        <div class="form-group fg-donor-name">
+          <label for="donorName">Donor Name <span class="required-star">*</span></label>
+          <input
+            type="text"
+            id="donorName"
+            class="form-control uppercase-input"
+            placeholder="Enter donor name"
+            [ngModel]="donorName()"
+            (ngModelChange)="donorName.set($event)"
+          />
+        </div>
+
+        <!-- 4. Alternate Mobile Number -->
+        <div class="form-group fg-alt-mobile">
+          <label for="altMobileNumber">Alternate Mobile Number</label>
+          <input
+            type="text"
+            id="altMobileNumber"
+            class="form-control"
+            placeholder="Enter alternate mobile number"
+            [ngModel]="altMobileNumber()"
+            (ngModelChange)="onAltMobileNumberChange($event)"
+            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
+          />
+        </div>
+
+        <!-- 5. Amount -->
+        @if (!(editRecord?.donation_type === 'Goodies')) {
+          <div class="form-group fg-amount">
+            <label for="amount">Amount <span class="required-star">*</span></label>
             <input
-              type="text"
-              id="mobileNumber"
+              type="number"
+              id="amount"
               class="form-control"
-              placeholder="Enter mobile number"
-              maxlength="10"
-              [ngModel]="mobileNumber()"
-              (ngModelChange)="onMobileNumberChange($event)"
-              (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
-            />
-            <div *ngIf="matchedDonors().length > 0" style="margin-top: 8px;">
-              <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
-              <select class="form-control" style="padding: 6px; font-size: 13px;" (change)="$any($event.target).value === 'new' ? selectMatchedDonor('new') : selectMatchedDonor(matchedDonors()[$any($event.target).value])">
-                <option *ngFor="let d of matchedDonors(); let idx = index" [value]="idx">
-                  {{ d.name }} {{ d.pan_number ? '(PAN: ' + d.pan_number + ')' : '' }}
-                </option>
-                <option value="new">+ Enter New Name/PAN</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- 2. Donor Name -->
-          <div class="form-group">
-            <label for="donorName">Donor Name <span class="required-star">*</span></label>
-            <input
-              type="text"
-              id="donorName"
-              class="form-control uppercase-input"
-              placeholder="Enter donor name"
-              [ngModel]="donorName()"
-              (ngModelChange)="donorName.set($event)"
+              placeholder="Enter amount"
+              [ngModel]="amount()"
+              (ngModelChange)="amount.set($event)"
             />
           </div>
+        }
 
-          <!-- 3. Reference Id -->
-          @if (!(editRecord?.donation_type === 'Goodies')) {
-            <div class="form-group">
-              <label for="referenceId">Reference Id <span class="required-star">*</span></label>
-              <input
-                type="text"
-                id="referenceId"
-                class="form-control"
-                placeholder="Enter reference ID"
-                [ngModel]="referenceId()"
-                (ngModelChange)="referenceId.set($event)"
-              />
-            </div>
-          }
-
-          <!-- 4. Slab -->
-          @if (!editRecord) {
-          <div class="form-group">
-            <label for="slab">Slab</label>
-            <input
-              type="text"
-              id="slab"
-              class="form-control disabled-input"
-              [ngModel]="slab()"
-              disabled
-              readonly
-            />
-          </div>
-          }
-
-          <!-- 5. Select Payment Proof Image -->
-          @if (!editRecord) {
-          <div class="form-group">
-            <label for="promotionImage">Select Payment Proof Screenshot</label>
-            <span class="file-allowed-hint">Allowed extensions (jpg, png, gif, pdf)</span>
-            <div class="file-input-wrapper">
-              <input
-                type="file"
-                id="promotionImage"
-                accept=".jpg,.jpeg,.png,.gif,.pdf"
-                (change)="onFileSelected($event)"
-              />
-            </div>
-          </div>
-          }
-
-          <!-- 6. Remarks -->
-          @if (!editRecord) {
-          <div class="form-group">
-            <label for="remarks">Remarks</label>
-            <textarea
-              id="remarks"
-              class="form-control textarea-control uppercase-input"
-              rows="3"
-              placeholder="Enter remarks"
-              [ngModel]="remarks()"
-              (ngModelChange)="remarks.set($event)"
-            ></textarea>
-          </div>
-          }
-
-          <!-- 7. DOB -->
-          <div class="form-group">
-            <label for="dob">DOB (DD/MM/YYYY)</label>
-            <input
-              type="date"
-              id="dob"
+        <!-- 6. Payment Mode -->
+        @if (!(editRecord?.donation_type === 'Goodies')) {
+          <div class="form-group fg-payment-mode">
+            <label for="modeOfPayment">Payment Mode <span class="required-star">*</span></label>
+            <select
+              id="modeOfPayment"
               class="form-control"
-              [ngModel]="dob()"
-              (ngModelChange)="dob.set($event)"
+              [ngModel]="modeOfPayment()"
+              (ngModelChange)="modeOfPayment.set($event)"
+            >
+              <option value="">Select Payment Mode</option>
+              @for (mode of paymentModes(); track mode.id) {
+                <option [value]="mode.name">{{ mode.name }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- 7. Reference Id -->
+        @if (!(editRecord?.donation_type === 'Goodies')) {
+          <div class="form-group fg-reference-id">
+            <label for="referenceId">Reference Id <span class="required-star">*</span></label>
+            <input
+              type="text"
+              id="referenceId"
+              class="form-control"
+              placeholder="Enter reference ID"
+              [ngModel]="referenceId()"
+              (ngModelChange)="referenceId.set($event)"
+            />
+          </div>
+        }
+
+        <!-- 8. Payment Proof Screenshot -->
+        @if (!editRecord) {
+        <div class="form-group fg-payment-proof">
+          <label for="promotionImage">Select Payment Proof Screenshot</label>
+          <span class="file-allowed-hint">Allowed extensions (jpg, png, gif, pdf)</span>
+          <div class="file-input-wrapper">
+            <input
+              type="file"
+              id="promotionImage"
+              accept=".jpg,.jpeg,.png,.gif,.pdf"
+              (change)="onFileSelected($event)"
             />
           </div>
         </div>
+        }
+
+        <!-- 9. Donor Type -->
+        @if (!editRecord) {
+        <div class="form-group fg-donor-type">
+          <label for="donorType">Donor Type <span class="required-star">*</span></label>
+          <select
+            id="donorType"
+            class="form-control"
+            [ngModel]="donorType()"
+            (ngModelChange)="donorType.set($event)"
+          >
+            <option value="NEW">New</option>
+            <option value="OLD">Old</option>
+          </select>
+        </div>
+        }
+
+        <!-- 10. Slab -->
+        @if (!editRecord) {
+        <div class="form-group fg-slab">
+          <label for="slab">Slab</label>
+          <input
+            type="text"
+            id="slab"
+            class="form-control disabled-input"
+            [ngModel]="slab()"
+            disabled
+            readonly
+          />
+        </div>
+        }
+
+        <!-- 11. Correction Name -->
+        @if (!editRecord) {
+        <div class="form-group fg-correction-name">
+          <label for="correctionName">Correction Name</label>
+          <input
+            type="text"
+            id="correctionName"
+            class="form-control uppercase-input"
+            placeholder="Enter correction name"
+            [ngModel]="correctionName()"
+            (ngModelChange)="correctionName.set($event)"
+          />
+        </div>
+        }
+
+        <!-- 12. PAN Number -->
+        <div class="form-group fg-pan-number">
+          <label for="panNumber">PAN Number</label>
+          <input
+            type="text"
+            id="panNumber"
+            class="form-control uppercase-input"
+            placeholder="Enter PAN number"
+            maxlength="10"
+            [ngModel]="panNumber()"
+            (ngModelChange)="panNumber.set($event)"
+          />
+        </div>
+
+        <!-- 13. Address -->
+        <div class="form-group fg-address">
+          <label for="address">Address</label>
+          <textarea
+            id="address"
+            class="form-control textarea-control uppercase-input"
+            rows="3"
+            placeholder="Enter full address"
+            [ngModel]="address()"
+            (ngModelChange)="address.set($event)"
+          ></textarea>
+        </div>
+
+        <!-- 14. DOB -->
+        <div class="form-group fg-dob">
+          <label for="dob">DOB (DD/MM/YYYY)</label>
+          <input
+            type="date"
+            id="dob"
+            class="form-control"
+            [ngModel]="dob()"
+            (ngModelChange)="dob.set($event)"
+          />
+        </div>
+
+        <!-- 15. Remarks -->
+        @if (!editRecord) {
+        <div class="form-group fg-remarks">
+          <label for="remarks">Remarks</label>
+          <textarea
+            id="remarks"
+            class="form-control textarea-control uppercase-input"
+            rows="3"
+            placeholder="Enter remarks"
+            [ngModel]="remarks()"
+            (ngModelChange)="remarks.set($event)"
+          ></textarea>
+        </div>
+        }
       </div>
     </div>
 
