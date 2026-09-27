@@ -22,6 +22,14 @@ export class Endpoint {
     return this.baseUrl + 'accounts/users/';
   }
 
+  get roles(): string {
+    return this.baseUrl + 'accounts/roles/';
+  }
+
+  get designations(): string {
+    return this.baseUrl + 'accounts/designations/';
+  }
+
   get me(): string {
     return this.baseUrl + 'accounts/me/';
   }

@@ -38,6 +38,9 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
   selectedFile = signal<File | null>(null);
   selectedFileName = signal<string>('');
+  
+  existingProofUrl = signal<string | null>(null);
+  isProofReplaced = signal<boolean>(false);
 
   paymentModes = signal<any[]>([]);
 
@@ -84,6 +87,8 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.address.set(this.editRecord.address || '');
       this.dob.set(this.editRecord.dob || '');
       this.remarks.set(this.editRecord.remarks || '');
+      this.existingProofUrl.set((this.editRecord as any).payment_proof_url || null);
+      this.isProofReplaced.set(false);
     }
   }
 
@@ -93,6 +98,12 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.selectedFile.set(file);
       this.selectedFileName.set(file.name);
     }
+  }
+
+  removeExistingProof(): void {
+    this.isProofReplaced.set(true);
+    this.selectedFile.set(null);
+    this.selectedFileName.set('');
   }
 
   matchedDonors = signal<any[]>([]);
@@ -156,6 +167,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     this.remarks.set('');
     this.selectedFile.set(null);
     this.selectedFileName.set('');
+    this.isProofReplaced.set(false);
     this.errorMessage.set('');
   }
 

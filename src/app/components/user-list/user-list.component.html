@@ -69,6 +69,26 @@
         </div>
       </div>
 
+      <!-- Designation Filter (Trust Users view) -->
+      @if (roleCode === 'TRUST_USERS') {
+        <div class="filter-field">
+          <label for="designationSelectInput">Designation</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">badge</span>
+            <select
+              id="designationSelectInput"
+              [ngModel]="selectedDesignation()"
+              (ngModelChange)="onDesignationChange($event)"
+            >
+              <option value="">All Designations</option>
+              @for (des of trustDesignations(); track des.id) {
+                <option [value]="des.name">{{ des.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
+
       <!-- Status Filter -->
       <div class="filter-field">
         <label for="statusSelectInput">Status</label>
@@ -237,6 +257,7 @@
         </div>
 
         <div class="modal-body grid-2-col">
+          <div class="form-section-title">Enter {{ roleTitle }} Details</div>
           <div class="form-group">
             <label>Employee ID (Manual)</label>
             <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" placeholder="e.g. DAR_2709" style="text-transform: uppercase;" />
@@ -249,8 +270,28 @@
 
           <div class="form-group">
             <label>Designation</label>
-            <input type="text" [(ngModel)]="formDesignation" placeholder="e.g. Senior Telecaller" />
+            <select [(ngModel)]="formDesignation">
+              <option value="">-- Select Designation --</option>
+              @for (des of formDesignationOptions(); track des.id) {
+                <option [value]="des.name">{{ des.name }}</option>
+              }
+              @if (formDesignation && !isDesignationInList(formDesignation)) {
+                <option [value]="formDesignation">{{ formDesignation }} (Current)</option>
+              }
+            </select>
           </div>
+
+          @if (isAdminUser) {
+            <div class="form-group">
+              <label>System Role</label>
+              <select [(ngModel)]="formRoleCode">
+                <option value="">-- Select Role (Optional) --</option>
+                @for (r of systemRolesList; track r.code) {
+                  <option [value]="r.code">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+          }
 
           <div class="form-group">
             <label>Personal Mobile Number <span class="req">*</span></label>
@@ -459,10 +500,10 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="closeAddModal()">Cancel</button>
           <button type="button" class="btn-submit-orange" [disabled]="isSubmittingForm()" (click)="onSubmitAddUser()">
-            {{ isSubmittingForm() ? 'Creating...' : 'Save & Create' }}
+            {{ isSubmittingForm() ? 'Submitting...' : 'Submit' }}
           </button>
+          <button type="button" class="btn-cancel" (click)="resetForm()">Reset</button>
         </div>
       </div>
     </div>
@@ -483,6 +524,7 @@
         </div>
 
         <div class="modal-body grid-2-col">
+          <div class="form-section-title">Edit {{ roleTitle }} Details</div>
           <div class="form-group">
             <label>Employee ID</label>
             <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" style="text-transform: uppercase;" />
@@ -495,7 +537,15 @@
 
           <div class="form-group">
             <label>Designation</label>
-            <input type="text" [(ngModel)]="formDesignation" placeholder="e.g. Senior Telecaller" />
+            <select [(ngModel)]="formDesignation">
+              <option value="">-- Select Designation --</option>
+              @for (des of formDesignationOptions(); track des.id) {
+                <option [value]="des.name">{{ des.name }}</option>
+              }
+              @if (formDesignation && !isDesignationInList(formDesignation)) {
+                <option [value]="formDesignation">{{ formDesignation }} (Current)</option>
+              }
+            </select>
           </div>
 
           @if (isAdminUser) {
@@ -719,10 +769,10 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="closeEditModal()">Cancel</button>
           <button type="button" class="btn-submit-orange" [disabled]="isSubmittingForm()" (click)="onSubmitEditUser()">
-            {{ isSubmittingForm() ? 'Saving...' : 'Update User' }}
+            {{ isSubmittingForm() ? 'Saving...' : 'Submit' }}
           </button>
+          <button type="button" class="btn-cancel" (click)="closeEditModal()">Cancel</button>
         </div>
       </div>
     </div>

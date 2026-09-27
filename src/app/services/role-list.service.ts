@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Endpoint } from '../http/endpoint';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RoleListService {
   private httpClient = inject(HttpClient);
-  private endpoint = 'http://localhost:8000/accounts/roles/';
+  private endpoint = inject(Endpoint);
 
   private get headers(): HttpHeaders {
     let userStr = localStorage.getItem('tc_erp_auth_session');
@@ -26,6 +27,14 @@ export class RoleListService {
   }
 
   getRoles(): Observable<any> {
-    return this.httpClient.get(this.endpoint, { headers: this.headers });
+    return this.httpClient.get(this.endpoint.roles, { headers: this.headers });
+  }
+
+  updateRole(id: number, data: any): Observable<any> {
+    return this.httpClient.patch(`${this.endpoint.roles}${id}/`, data, { headers: this.headers });
+  }
+
+  deleteRole(id: number): Observable<any> {
+    return this.httpClient.delete(`${this.endpoint.roles}${id}/`, { headers: this.headers });
   }
 }

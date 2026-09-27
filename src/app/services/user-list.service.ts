@@ -43,7 +43,8 @@ export class UserListService extends BaseHttpService {
     page?: number,
     limit?: number,
     search?: string,
-    isActive?: string
+    isActive?: string,
+    designation?: string
   ): Observable<any> {
     let url = `${this.endpoint}?role=${encodeURIComponent(roleCode)}&`;
     if (isActive) {
@@ -59,6 +60,7 @@ export class UserListService extends BaseHttpService {
     if (page) url += `page=${page}&`;
     if (limit) url += `page_size=${limit}&`;
     if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (designation) url += `designation=${encodeURIComponent(designation)}&`;
     
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers });

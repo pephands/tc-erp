@@ -165,3 +165,18 @@ export class SuperintendentsPageComponent {}
   `
 })
 export class AdminsPageComponent {}
+
+@Component({
+  selector: 'app-trust-users-page',
+  standalone: true,
+  imports: [UserListComponent],
+  template: `
+    <app-user-list
+      roleCode="TRUST_USERS"
+      roleTitle="Trust Users"
+      roleIcon="shield_person"
+      roleDescription="Manage and view all Trust Users (Drivers, Cooks, Counselors, etc)."
+    ></app-user-list>
+  `
+})
+export class TrustUsersPageComponent {}

@@ -269,6 +269,28 @@ export class TelecallingService extends BaseHttpService {
     });
   }
 
+  logNewReferenceCall(
+    phoneNumber: string,
+    donorName: string,
+    disposition: string,
+    remarks?: string,
+    dob?: string,
+    anniversary?: string
+  ): Observable<any> {
+    const payload: any = {
+      is_new_reference: true,
+      phone_number: phoneNumber,
+      updated_donor_name: donorName,
+      call_disposition: disposition,
+      remarks: remarks || '',
+      updated_dob: dob || null,
+      updated_anniversary: anniversary || null,
+    };
+    return this.httpClient.post(this.endPoint.telecallingCallLog, payload, {
+      headers: this.headers,
+    });
+  }
+
   fetchTelecallers(): Observable<TelecallerUserOption[]> {
     return this.httpClient.get<any>(this.endPoint.telecallers, { headers: this.headers }).pipe(
       map((res: any) => {

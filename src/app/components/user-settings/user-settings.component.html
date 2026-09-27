@@ -1,0 +1,182 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <h2>User Settings</h2>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'designations'" (click)="activeTab = 'designations'">
+      Designations
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'roles'" (click)="activeTab = 'roles'">
+      System Roles
+    </button>
+  </div>
+
+  <!-- Designations Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'designations'">
+    <div class="tab-header">
+      <h3>Designations List</h3>
+      <div class="filter-bar">
+        <!-- Status Filter -->
+        <div class="filter-group">
+          <span class="material-symbols-outlined filter-icon">tune</span>
+          <div class="select-wrapper">
+            <select [(ngModel)]="designationStatusFilter" class="filter-select">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+        </div>
+
+        <!-- Trust Designations Filter -->
+        <div class="filter-group">
+          <span class="material-symbols-outlined filter-icon">shield_person</span>
+          <div class="select-wrapper">
+            <select [(ngModel)]="designationTrustFilter" class="filter-select">
+              <option value="all">All Types</option>
+              <option value="true">Trust Designations</option>
+              <option value="false">Other Designations</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" (click)="openDesignationModal()">+ Add New Designation</button>
+      </div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Designation Name</th>
+          <th>Is Trust Designations?</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let des of filteredDesignations; let i = index">
+          <td><span class="pill-id">{{ i + 1 }}</span></td>
+          <td><span class="pill-designation">{{ des.name }}</span></td>
+          <td>
+            <span class="badge" [class.badge-success]="des.is_trust" [class.badge-secondary]="!des.is_trust">
+              {{ des.is_trust ? 'Yes' : 'No' }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="des.is_active" [class.inactive]="!des.is_active">
+              {{ des.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button class="btn-icon edit-btn" (click)="openDesignationModal(des)" title="Edit">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="btn-icon" [ngClass]="des.is_active ? 'deactivate-btn' : 'activate-btn'" (click)="toggleDesignationStatus(des)" [title]="des.is_active ? 'Deactivate' : 'Activate'">
+              <span class="material-symbols-outlined">{{ des.is_active ? 'block' : 'check_circle' }}</span>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!filteredDesignations.length">
+          <td colspan="5" class="text-center">No designations found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Roles Tab -->
+  <div class="tab-content" *ngIf="activeTab === 'roles'">
+    <div class="tab-header">
+      <h3>System Roles List</h3>
+      <!-- Roles creation not allowed by requirement -->
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Role Code</th>
+          <th>Role Name</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of roles; let i = index">
+          <td><span class="pill-id">{{ i + 1 }}</span></td>
+          <td><span class="pill-id">{{ role.code }}</span></td>
+          <td><span class="pill-role">{{ role.name }}</span></td>
+          <td>
+            <span class="status-badge" [class.active]="role.is_active" [class.inactive]="!role.is_active">
+              {{ role.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="!roles.length">
+          <td colspan="4" class="text-center">No roles found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Designation Modal -->
+<div class="modal-overlay" *ngIf="showDesignationModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ isEditDesignation ? 'Edit Designation' : 'Add New Designation' }}</h3>
+      <button class="close-btn" (click)="closeDesignationModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Designation Name <span class="req">*</span></label>
+        <input type="text" [ngModel]="formDesignationName" (ngModelChange)="formDesignationName = toTitleCase($event)" placeholder="e.g. Senior Telecaller" />
+      </div>
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="formDesignationIsTrust" />
+          Is this a Trust User designation?
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeDesignationModal()" [disabled]="isSavingDesignation">Cancel</button>
+      <button class="btn-primary" (click)="saveDesignation()" [disabled]="!formDesignationName.trim() || isSavingDesignation">
+        {{ isSavingDesignation ? 'Saving...' : (isEditDesignation ? 'Update Designation' : 'Save Designation') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Role Modal -->
+<div class="modal-overlay" *ngIf="showRoleModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Edit Role</h3>
+      <button class="close-btn" (click)="closeRoleModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Role Code</label>
+        <input type="text" [(ngModel)]="formRoleCode" readonly disabled class="disabled-input" />
+        <small>Role code cannot be changed.</small>
+      </div>
+      <div class="form-group">
+        <label>Role Name <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="formRoleName" placeholder="e.g. Telecaller" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeRoleModal()" [disabled]="isSavingRole">Cancel</button>
+      <button class="btn-primary" (click)="saveRole()" [disabled]="!formRoleName.trim() || isSavingRole">
+        {{ isSavingRole ? 'Saving...' : 'Update Role' }}
+      </button>
+    </div>
+  </div>
+</div>

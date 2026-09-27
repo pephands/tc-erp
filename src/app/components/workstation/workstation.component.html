@@ -18,6 +18,10 @@
       </div>
 
       <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
+        <button type="button" class="btn-primary" (click)="openNewReferenceModal()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">person_add</span>
+          <span>Add Reference</span>
+        </button>
 
         <div class="queue-summary-badge">
           <span class="material-symbols-outlined icon">phone_in_talk</span>
@@ -237,7 +241,7 @@
                   type="text"
                   placeholder="Enter or update donor full name"
                   [ngModel]="donorNameInput()"
-                  (ngModelChange)="donorNameInput.set($event)"
+                  (ngModelChange)="donorNameInput.set($event.toUpperCase())"
                 />
               </div>
 
@@ -281,9 +285,16 @@
                 rows="3"
                 placeholder="Enter call notes, response details, or follow-up instructions..."
                 [ngModel]="remarksInput()"
-                (ngModelChange)="remarksInput.set($event)"
+                (ngModelChange)="remarksInput.set($event.toUpperCase())"
               ></textarea>
             </div>
+            
+            @if (modalErrorMessage()) {
+              <div class="modal-error-message" style="margin-top: 1rem; padding: 0.75rem; background-color: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem;">error</span>
+                <span>{{ modalErrorMessage() }}</span>
+              </div>
+            }
 
             <!-- Actions Footer -->
             <div class="modal-actions-footer">
@@ -297,6 +308,119 @@
               </button>
 
               <button type="button" class="btn-modal-reset" (click)="closeCallModal()">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==========================================
+       MODAL: ADD NEW REFERENCE DIALOG
+       ========================================== -->
+  @if (isNewReferenceModalOpen()) {
+    <div class="modal-backdrop" (click)="closeNewReferenceModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-title-header">
+          <div class="header-left">
+            <span class="material-symbols-outlined call-header-icon">person_add</span>
+            <h2>Add New Reference & Record Call</h2>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeNewReferenceModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-box">
+          <div class="box-header-bar">
+            <h3>Enter details for a new reference</h3>
+            <span class="subtext">This will create a new donor profile and record this call</span>
+          </div>
+
+          <div class="box-content-area">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>Phone Number *</label>
+                <input
+                  type="text"
+                  placeholder="Enter 10-digit phone number"
+                  [ngModel]="newRefPhone()"
+                  (ngModelChange)="onNewRefPhoneChange($event)"
+                />
+              </div>
+              <div class="form-group flex-1">
+                <label> Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter full name"
+                  [ngModel]="newRefName()"
+                  (ngModelChange)="newRefName.set($event.toUpperCase())"
+                />
+              </div>
+            </div>
+
+            <div class="form-row margin-top-sm">
+              <div class="form-group flex-1">
+                <label>Date of Birth (DOB) <span style="font-size: 0.8em; color: #666;">(or Anniversary required)</span></label>
+                <input
+                  type="date"
+                  [ngModel]="newRefDob()"
+                  (ngModelChange)="newRefDob.set($event)"
+                />
+              </div>
+
+              <div class="form-group flex-1">
+                <label>Anniversary <span style="font-size: 0.8em; color: #666;">(or DOB required)</span></label>
+                <input
+                  type="date"
+                  [ngModel]="newRefAnniversary()"
+                  (ngModelChange)="newRefAnniversary.set($event)"
+                />
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Call Disposition / Outcome *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="newRefDisposition()" (ngModelChange)="newRefDisposition.set($event)">
+                  <option value="" disabled>Select Call Disposition</option>
+                  @for (opt of dispositionOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <div class="form-group margin-top-sm">
+              <label>Call Remarks / Feedback</label>
+              <textarea
+                rows="3"
+                placeholder="Enter call notes, response details, or follow-up instructions..."
+                [ngModel]="newRefRemarks()"
+                (ngModelChange)="newRefRemarks.set($event.toUpperCase())"
+              ></textarea>
+            </div>
+            
+            @if (modalErrorMessage()) {
+              <div class="modal-error-message" style="margin-top: 1rem; padding: 0.75rem; background-color: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.1rem;">error</span>
+                <span>{{ modalErrorMessage() }}</span>
+              </div>
+            }
+
+            <div class="modal-actions-footer">
+              <button
+                type="button"
+                class="btn-modal-submit"
+                [disabled]="isSubmitting()"
+                (click)="onSubmitNewReference()"
+              >
+                {{ isSubmitting() ? 'Saving...' : 'Save & Submit Call Log' }}
+              </button>
+              <button type="button" class="btn-modal-reset" (click)="closeNewReferenceModal()">
                 Cancel
               </button>
             </div>

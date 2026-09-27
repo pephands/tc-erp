@@ -34,6 +34,7 @@ export class WhatsappHistoryComponent implements OnInit {
   branches: any[] = [];
   searchSubject = new Subject<string>();
   isTC: boolean = false;
+  isAdmin: boolean = false;
 
   constructor(
     private historyService: WhatsappHistoryService,
@@ -44,6 +45,7 @@ export class WhatsappHistoryComponent implements OnInit {
 
   ngOnInit(): void {
     const roles = this.authService.userRoles();
+    this.isAdmin = roles.includes('ADMIN');
     if (!roles.includes('ADMIN') && !roles.includes('MANAGER') && roles.includes('TC')) {
       this.isTC = true;
     }

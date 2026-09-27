@@ -107,7 +107,9 @@
             <th>Donor Number</th>
             <th>Campaign Name</th>
             <th>Template</th>
-            <th>Meta Template</th>
+            @if (isAdmin) {
+              <th>Meta Template</th>
+            }
             <th>Status</th>
           </tr>
         </thead>
@@ -140,7 +142,9 @@
                 <td class="col-phone">{{ record.donor_number }}</td>
                 <td>{{ record.campaign_name }}</td>
                 <td>{{ record.template_name }}</td>
-                <td>{{ record.meta_template_name || '-' }}</td>
+                @if (isAdmin) {
+                  <td>{{ record.meta_template_name || '-' }}</td>
+                }
                 <td class="col-hide">
                   <span class="hide-badge" [class.is-true]="record.status !== 'SUCCESS'">
                     {{ record.status }}

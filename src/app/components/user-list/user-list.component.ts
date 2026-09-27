@@ -6,6 +6,7 @@ import { BranchListService } from '../../services/branch-list.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 import { RoleListService } from '../../services/role-list.service';
+import { DesignationService } from '../../services/designation.service';
 
 export interface UserRecord {
   id: string; // Used for UI display (Employee ID)
@@ -53,6 +54,7 @@ export class UserListComponent implements OnInit {
   private toastService = inject(ToastService);
   private authService = inject(AuthService);
   private roleService = inject(RoleListService);
+  private designationService = inject(DesignationService);
 
   @Input() roleCode: string = 'TC';
   @Input() roleTitle: string = 'User';
@@ -90,11 +92,22 @@ export class UserListComponent implements OnInit {
   users = signal<UserRecord[]>([]);
   isLoading = signal<boolean>(false);
   branches = signal<any[]>([]);
+  trustDesignations = signal<any[]>([]);
+  allDesignations = signal<any[]>([]);
+  
+  formDesignationOptions = computed(() => {
+    if (this.roleCode === 'TRUST_USERS') {
+      return this.allDesignations().filter(d => d.is_trust === true);
+    } else {
+      return this.allDesignations().filter(d => d.is_trust === false);
+    }
+  });
 
   // Filter Bar Signals
   selectedBranch = signal<string>('');
   selectedStatus = signal<string>('');
   searchQuery = signal<string>('');
+  selectedDesignation = signal<string>('');
 
   // Pagination
   currentPage = signal<number>(1);
@@ -167,6 +180,11 @@ export class UserListComponent implements OnInit {
       this.loadRoles();
     }
     
+    if (this.roleCode === 'TRUST_USERS') {
+      this.loadTrustDesignations();
+    }
+    
+    this.loadAllDesignations();
     this.fetchUsers();
   }
 
@@ -180,6 +198,32 @@ export class UserListComponent implements OnInit {
         console.error('Failed to fetch system roles', err);
       }
     });
+  }
+
+  loadTrustDesignations(): void {
+    this.designationService.getDesignations('true').subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || res.results || []);
+        const trustDesigs = data.filter((d: any) => d.is_trust === true);
+        this.trustDesignations.set(trustDesigs);
+      },
+      error: (err: any) => console.error('Failed to load designations:', err)
+    });
+  }
+
+  loadAllDesignations(): void {
+    this.designationService.getDesignations('true').subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || res.results || []);
+        this.allDesignations.set(data);
+      },
+      error: (err: any) => console.error('Failed to load all designations:', err)
+    });
+  }
+
+  isDesignationInList(designationName: string): boolean {
+    if (!designationName) return true;
+    return this.formDesignationOptions().some(d => d.name && d.name.toUpperCase() === designationName.toUpperCase());
   }
 
   loadBranches(): void {
@@ -202,7 +246,8 @@ export class UserListComponent implements OnInit {
     const page = this.currentPage();
 
     const status = this.selectedStatus();
-    this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search, status).subscribe({
+    const designation = this.selectedDesignation();
+    this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search, status, designation).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         let count = 0;
@@ -300,12 +345,19 @@ export class UserListComponent implements OnInit {
     this.fetchUsers();
   }
 
+  onDesignationChange(val: string): void {
+    this.selectedDesignation.set(val);
+    this.currentPage.set(1);
+    this.fetchUsers();
+  }
+
   onResetFilters(): void {
     if (this.isAdminUser) {
       this.selectedBranch.set('');
     }
     this.selectedStatus.set('');
     this.searchQuery.set('');
+    this.selectedDesignation.set('');
     this.currentPage.set(1);
     this.fetchUsers();
   }
@@ -407,8 +459,15 @@ export class UserListComponent implements OnInit {
     this.formEmail = '';
     this.formBranchId = '';
     this.formGender = 'Male';
-    this.formDesignation = this.roleTitle === 'Backend Staff' ? 'Backend' : this.roleTitle;
-    this.formRoleCode = '';
+    
+    // Default Designation logic
+    const fallbackTitle = this.roleTitle === 'Backend Staff' ? 'Backend' : this.roleTitle;
+    const matchedDesig = this.allDesignations().find(d => d.name && d.name.toUpperCase() === fallbackTitle.toUpperCase());
+    this.formDesignation = matchedDesig ? matchedDesig.name : fallbackTitle.toUpperCase();
+
+    // Default System Role logic
+    this.formRoleCode = (this.roleCode && this.roleCode !== 'TRUST_USERS') ? this.roleCode : '';
+    
     this.formSlab = '';
     this.formSalary = '0';
     this.formShiftStart = '09:00 AM';
@@ -562,7 +621,12 @@ export class UserListComponent implements OnInit {
     formData.append('gender', this.formGender);
     if (this.formDesignation.trim()) formData.append('designation', this.formDesignation.trim());
     formData.append('status', this.formStatus);
-    formData.append('target_role', this.roleCode);
+    
+    if (this.isAdminUser && this.formRoleCode) {
+      formData.append('target_role', this.formRoleCode);
+    } else if (this.roleCode !== 'TRUST_USERS') {
+      formData.append('target_role', this.roleCode);
+    }
 
     if (this.formOfficialPhone.trim()) formData.append('office_phone', this.formOfficialPhone.trim());
     if (this.formEmail.trim()) formData.append('email', this.formEmail.trim());

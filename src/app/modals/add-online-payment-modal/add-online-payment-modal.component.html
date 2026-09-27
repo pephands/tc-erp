@@ -137,23 +137,34 @@
         }
 
         <!-- 8. Payment Proof Screenshot -->
-        @if (!editRecord) {
         <div class="form-group fg-payment-proof">
           <label for="promotionImage">Select Payment Proof Screenshot</label>
           <span class="file-allowed-hint">Allowed extensions (jpg, png, gif, pdf)</span>
-          <div class="file-input-wrapper">
-            <input
-              type="file"
-              id="promotionImage"
-              accept=".jpg,.jpeg,.png,.gif,.pdf"
-              (change)="onFileSelected($event)"
-            />
-          </div>
+          
+          @if (existingProofUrl() && !isProofReplaced()) {
+            <div class="existing-file-preview" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9; margin-top: 5px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="color: #4a90e2;">image</span>
+                <span>Existing Payment Proof</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <a [href]="existingProofUrl()" target="_blank" class="btn-secondary-action" style="text-decoration: none; padding: 4px 10px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 4px; color: #334155;">View</a>
+                <button type="button" class="btn-delete" style="padding: 4px 10px; font-size: 0.85rem; border: none; background: #ffebee; color: #d32f2f; border-radius: 4px; cursor: pointer;" (click)="removeExistingProof()">Replace</button>
+              </div>
+            </div>
+          } @else {
+            <div class="file-input-wrapper">
+              <input
+                type="file"
+                id="promotionImage"
+                accept=".jpg,.jpeg,.png,.gif,.pdf"
+                (change)="onFileSelected($event)"
+              />
+            </div>
+          }
         </div>
-        }
 
         <!-- 9. Donor Type -->
-        @if (!editRecord) {
         <div class="form-group fg-donor-type">
           <label for="donorType">Donor Type <span class="required-star">*</span></label>
           <select
@@ -166,10 +177,8 @@
             <option value="OLD">Old</option>
           </select>
         </div>
-        }
 
         <!-- 10. Slab -->
-        @if (!editRecord) {
         <div class="form-group fg-slab">
           <label for="slab">Slab</label>
           <input
@@ -181,10 +190,8 @@
             readonly
           />
         </div>
-        }
 
         <!-- 11. Correction Name -->
-        @if (!editRecord) {
         <div class="form-group fg-correction-name">
           <label for="correctionName">Correction Name</label>
           <input
@@ -196,7 +203,6 @@
             (ngModelChange)="correctionName.set($event)"
           />
         </div>
-        }
 
         <!-- 12. PAN Number -->
         <div class="form-group fg-pan-number">
@@ -238,7 +244,6 @@
         </div>
 
         <!-- 15. Remarks -->
-        @if (!editRecord) {
         <div class="form-group fg-remarks">
           <label for="remarks">Remarks</label>
           <textarea
@@ -250,7 +255,6 @@
             (ngModelChange)="remarks.set($event)"
           ></textarea>
         </div>
-        }
       </div>
     </div>
 

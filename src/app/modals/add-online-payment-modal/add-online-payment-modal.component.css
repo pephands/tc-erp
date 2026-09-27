@@ -112,31 +112,6 @@
   align-items: start;
 }
 
-@media (min-width: 769px) {
-  /* Left column items */
-  .fg-payment-date, 
-  .fg-alt-mobile, 
-  .fg-amount, 
-  .fg-payment-mode, 
-  .fg-donor-type, 
-  .fg-pan-number, 
-  .fg-correction-name, 
-  .fg-address {
-    grid-column: 1;
-  }
-  
-  /* Right column items */
-  .fg-donor-number, 
-  .fg-donor-name, 
-  .fg-reference-id, 
-  .fg-slab, 
-  .fg-payment-proof, 
-  .fg-remarks, 
-  .fg-dob {
-    grid-column: 2;
-  }
-}
-
 @media (max-width: 768px) {
   .two-column-grid {
     display: flex;

@@ -43,7 +43,10 @@ import {
   CounselorsPageComponent,
   SuperintendentsPageComponent,
   AdminsPageComponent,
+  TrustUsersPageComponent,
 } from './components/role-users/role-user-pages.component';
+
+import { UserSettingsComponent } from './components/user-settings/user-settings.component';
 
 import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
@@ -122,6 +125,16 @@ export const routes: Routes = [
       {
         path: 'users/superintendent',
         component: SuperintendentsPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/trust-users',
+        component: TrustUsersPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/settings',
+        component: UserSettingsComponent,
         canActivate: [deviceAuthGuard],
       },
 

@@ -161,6 +161,13 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['ADMIN'],
           route: '/users/admin',
         },
+        {
+          id: 'user_setting',
+          label: 'User Setting',
+          icon: 'settings',
+          allowedRoles: ['ADMIN'],
+          route: '/users/settings',
+        }
       ],
     },
     {
@@ -169,51 +176,7 @@ export class SidebarComponent implements OnInit {
       icon: 'shield_person',
       category: 'Team',
       allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-      submenus: [
-        
-        {
-          id: 'driver',
-          label: 'Driver',
-          icon: 'directions_car',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/users/driver',
-        },
-        {
-          id: 'cook',
-          label: 'Cook',
-          icon: 'restaurant',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/users/cook',
-        },
-        {
-          id: 'assistant_cook',
-          label: 'Assistant Cook',
-          icon: 'soup_kitchen',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/users/assistant-cook',
-        },
-        {
-          id: 'public_relations',
-          label: 'Public Relations',
-          icon: 'campaign',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/users/public-relations',
-        },
-        {
-          id: 'counselor',
-          label: 'Counselor',
-          icon: 'psychology',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/users/counselor',
-        },
-        {
-          id: 'superintendent',
-          label: 'Superintendent',
-          icon: 'badge',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
-          route: '/users/superintendent',
-        },
-      ],
+      route: '/users/trust-users',
     },
     {
       id: 'attendance',
@@ -380,7 +343,7 @@ export class SidebarComponent implements OnInit {
       label: 'Branch Details',
       icon: 'location_city',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
+      allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS','SUPERINTENDENT'],
       submenus: [
         {
           id: 'branch_documents',
@@ -619,6 +582,7 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/users/team-leader')) return 'team_leader';
     if (url.includes('/users/manager') || url.includes('/managers')) return 'manager';
     if (url.includes('/users/backend')) return 'backend';
+    if (url.includes('/users/trust-users')) return 'trust_users';
     if (url.includes('/users/driver')) return 'driver';
     if (url.includes('/users/cook')) return 'cook';
     if (url.includes('/users/assistant-cook')) return 'assistant_cook';

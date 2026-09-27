@@ -58,6 +58,16 @@ export class WorkstationComponent implements OnInit {
   remarksInput = signal<string>('');
 
   dispositionOptions = signal<{value: string, label: string}[]>([]);
+  
+  // NEW REFERENCE MODAL LOGIC
+  isNewReferenceModalOpen = signal<boolean>(false);
+  newRefPhone = signal<string>('');
+  newRefName = signal<string>('');
+  newRefDob = signal<string>('');
+  newRefAnniversary = signal<string>('');
+  newRefDisposition = signal<string>('');
+  newRefRemarks = signal<string>('');
+  modalErrorMessage = signal<string>('');
 
   paginatedQueue = computed(() => this.queue());
   totalPages = computed(() => this.totalPagesSignal());
@@ -254,13 +264,15 @@ export class WorkstationComponent implements OnInit {
     const donor = this.selectedDonor();
     if (!donor) return;
     const disposition = this.callDisposition();
-    const remarks = this.remarksInput().trim();
-    const updatedName = this.donorNameInput().trim();
+    const remarks = this.remarksInput().trim().toUpperCase();
+    const updatedName = this.donorNameInput().trim().toUpperCase();
     const updatedDob = this.dobInput().trim();
     const updatedAnniversary = this.anniversaryInput().trim();
+    
+    this.modalErrorMessage.set('');
 
     if (!disposition) {
-      alert('Please select a Call Disposition.');
+      this.modalErrorMessage.set('Please select a Call Disposition.');
       return;
     }
 
@@ -276,8 +288,72 @@ export class WorkstationComponent implements OnInit {
         this.isSubmitting.set(false);
         console.error('Error logging call:', err);
         const msg = err.error?.message || 'Failed to record call log.';
-        alert(msg);
+        this.modalErrorMessage.set(msg);
       },
+    });
+  }
+
+  // ----------------------------------------------------
+  // ADD NEW REFERENCE
+  // ----------------------------------------------------
+  openNewReferenceModal(): void {
+    this.newRefPhone.set('');
+    this.newRefName.set('');
+    this.newRefDob.set('');
+    this.newRefAnniversary.set('');
+    this.newRefDisposition.set('');
+    this.newRefRemarks.set('');
+    this.modalErrorMessage.set('');
+    this.isNewReferenceModalOpen.set(true);
+  }
+
+  closeNewReferenceModal(): void {
+    this.isNewReferenceModalOpen.set(false);
+    this.modalErrorMessage.set('');
+  }
+
+  onNewRefPhoneChange(val: string): void {
+    val = val.replace(/[^0-9]/g, '');
+    this.newRefPhone.set(val);
+  }
+
+  onSubmitNewReference(): void {
+    const phone = this.newRefPhone().trim();
+    const name = this.newRefName().trim().toUpperCase();
+    const disp = this.newRefDisposition();
+    const rem = this.newRefRemarks().trim().toUpperCase();
+    const dob = this.newRefDob();
+    const anni = this.newRefAnniversary();
+    
+    this.modalErrorMessage.set('');
+
+    if (!phone || phone.length !== 10) {
+      this.modalErrorMessage.set('Please enter a valid 10-digit phone number.');
+      return;
+    }
+    if (!dob && !anni) {
+      this.modalErrorMessage.set('Please enter either Date of Birth (DOB) or Anniversary.');
+      return;
+    }
+    if (!disp) {
+      this.modalErrorMessage.set('Please select a Call Disposition.');
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.service.logNewReferenceCall(phone, name, disp, rem, dob, anni).subscribe({
+      next: (res: any) => {
+        this.isSubmitting.set(false);
+        this.closeNewReferenceModal();
+        this.triggerToast(`New reference ${name} created and call logged successfully!`);
+        this.fetchQueue();
+      },
+      error: (err: any) => {
+        this.isSubmitting.set(false);
+        console.error('Error logging new reference:', err);
+        const msg = err.error?.message || 'Failed to record new reference.';
+        this.modalErrorMessage.set(msg);
+      }
     });
   }
 
@@ -303,6 +379,7 @@ export class WorkstationComponent implements OnInit {
           'Donor Name': item.donorName || '',
           'Phone Number': item.phoneNumber || '',
           'DOB': item.dob || '',
+          'Anniversary': item.anniversary || '',
           'Assigned Date': item.assignedTcAt ? item.assignedTcAt.slice(0, 10) : (item.createdAt ? item.createdAt.slice(0, 10) : ''),
           'Call Completed Date': (this.activeTab() === 'COMPLETED' && item.status === 'COMPLETED' && item.updatedAt) ? item.updatedAt.slice(0, 10) : '',
           'Call Disposition': item.latestCallDisposition || '',
@@ -409,6 +486,7 @@ export class WorkstationComponent implements OnInit {
           'Donor Name': item['Donor Name'],
           'Phone Number': item['Phone Number'],
           'DOB': item['DOB'],
+          'Anniversary': item['Anniversary'] || '',
           'Assigned Date': item['Assigned Date'],
           'Call Completed Date': item['Call Completed Date'],
           'Call Disposition': item['Call Disposition'],

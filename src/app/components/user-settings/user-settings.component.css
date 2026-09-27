@@ -1,0 +1,381 @@
+.settings-container {
+  padding: 20px;
+  background-color: #f9f9fb;
+  min-height: 100vh;
+}
+
+.settings-header h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ddd;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #666;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: var(--primary);
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+
+.tab-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tab-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #444;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-primary:disabled {
+  background-color: var(--primary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #e9ecef;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 10px;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #dee2e6;
+}
+
+/* Filter Bar Styles */
+.filter-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 4px 12px;
+  transition: all 0.2s ease;
+}
+
+.filter-group:focus-within {
+  border-color: var(--primary);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.filter-icon {
+  color: #64748b;
+  font-size: 20px !important;
+  margin-right: 8px;
+}
+
+.select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-select {
+  border: none;
+  background: transparent;
+  padding: 6px 0;
+  font-size: 14px;
+  color: #334155;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 24px;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 0;
+  pointer-events: none;
+  color: #94a3b8;
+  font-size: 20px !important;
+}
+
+/* Table styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table th {
+  background-color: transparent;
+  border-bottom: 2px solid #e5e7eb;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.pill-id {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  display: inline-block;
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.pill-designation {
+  background-color: #fef3c7;
+  color: #d97706;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+  font-size: 13px;
+}
+
+.pill-role {
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+  font-size: 13px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.badge-secondary {
+  background-color: #e2e3e5;
+  color: #41464b;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-badge.inactive {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  color: #4b5563;
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+.edit-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.deactivate-btn {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+.deactivate-btn:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+.activate-btn {
+  color: #198754;
+}
+.activate-btn:hover {
+  background-color: #d1e7dd;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+.modal-body {
+  padding: 20px;
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #444;
+}
+
+.req {
+  color: red;
+}
+
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-group.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.disabled-input {
+  background-color: #f1f1f1;
+  color: #666;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
