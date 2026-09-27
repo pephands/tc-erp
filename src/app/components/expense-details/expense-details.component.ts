@@ -33,8 +33,12 @@ export class ExpenseDetailsComponent implements OnInit {
     return roles.includes('TL') && !this.isAdmin;
   }
 
+  get isPR(): boolean {
+    return this.authService.userRoles().includes('PUBLIC_RELATIONS');
+  }
+
   get canCreateExpense(): boolean {
-    return this.isAdmin || this.isTl || this.isSuperintendent();
+    return this.isAdmin || this.isTl || this.isSuperintendent() || this.isPR;
   }
 
   get canDeleteExpense(): boolean {

@@ -36,7 +36,7 @@ export class ReceiptListComponent implements OnInit {
 
   filteredRecords = computed(() => {
     let recs = this.records();
-    if (this.isSuperintendent() && this.activeTab() !== 'All') {
+    if ((this.isSuperintendent() || this.isPR()) && this.activeTab() !== 'All') {
       recs = recs.filter(r => (r as any).donation_type === this.activeTab() || (!((r as any).donation_type) && this.activeTab() === 'Amount'));
     }
     return recs;
@@ -54,6 +54,7 @@ export class ReceiptListComponent implements OnInit {
   isManager = signal<boolean>(false);
   isTL = signal<boolean>(false);
   isTC = signal<boolean>(false);
+  isPR = signal<boolean>(false);
   branches = signal<any[]>([]);
 
   // Pagination
@@ -71,7 +72,8 @@ export class ReceiptListComponent implements OnInit {
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER']));
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
-    this.isTC.set(!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent());
+    this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS']));
+    this.isTC.set(!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR());
 
     if (this.isTC()) {
       const today = new Date();
@@ -91,7 +93,7 @@ export class ReceiptListComponent implements OnInit {
       this.endDate.set(this.formatDate(lastDay));
     }
 
-    if (this.isAdmin() || this.isManager() || this.isTL()) {
+    if (this.isAdmin() || this.isManager() || this.isTL() || this.isPR()) {
       this.fetchBranches();
     }
   }
@@ -112,6 +114,10 @@ export class ReceiptListComponent implements OnInit {
           this.branches.set(res.data);
         } else if (Array.isArray(res)) {
           this.branches.set(res);
+        }
+        
+        if (this.isPR()) {
+          this.branches.set(this.branches().filter((b: any) => b.is_trust === true));
         }
       },
       error: (err: any) => {

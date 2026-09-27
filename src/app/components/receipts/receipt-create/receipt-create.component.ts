@@ -38,6 +38,7 @@ export class ReceiptCreateComponent implements OnInit {
   branchName = signal<string>('');
   branches = signal<any[]>([]);
   isAdmin = signal<boolean>(false);
+  isPR = signal<boolean>(false);
 
   isBranchDropdownOpen = signal<boolean>(false);
   branchSearch = signal<string>('');
@@ -75,6 +76,9 @@ export class ReceiptCreateComponent implements OnInit {
     if (roles.includes('ADMIN')) {
       this.isAdmin.set(true);
       this.fetchBranches();
+    } else if (roles.includes('PUBLIC_RELATIONS')) {
+      this.isPR.set(true);
+      this.fetchBranches();
     }
     this.fetchPaymentModes();
   }
@@ -82,13 +86,20 @@ export class ReceiptCreateComponent implements OnInit {
   fetchBranches() {
     this.branchService.getData(1, 100, '', 'true').subscribe({
       next: (res: any) => {
+        let branchData = [];
         if (res && res.results) {
-          this.branches.set(res.results);
+          branchData = res.results;
         } else if (res && res.data) {
-          this.branches.set(res.data);
+          branchData = res.data;
         } else if (Array.isArray(res)) {
-          this.branches.set(res);
+          branchData = res;
         }
+
+        if (this.isPR()) {
+          branchData = branchData.filter((b: any) => b.is_trust === true);
+        }
+        
+        this.branches.set(branchData);
       },
       error: (err: any) => console.error('Error fetching branches:', err)
     });
@@ -206,7 +217,7 @@ export class ReceiptCreateComponent implements OnInit {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    if (this.isAdmin() && !this.branch()) {
+    if ((this.isAdmin() || this.isPR()) && !this.branch()) {
       this.errorMessage.set('Branch selection is required.');
       return;
     }
@@ -225,7 +236,7 @@ export class ReceiptCreateComponent implements OnInit {
       return;
     }
     
-    if (this.isSuperintendent() && this.donationType() === 'Goodies') {
+    if ((this.isSuperintendent() || this.isPR()) && this.donationType() === 'Goodies') {
       // Allow amount to be empty or 0, we'll set it to 0 before saving
       // Skip referenceId and modeOfPayment validation
     } else {
@@ -273,7 +284,7 @@ export class ReceiptCreateComponent implements OnInit {
     }
     formData.append('donor_name', this.donorName().trim().toUpperCase());
     
-    if (this.isSuperintendent() && this.donationType() === 'Goodies') {
+    if ((this.isSuperintendent() || this.isPR()) && this.donationType() === 'Goodies') {
       formData.append('amount', '0');
       formData.append('reference_id', 'Goodies');
       formData.append('mode_of_payment', 'Goodies');
@@ -284,11 +295,11 @@ export class ReceiptCreateComponent implements OnInit {
     }
     formData.append('slab', this.slab().trim() || '1');
     formData.append('donor_type', this.donorType());
-    if (this.isSuperintendent()) {
+    if (this.isSuperintendent() || this.isPR()) {
       formData.append('donation_type', this.donationType());
     }
 
-    if (this.isAdmin() && this.branch()) {
+    if ((this.isAdmin() || this.isPR()) && this.branch()) {
       formData.append('branch', this.branch());
     }
 

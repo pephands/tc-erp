@@ -35,7 +35,7 @@
       <!-- LEFT COLUMN -->
       <div class="grid-column" >
         
-        @if (isAdmin()) {
+        @if (isAdmin() || isPR()) {
           <div class="form-group custom-dropdown-container" style="position: relative;">
             <label>Branch <span class="required-star">*</span></label>
             <div class="form-control dropdown-trigger" (click)="toggleBranchDropdown()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff;">
@@ -92,7 +92,7 @@
           />
         </div>
 
-        @if (isSuperintendent()) {
+        @if (isSuperintendent() || isPR()) {
           <div class="form-group">
             <label>Donation Type <span class="required-star">*</span></label>
             <div style="display: flex; gap: 10px;">
@@ -118,7 +118,7 @@
           </div>
         }
 
-        @if (!(isSuperintendent() && donationType() === 'Goodies')) {
+        @if (!((isSuperintendent() || isPR()) && donationType() === 'Goodies')) {
           <div class="form-group">
             <label>Amount <span class="required-star">*</span></label>
             <input
@@ -132,7 +132,7 @@
           </div>
         }
 
-        @if (!(isSuperintendent() && donationType() === 'Goodies')) {
+        @if (!((isSuperintendent() || isPR()) && donationType() === 'Goodies')) {
           <div class="form-group">
             <label>Payment Mode <span class="required-star">*</span></label>
             <select
@@ -238,7 +238,7 @@
           />
         </div>
 
-        @if (!(isSuperintendent() && donationType() === 'Goodies')) {
+        @if (!((isSuperintendent() || isPR()) && donationType() === 'Goodies')) {
           <div class="form-group">
             <label>Reference Id <span class="required-star">*</span></label>
             <input
@@ -252,7 +252,7 @@
           </div>
         }
 
-        @if (!isSuperintendent()) {
+        @if (!isSuperintendent() && !isPR()) {
           <div class="form-group">
             <label>Slab</label>
             <input

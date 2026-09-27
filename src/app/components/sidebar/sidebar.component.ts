@@ -107,7 +107,7 @@ export class SidebarComponent implements OnInit {
       label: 'Dashboard',
       icon: 'dashboard',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT','PUBLIC_RELATIONS'],
       route: '/dashboard',
     },
     {
@@ -183,7 +183,7 @@ export class SidebarComponent implements OnInit {
       label: 'Attendance Details',
       icon: 'event_available',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT','PUBLIC_RELATIONS'],
       route: '/attendance',
     },
     {

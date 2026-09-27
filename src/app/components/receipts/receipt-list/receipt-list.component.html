@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="header-actions">
-      @if (isAdmin() || isSuperintendent()) {
+      @if (isAdmin() || isSuperintendent() || isPR()) {
         <button type="button" class="btn-action btn-add-orange" (click)="onCreateReceipt()">
           <span class="material-symbols-outlined">add_circle</span>
           <span>Create Receipt</span>
@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  @if (isSuperintendent()) {
+  @if (isSuperintendent() || isPR()) {
     <div class="tabs-container" style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
       <button 
         type="button" 

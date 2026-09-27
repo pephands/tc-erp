@@ -21,8 +21,7 @@ export class BranchDocumentsComponent implements OnInit {
   isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']));
   
   get canCreate(): boolean {
-    const roles = this.authService.userRoles();
-    return !(roles.includes('TL') && !roles.includes('ADMIN'));
+    return this.authService.userRoles().includes('ADMIN');
   }
 
   documents = this.service.getDocuments();
