@@ -176,10 +176,12 @@ export class TelecallingService extends BaseHttpService {
     page: number = 1,
     pageSize: number = 10,
     search?: string,
-    queueType: string = 'pending'
+    queueType: string = 'pending',
+    callDisposition?: string
   ): Observable<{ records: MasterDonorRecord[]; totalCount: number; totalPages: number }> {
     const params: any = { page, page_size: pageSize, queue_type: queueType };
     if (search) params.search = search;
+    if (callDisposition) params.call_disposition = callDisposition;
 
     return this.httpClient
       .get(this.endPoint.telecallingWorkstation, {

@@ -36,6 +36,7 @@ export class WorkstationComponent implements OnInit {
 
   activeTab = signal<'PENDING' | 'COMPLETED'>('PENDING');
   searchQuery = signal<string>('');
+  filterDisposition = signal<string>('');
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
   totalRecords = signal<number>(0);
@@ -183,8 +184,9 @@ export class WorkstationComponent implements OnInit {
     const page = this.currentPage();
     const size = this.pageSize();
     const queueType = this.activeTab().toLowerCase();
+    const disposition = this.filterDisposition();
 
-    this.service.fetchTcQueue(page, size, search, queueType).subscribe({
+    this.service.fetchTcQueue(page, size, search, queueType, disposition).subscribe({
       next: (res) => {
         this.totalRecords.set(res.totalCount);
         this.totalPagesSignal.set(res.totalPages);
@@ -199,6 +201,12 @@ export class WorkstationComponent implements OnInit {
 
   onSearchChange(val: string): void {
     this.searchQuery.set(val);
+    this.currentPage.set(1);
+    this.fetchQueue();
+  }
+
+  onDispositionFilterChange(val: string): void {
+    this.filterDisposition.set(val);
     this.currentPage.set(1);
     this.fetchQueue();
   }
@@ -275,6 +283,7 @@ export class WorkstationComponent implements OnInit {
 
   setTab(tab: 'PENDING' | 'COMPLETED'): void {
     this.activeTab.set(tab);
+    this.filterDisposition.set('');
     this.currentPage.set(1);
     this.fetchQueue();
   }

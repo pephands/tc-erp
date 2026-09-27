@@ -38,7 +38,7 @@
 
     <!-- Calling Queue Table Card -->
     <div class="table-card shadow-card">
-      <div class="table-toolbar">
+      <div class="table-toolbar" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;">
         <div class="search-box">
           <span class="material-symbols-outlined search-icon">search</span>
           <input
@@ -48,6 +48,18 @@
             (ngModelChange)="onSearchChange($event)"
           />
         </div>
+
+        @if (activeTab() === 'COMPLETED') {
+          <div class="select-wrapper" style="position: relative; min-width: 200px;">
+            <select [ngModel]="filterDisposition()" (ngModelChange)="onDispositionFilterChange($event)" style="padding: 0.6rem 2rem 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; outline: none; width: 100%; appearance: none; background: #fff; font-size: 0.9rem;">
+              <option value="">All Dispositions</option>
+              @for (opt of dispositionOptions(); track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            <span class="material-symbols-outlined select-arrow" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: #9ca3af;">expand_more</span>
+          </div>
+        }
       </div>
 
       <div class="table-responsive">
@@ -62,6 +74,7 @@
               <th>Assigned Date</th>
               @if (activeTab() === 'COMPLETED') {
                 <th>Completed Date</th>
+                <th>Call Disposition</th>
               }
               <th>Status</th>
               <th class="text-center">Action</th>
@@ -70,7 +83,7 @@
           <tbody>
             @if (isLoading()) {
               <tr>
-                <td colspan="7" class="loading-table-state">
+                <td colspan="8" class="loading-table-state">
                   <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
                   <p class="loading-title">Fetching your daily calling queue...</p>
                 </td>
@@ -86,6 +99,7 @@
                   <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'shortDate') : (item.createdAt ? (item.createdAt | date:'shortDate') : '-') }}</td>
                   @if (activeTab() === 'COMPLETED') {
                     <td class="text-muted">{{ (item.status === 'COMPLETED' && item.updatedAt) ? (item.updatedAt | date:'shortDate') : '-' }}</td>
+                    <td class="font-medium text-muted" style="color: #4b5563;">{{ item.latestCallDisposition || '-' }}</td>
                   }
                   <td>
                     <span class="status-assigned-badge" [ngStyle]="{'background': item.status === 'COMPLETED' ? '#ecfccb' : '', 'color': item.status === 'COMPLETED' ? '#4d7c0f' : ''}">
@@ -119,7 +133,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="6" class="empty-table-state">
+                  <td colspan="9" class="empty-table-state">
                     <span class="material-symbols-outlined empty-icon">check_circle</span>
                     <p class="empty-title">Queue Complete / No Assigned Calls</p>
                     <p class="empty-subtitle">You have no pending numbers in your calling queue.</p>
