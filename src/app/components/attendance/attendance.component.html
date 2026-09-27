@@ -20,6 +20,13 @@
     </div>
 
     <div class="top-action-buttons">
+      @if (isAdmin || isSuperintendent) {
+        <button type="button" class="btn-primary-action" (click)="openManualMarkModal()" style="background-color: var(--warning-color); border-color: var(--warning-color);">
+          <span class="material-symbols-outlined">how_to_reg</span>
+          <span>Mark Attendance</span>
+        </button>
+      }
+
       <button type="button" class="btn-primary-action" [disabled]="isLoading()" (click)="onRefreshAttendance()">
         <span class="material-symbols-outlined" [class.spin-icon]="isLoading()">refresh</span>
         <span>{{ isLoading() ? 'Refreshing...' : 'Refresh Attendance' }}</span>
@@ -162,6 +169,7 @@
             <th>S.No</th>
             <th>Branch Name</th>
             @if (!isTcUser) {
+              <th>Employee ID</th>
               <th>User Name</th>
             }
             <th>Attendance Date</th>
@@ -176,7 +184,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td [attr.colspan]="isTcUser ? 5 : 6" class="loading-table-state">
+              <td [attr.colspan]="isTcUser ? 5 : (isAdmin ? 8 : 7)" class="loading-table-state">
                 <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
                 <p class="loading-title">Fetching live attendance records...</p>
               </td>
@@ -187,7 +195,8 @@
                 <td class="col-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
                 <td class="col-branch">{{ item.branchName }}</td>
                 @if (!isTcUser) {
-                  <td class="col-tc-details">{{ item.tcDetails }}</td>
+                  <td class="col-id-text"><strong>{{ item.tcId || '-' }}</strong></td>
+                  <td class="col-tc-details">{{ item.tcName || item.tcDetails }}</td>
                 }
                 <td class="col-date">{{ item.attendanceDate }}</td>
                 <td class="col-time">{{ item.inTime }}</td>
@@ -212,7 +221,7 @@
               </tr>
             } @empty {
               <tr>
-                <td [attr.colspan]="isTcUser ? 5 : 6" class="empty-table-state">
+                <td [attr.colspan]="isTcUser ? 5 : (isAdmin ? 8 : 7)" class="empty-table-state">
                   <span class="material-symbols-outlined empty-icon">event_busy</span>
                   <p class="empty-title">No Attendance Records Found</p>
                   <p class="empty-subtitle">Try adjusting your date range.</p>
@@ -290,4 +299,79 @@
     [attendance]="selectedAttendance()"
     (closeModal)="closeDetailModal()">
   </app-attendance-detail-modal>
+}
+
+@if (isManualMarkModalOpen()) {
+  <div class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-title-header">
+        <h2>Mark Attendance</h2>
+        <button type="button" class="modal-close-btn" (click)="closeManualMarkModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-tabs" style="display: flex; border-bottom: 1px solid var(--border-color);">
+        <button type="button" (click)="activeTab.set('checkin'); manualForm.userIds = []" style="flex: 1; padding: 0.75rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-main);" [style.borderBottomColor]="activeTab() === 'checkin' ? 'var(--primary)' : 'transparent'">Check In</button>
+        <button type="button" (click)="activeTab.set('checkout'); manualForm.userIds = []" style="flex: 1; padding: 0.75rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-main);" [style.borderBottomColor]="activeTab() === 'checkout' ? 'var(--primary)' : 'transparent'">Check Out</button>
+      </div>
+      <div class="modal-body-box" style="padding-top: 1rem;">
+        <form (submit)="$event.preventDefault()">
+          
+          <div class="form-group margin-top-sm">
+            <label>Trust Users ({{ activeTab() === 'checkin' ? 'Absent Today' : 'Present Today' }}) *</label>
+            <div class="multi-select-list" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; background: var(--bg-input);">
+              <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: none; color: var(--text-main);">
+                <input type="checkbox" (change)="selectAllUsers($any($event.target).checked)" [checked]="manualForm.userIds.length === currentTabUsers.length && currentTabUsers.length > 0">
+                <strong>Select All</strong>
+              </label>
+              <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0.5rem 0;">
+              @for (u of currentTabUsers; track u.id) {
+                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; font-size: 0.9rem; text-transform: none; color: var(--text-main);">
+                  <input type="checkbox" [checked]="isUserSelected(u.id)" (change)="toggleManualUser(u.id)">
+                  {{ u.full_name || u.fullName || 'No Name' }} ({{ u.employee_Id }})
+                </label>
+              }
+              @if (currentTabUsers.length === 0) {
+                <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 0.5rem;">No eligible users found for this action.</div>
+              }
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div class="form-group">
+              <label>Date (Locked)</label>
+              <input type="date" [(ngModel)]="manualForm.date" name="date" readonly style="width: 100%; padding: 0.55rem 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card-subtle); color: var(--text-muted); cursor: not-allowed;" />
+            </div>
+            <div class="form-group">
+              <label>Status (Locked)</label>
+              <input type="text" value="Present" readonly style="width: 100%; padding: 0.55rem 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card-subtle); color: var(--text-muted); cursor: not-allowed;" />
+            </div>
+          </div>
+          
+          <div style="margin-top: 1rem;">
+            @if (activeTab() === 'checkin') {
+              <div class="form-group">
+                <label>In Time *</label>
+                <input type="time" [(ngModel)]="manualForm.inTime" name="inTime" style="width: 100%; padding: 0.55rem 0.85rem; border: 1px solid var(--border-color); border-radius: 4px;" />
+              </div>
+            } @else {
+              <div class="form-group">
+                <label>Out Time *</label>
+                <input type="time" [(ngModel)]="manualForm.outTime" name="outTime" style="width: 100%; padding: 0.55rem 0.85rem; border: 1px solid var(--border-color); border-radius: 4px;" />
+              </div>
+            }
+          </div>
+          
+          <div class="modal-actions" style="margin-top: 1.5rem; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn-cancel" (click)="closeManualMarkModal()">Cancel</button>
+            @if (activeTab() === 'checkin') {
+              <button type="button" class="btn-submit" style="background: #10b981; color: white;" (click)="submitManualAttendance('checkin')" [disabled]="isSubmittingManual()">Check In</button>
+            } @else {
+              <button type="button" class="btn-submit" style="background: #ef4444; color: white;" (click)="submitManualAttendance('checkout')" [disabled]="isSubmittingManual()">Check Out</button>
+            }
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 }

@@ -48,4 +48,8 @@ export class AttendanceService extends BaseHttpService {
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
   }
+
+  markManualAttendance(payload: any): Observable<any> {
+    return this.httpClient.post(this.endPoint.manualMark, payload, { headers: this.headers });
+  }
 }

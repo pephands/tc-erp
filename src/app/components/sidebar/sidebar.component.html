@@ -178,7 +178,7 @@
       />
       @if (!isCollapsed()) {
         <div class="user-info">
-          <span class="user-name">{{ currentUser?.full_name }}</span>
+          <span class="user-name">{{ currentUser?.full_name }} ({{ currentUser?.employee_Id }})</span>
           <span class="user-role-tag">{{ primaryRole }}</span>
         </div>
         <button type="button" class="logout-icon-btn" (click)="onLogout()" title="Sign Out">

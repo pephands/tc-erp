@@ -70,6 +70,11 @@ export class UserListComponent implements OnInit {
     return this.authService.userRoles().includes('ADMIN');
   }
 
+  get isSuperintendent(): boolean {
+    const roles = this.authService.userRoles();
+    return roles.includes('SUPERINTENDENT') && !roles.includes('ADMIN') && !roles.includes('MANAGER');
+  }
+
   get canEditOrDelete(): boolean {
     const roles = this.authService.userRoles();
     const isAdmin = roles.includes('ADMIN');
@@ -77,6 +82,10 @@ export class UserListComponent implements OnInit {
     
     const isTlOrManager = roles.includes('TL') || roles.includes('MANAGER');
     if (this.roleCode === 'TC' && isTlOrManager) {
+      return false;
+    }
+    
+    if (this.isSuperintendent) {
       return false;
     }
     
@@ -230,7 +239,11 @@ export class UserListComponent implements OnInit {
     this.branchService.getData(1, 1000).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.data || res.results || []);
-        this.branches.set(data);
+        if (this.roleCode === 'TRUST_USERS') {
+          this.branches.set(data.filter((b: any) => b.is_trust === true));
+        } else {
+          this.branches.set(data.filter((b: any) => b.is_trust !== true));
+        }
       }
     });
   }

@@ -24,7 +24,7 @@
 
       <!-- Right Action Button (Create) -->
       <div class="right-action-group">
-        @if (!isSuperintendent()) {
+        @if (canCreate) {
           <button type="button" class="btn-primary-action" (click)="onUploadFile()">
             <span class="material-symbols-outlined">add</span>
             <span>Create</span>
@@ -98,7 +98,7 @@
                       >
                         <span class="material-symbols-outlined">visibility</span>
                       </button>
-                      @if (!isSuperintendent()) {
+                      @if (canCreate) {
                         <button 
                           type="button" 
                           class="btn-action-icon btn-edit" 

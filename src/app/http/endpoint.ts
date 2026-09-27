@@ -91,6 +91,10 @@ export class Endpoint {
     return this.baseUrl + 'attendance/export/';
   }
 
+  get manualMark(): string {
+    return this.baseUrl + 'attendance/manual-mark/';
+  }
+
   get wfhPasscode(): string {
     return this.baseUrl + 'attendance/wfh-passcode/';
   }

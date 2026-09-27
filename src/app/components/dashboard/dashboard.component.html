@@ -13,7 +13,7 @@
 
       <div class="welcome-text">
         <div class="welcome-header">
-          <h2 class="user-greeting">Welcome back, {{ currentUser()?.full_name }}!</h2>
+          <h2 class="user-greeting">Welcome back, {{ currentUser()?.full_name }} ({{ currentUser()?.employee_Id }})!</h2>
           <span class="role-badge" [ngClass]="roleBadgeClass">{{ primaryRole }}</span>
         </div>
         <p class="role-subtitle">
@@ -664,8 +664,8 @@
         </div>
       </div>
 
-      <!-- WFH PASSCODE BOX (SQUARE CARD - ADMIN & TL) -->
-      @if (primaryRole === 'ADMIN' || primaryRole === 'TL') {
+      <!-- WFH PASSCODE BOX (SQUARE CARD - ADMIN & TL & SUPERINTENDENT) -->
+      @if (primaryRole === 'ADMIN' || primaryRole === 'TL' || primaryRole === 'SUPERINTENDENT') {
         <div class="square-box-card wfh-square-card shadow-card">
           <div class="card-header-bar">
             <div class="header-title-group">

@@ -25,10 +25,12 @@
         </button>
       }
 
-      <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
-        <span class="material-symbols-outlined">download</span>
-        <span>Export Excel</span>
-      </button>
+      @if (!isSuperintendent) {
+        <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
+          <span class="material-symbols-outlined">download</span>
+          <span>Export Excel</span>
+        </button>
+      }
     </div>
   </div>
 

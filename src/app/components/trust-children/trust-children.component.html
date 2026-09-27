@@ -245,9 +245,8 @@
                 <span class="subtext">Please fill in the necessary details below</span>
               </div>
   
-              <div class="box-content-area" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <!-- Column 1 -->
-                <div>
+              <div class="box-content-area form-grid-layout">
+                <!-- Form Fields -->
                   <div class="form-group margin-top-sm">
                     <label>Child Name *</label>
                     <input type="text" formControlName="children_name" placeholder="Full Name" style="text-transform: uppercase;" />
@@ -255,18 +254,22 @@
   
                   <div class="form-group margin-top-sm single-select-wrapper" style="position: relative;">
                     <label>Branch *</label>
-                    <div class="multi-select-box" (click)="toggleBranchDropdown()">
-                      @if (!childForm.value.trust_name) {
+                    <div class="multi-select-box" (click)="!isSuperintendent() && toggleBranchDropdown()" [ngStyle]="{'background-color': isSuperintendent() ? '#f3f4f6' : 'white', 'cursor': isSuperintendent() ? 'not-allowed' : 'pointer'}">
+                      @if (isSuperintendent()) {
+                        <span class="selected-text">{{ getBranchName(childForm.value.trust_name) !== 'Select Branch' ? getBranchName(childForm.value.trust_name) : (authService.currentUser()?.branch?.name || 'Select Branch') }}</span>
+                      } @else if (!childForm.value.trust_name) {
                         <span class="placeholder-text">Select Branch</span>
                       } @else {
                         <span class="selected-text">{{ getBranchName(childForm.value.trust_name) }}</span>
                       }
-                      <span class="material-symbols-outlined dropdown-arrow">
-                        {{ isBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
-                      </span>
+                      @if (!isSuperintendent()) {
+                        <span class="material-symbols-outlined dropdown-arrow">
+                          {{ isBranchDropdownOpen() ? 'expand_less' : 'expand_more' }}
+                        </span>
+                      }
                     </div>
 
-                    @if (isBranchDropdownOpen()) {
+                    @if (!isSuperintendent() && isBranchDropdownOpen()) {
                       <div class="multi-select-popover" (click)="$event.stopPropagation()">
                         <div class="popover-header">
                           <div class="popover-search">
@@ -325,10 +328,7 @@
                       <span class="material-symbols-outlined select-arrow">expand_more</span>
                     </div>
                   </div>
-                </div>
-  
-                <!-- Column 2 -->
-                <div>
+
                   <div class="form-group margin-top-sm">
                     <label>Mobile Number *</label>
                     <input type="text" formControlName="mobile_number" placeholder="Mobile Number" maxlength="10" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
@@ -378,10 +378,8 @@
                       }
                     </div>
                   </div>
-                </div>
-  
-                <!-- Full Width -->
-                <div style="grid-column: span 2;">
+                <!-- Full Width Fields -->
+                <div class="full-width-field">
                   <div class="form-group margin-top-sm">
                     <label>Parent Details *</label>
                     <textarea formControlName="parent_details" rows="2" style="width: 100%; padding: 0.55rem 0.85rem; font-size: 0.875rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical; text-transform: uppercase;"></textarea>

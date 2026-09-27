@@ -16,12 +16,12 @@ import * as XLSX from 'xlsx';
 export class TrustChildrenComponent implements OnInit {
   private service = inject(TrustChildrenService);
   private branchListService = inject(BranchListService);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
   Math = Math;
 
-  isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']));
+  isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']) && !this.authService.hasRole(['ADMIN', 'MANAGER']));
 
 
   children = this.service.getChildren();
@@ -264,6 +264,15 @@ export class TrustChildrenComponent implements OnInit {
     this.modalMode.set('create');
     this.editingChild.set(null);
     this.onResetForm();
+
+    if (this.isSuperintendent()) {
+      const userBranch: any = this.authService.currentUser()?.branch;
+      if (userBranch) {
+        const branchId = typeof userBranch === 'object' ? userBranch.id : userBranch;
+        this.childForm.patchValue({ trust_name: branchId });
+      }
+    }
+
     this.isModalOpen.set(true);
   }
 
@@ -302,6 +311,14 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   onSubmitForm(): void {
+    if (this.isSuperintendent() && !this.childForm.value.trust_name) {
+      const userBranch: any = this.authService.currentUser()?.branch;
+      if (userBranch) {
+        const branchId = typeof userBranch === 'object' ? userBranch.id : userBranch;
+        this.childForm.patchValue({ trust_name: branchId });
+      }
+    }
+
     if (this.childForm.invalid) {
       this.childForm.markAllAsTouched();
       return;

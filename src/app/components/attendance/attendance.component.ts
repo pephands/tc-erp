@@ -2,8 +2,9 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BranchListService } from '../../services/branch-list.service';
-import { AttendanceService } from '../../services/attendance.service';
 import { AuthService } from '../../services/auth.service';
+import { UserListService } from '../../services/user-list.service';
+import { AttendanceService } from '../../services/attendance.service';
 import { AttendanceRecord } from '../../models/attendance.model';
 import { AttendanceDetailModalComponent } from '../modals/attendance-detail-modal/attendance-detail-modal.component';
 
@@ -18,6 +19,7 @@ export class AttendanceComponent implements OnInit {
   private branchService = inject(BranchListService);
   private attendanceService = inject(AttendanceService);
   private authService = inject(AuthService);
+  private userListService = inject(UserListService);
 
   get isAdmin(): boolean {
     const roles = this.authService.userRoles();
@@ -35,11 +37,16 @@ export class AttendanceComponent implements OnInit {
   }
 
   get isTcUser(): boolean {
-    return !this.isAdminOrManager && !this.isTlUser;
+    return !this.isAdminOrManager && !this.isTlUser && !this.isSuperintendent;
   }
 
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
+  }
+
+  get isSuperintendent(): boolean {
+    const roles = this.authService.userRoles();
+    return roles.includes('SUPERINTENDENT') && !roles.includes('ADMIN') && !roles.includes('MANAGER');
   }
 
   // Filter selections
@@ -58,6 +65,74 @@ export class AttendanceComponent implements OnInit {
   // Modal State
   isDetailModalOpen = signal<boolean>(false);
   selectedAttendance = signal<AttendanceRecord | null>(null);
+
+  isManualMarkModalOpen = signal<boolean>(false);
+  isSubmittingManual = signal<boolean>(false);
+  trustUsers = signal<any[]>([]);
+  
+  activeTab = signal<'checkin' | 'checkout'>('checkin');
+
+  manualForm = {
+    userIds: [] as string[],
+    date: new Date().toLocaleDateString('en-CA'),
+    status: 'P',
+    inTime: '',
+    outTime: '',
+    location: '',
+    ip_address: ''
+  };
+
+  modalTodayAttendance = signal<AttendanceRecord[]>([]);
+
+  get todayAttendanceMap(): Record<string, AttendanceRecord> {
+    const map: Record<string, AttendanceRecord> = {};
+    for (const rec of this.modalTodayAttendance()) {
+      map[rec.tcId] = rec;
+    }
+    return map;
+  }
+
+  get checkInUsers(): any[] {
+    // Users who don't have a "Present" record today
+    return this.trustUsers().filter(u => {
+      const rec = this.todayAttendanceMap[String(u.employee_Id)];
+      return !rec || rec.status !== 'Present';
+    });
+  }
+
+  get checkOutUsers(): any[] {
+    // Users who have a "Present" record today, and maybe don't have outTime yet
+    return this.trustUsers().filter(u => {
+      const rec = this.todayAttendanceMap[String(u.employee_Id)];
+      return rec && rec.status === 'Present';
+    });
+  }
+
+  get currentTabUsers(): any[] {
+    return this.activeTab() === 'checkin' ? this.checkInUsers : this.checkOutUsers;
+  }
+
+  toggleManualUser(userId: any): void {
+    const strId = String(userId);
+    const idx = this.manualForm.userIds.indexOf(strId);
+    if (idx > -1) {
+      this.manualForm.userIds.splice(idx, 1);
+    } else {
+      this.manualForm.userIds.push(strId);
+    }
+  }
+
+  isUserSelected(userId: any): boolean {
+    return this.manualForm.userIds.includes(String(userId));
+  }
+
+  selectAllUsers(select: boolean): void {
+    if (select) {
+      this.manualForm.userIds = this.currentTabUsers.map(u => String(u.id));
+    } else {
+      this.manualForm.userIds = [];
+    }
+  }
 
   // Search & Pagination state
   searchQuery = signal<string>('');
@@ -351,5 +426,111 @@ export class AttendanceComponent implements OnInit {
   lastPage(): void {
     this.currentPage.set(this.totalPages());
     this.fetchAttendanceFromApi();
+  }
+
+  showTemporaryToast(message: string): void {
+    this.refreshToastMessage.set(message);
+    this.showToast.set(true);
+    setTimeout(() => {
+      this.showToast.set(false);
+    }, 3000);
+  }
+
+  openManualMarkModal(): void {
+    this.isManualMarkModalOpen.set(true);
+    this.activeTab.set('checkin');
+    
+    // Fetch location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          this.manualForm.location = `${pos.coords.latitude},${pos.coords.longitude}`;
+        },
+        err => console.error(err)
+      );
+    }
+    
+    // Fetch IP dummy or actual if possible
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => this.manualForm.ip_address = data.ip)
+      .catch(err => console.error(err));
+
+    // Reset form
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    this.manualForm = {
+      userIds: [],
+      date: todayStr,
+      status: 'P',
+      inTime: '',
+      outTime: '',
+      location: this.manualForm.location,
+      ip_address: this.manualForm.ip_address
+    };
+
+    // Fetch today's attendance specifically for the modal to avoid pagination issues
+    this.attendanceService.getAttendanceRecords(this.userBranchName || this.selectedBranch(), todayStr, todayStr, '', 1, 500).subscribe({
+      next: (res: any) => {
+        const records = Array.isArray(res) ? res : (res.data || res.results || []);
+        const mappedRecords: AttendanceRecord[] = records.map((r: any) => this.mapApiToAttendanceRecord(r));
+        this.modalTodayAttendance.set(mappedRecords);
+      }
+    });
+
+    // Fetch trust users for the branch
+    this.userListService.getRoleUsers('TRUST_USERS', this.userBranchName, null, null, 1, 500).subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' && res.data) {
+          this.trustUsers.set(res.data.results || res.data);
+        } else if (res.results) {
+          this.trustUsers.set(res.results);
+        }
+      }
+    });
+  }
+
+  closeManualMarkModal(): void {
+    this.isManualMarkModalOpen.set(false);
+  }
+
+  submitManualAttendance(action: string): void {
+    if (this.manualForm.userIds.length === 0) {
+      alert("Please select at least one user.");
+      return;
+    }
+    
+    if (action === 'checkin' && !this.manualForm.inTime) {
+      alert("Please enter In Time.");
+      return;
+    }
+    if (action === 'checkout' && !this.manualForm.outTime) {
+      alert("Please enter Out Time.");
+      return;
+    }
+
+    this.isSubmittingManual.set(true);
+    const payload = {
+      user_ids: this.manualForm.userIds,
+      date: this.manualForm.date,
+      status: action === 'checkin' ? 'P' : null,
+      in_time: this.manualForm.inTime || null,
+      out_time: this.manualForm.outTime || null,
+      action: action,
+      location: this.manualForm.location || 'Manual Override',
+      ip_address: this.manualForm.ip_address || '127.0.0.1'
+    };
+
+    this.attendanceService.markManualAttendance(payload).subscribe({
+      next: (res: any) => {
+        this.isSubmittingManual.set(false);
+        this.closeManualMarkModal();
+        this.showTemporaryToast(res.message || 'Attendance updated successfully.');
+        this.fetchAttendanceFromApi();
+      },
+      error: (err: any) => {
+        this.isSubmittingManual.set(false);
+        alert(err.error?.message || 'Error marking attendance.');
+      }
+    });
   }
 }

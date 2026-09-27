@@ -38,23 +38,22 @@
 }
 
 .branch-select-wrapper select {
-  background: #f59e0b;
-  color: var(--bg-card);
-  font-weight: 600;
-  font-size: 0.875rem;
-  padding: 0.55rem 2.2rem 0.55rem 1rem;
-  border: none;
-  border-radius: var(--radius-sm);
+  background: var(--bg-input, #ffffff);
+  color: var(--text-main, #334155);
+  font-weight: 500;
+  font-size: 0.825rem;
+  padding: 0.45rem 2rem 0.45rem 0.75rem;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: var(--radius-sm, 4px);
   outline: none;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .branch-select-wrapper select:hover {
-  background: #d97706;
+  border-color: var(--primary, #f97316);
 }
 
 .branch-select-wrapper option {
@@ -64,10 +63,10 @@
 
 .select-arrow {
   position: absolute;
-  right: 0.6rem;
-  color: var(--bg-card);
+  right: 0.5rem;
+  color: var(--text-muted, #64748b);
   pointer-events: none;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 /* Filter Submit Button */
@@ -460,6 +459,26 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.form-grid-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.full-width-field {
+  width: 100%;
+}
+
+@media screen and (min-width: 640px) {
+  .form-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .full-width-field {
+    grid-column: 1 / -1;
+  }
 }
 
 /* File Upload Row */
