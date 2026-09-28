@@ -4,57 +4,238 @@
     <div class="page-title-group">
       <span class="material-symbols-outlined header-icon">online_prediction</span>
       <div>
-        <h2 class="page-title">Live Payment Batches (Ungenerated)</h2>
-        <p class="page-sub">Real-time overview of ungenerated batches across branches</p>
+        <h2 class="page-title">Live Payment Batches</h2>
+        <p class="page-sub">Real-time overview of batches across branches</p>
       </div>
     </div>
   </div>
 
-
-
-  <!-- Table Card -->
-  <div class="table-card shadow-card">
-    @if (isLoading()) {
-      <div class="loading-state">
-        <span class="material-symbols-outlined spin-icon">refresh</span>
-        <p>Loading live batch data...</p>
-      </div>
-    } @else {
-      <div class="table-responsive">
-        <table class="payment-table">
-          <thead>
-            <tr>
-              <th>Branch Name</th>
-              <th>Unique Donors</th>
-              <th>Total Mentioned Amount</th>
-              <th>Ungenerated Records</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (stat of stats(); track stat.branch_id) {
-              <tr>
-                <td class="font-medium text-dark">{{ stat.branch_name }}</td>
-                <td>{{ stat.unique_donors }}</td>
-                <td class="font-semibold text-dark">₹{{ stat.total_amount | number:'1.2-2' }}</td>
-                <td>
-                  <span class="status-badge status-pending">
-                    {{ stat.record_count }}
-                  </span>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="4">
-                  <div class="empty-state">
-                    <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
-                    <p>No live batches found for the selected branch.</p>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
+  <!-- Tabs -->
+  <div class="tabs-container" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
+    <button 
+      class="tab-btn" 
+      (click)="setTab(1)"
+      style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+      [style.border-bottom-color]="activeTab() === 1 ? '#f97316' : 'transparent'"
+      [style.color]="activeTab() === 1 ? '#f97316' : '#6b7280'">
+      <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">online_prediction</span>
+      Live Payment Batches (Ungenerated)
+    </button>
+    <button 
+      class="tab-btn" 
+      (click)="setTab(2)"
+      style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
+      [style.border-bottom-color]="activeTab() === 2 ? '#3b82f6' : 'transparent'"
+      [style.color]="activeTab() === 2 ? '#3b82f6' : '#6b7280'">
+      <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">analytics</span>
+      Overall Batches Payment
+    </button>
   </div>
+
+  @if (activeTab() === 1) {
+    <!-- Table Card for Tab 1 -->
+    <div class="table-card shadow-card">
+      @if (isLoading1()) {
+        <div class="loading-state">
+          <span class="material-symbols-outlined spin-icon">refresh</span>
+          <p>Loading live batch data...</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="payment-table">
+            <thead>
+              <tr>
+                <th>Branch Name</th>
+                <th>Unique Donors</th>
+                <th>OLD Donor<br><span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(Count - Amount)</span></th>
+                <th>NEW Donor<br><span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(Count - Amount)</span></th>
+                <th>Total Amount</th>
+                <th>Total Records</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (stat of stats(); track stat.branch_id) {
+                <tr>
+                  <td class="font-medium text-dark"><strong>{{ stat.branch_name }}</strong></td>
+                  <td>{{ stat.unique_donors }}</td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <span class="tag-pill">{{ stat.old_donor_count }}</span>
+                      <span class="font-semibold" style="color: #0284c7;">₹{{ stat.old_donor_amount | number:'1.2-2' }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <span class="tag-pill" style="background: #fef3c7; color: #d97706;">{{ stat.new_donor_count }}</span>
+                      <span class="font-semibold" style="color: #d97706;">₹{{ stat.new_donor_amount | number:'1.2-2' }}</span>
+                    </div>
+                  </td>
+                  <td class="font-semibold text-dark">₹{{ stat.total_amount | number:'1.2-2' }}</td>
+                  <td>
+                    <span class="status-badge badge-pending">
+                      {{ stat.record_count }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
+                      <p class="empty-title">No live batches found</p>
+                      <p class="empty-sub">There are no ungenerated records for the selected branch.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  @if (activeTab() === 2) {
+    <!-- Filters for Tab 2 -->
+    <div class="filter-card shadow-card" style="margin-bottom: 1.5rem;">
+      <div class="filter-controls-grid">
+        <div class="filter-field">
+          <label>Start Date</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">calendar_today</span>
+            <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event); onFilterChange()"/>
+          </div>
+        </div>
+        <div class="filter-field">
+          <label>End Date</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">event</span>
+            <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event); onFilterChange()"/>
+          </div>
+        </div>
+        <div class="filter-field">
+          <label>Branch</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">store</span>
+            <select [ngModel]="selectedBranchId()" (ngModelChange)="selectedBranchId.set($event); onFilterChange()">
+              <option value="">All Branches</option>
+              @for (branch of branches(); track branch.id) {
+                <option [value]="branch.id">{{ branch.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <!-- Total Amount Card -->
+      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div class="icon-box" style="background: #dcfce7; color: #10b981; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 1.75rem;">account_balance_wallet</span>
+        </div>
+        <div>
+          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Overall Amount</h4>
+          <h2 style="margin: 0.25rem 0 0 0; color: #059669; font-size: 1.5rem; font-weight: 800;">₹{{ overallAmount() | number:'1.2-2' }}</h2>
+        </div>
+      </div>
+
+      <!-- OLD Donor Amount Card -->
+      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div class="icon-box" style="background: #e0f2fe; color: #0284c7; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 1.75rem;">history</span>
+        </div>
+        <div>
+          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">OLD Donor Amount</h4>
+          <h2 style="margin: 0.25rem 0 0 0; color: #0284c7; font-size: 1.5rem; font-weight: 800;">₹{{ overallOldAmount() | number:'1.2-2' }}</h2>
+          <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Records: {{ overallOldCount() }}</p>
+        </div>
+      </div>
+
+      <!-- NEW Donor Amount Card -->
+      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div class="icon-box" style="background: #fef3c7; color: #d97706; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 1.75rem;">person_add</span>
+        </div>
+        <div>
+          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">NEW Donor Amount</h4>
+          <h2 style="margin: 0.25rem 0 0 0; color: #d97706; font-size: 1.5rem; font-weight: 800;">₹{{ overallNewAmount() | number:'1.2-2' }}</h2>
+          <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Records: {{ overallNewCount() }}</p>
+        </div>
+      </div>
+
+      <!-- Total Records Card -->
+      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div class="icon-box" style="background: #e0e7ff; color: #4338ca; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="font-size: 1.75rem;">receipt_long</span>
+        </div>
+        <div>
+          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Total OK Records</h4>
+          <h2 style="margin: 0.25rem 0 0 0; color: #4338ca; font-size: 1.5rem; font-weight: 800;">{{ overallRecords() | number }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Card for Tab 2 -->
+    <div class="table-card shadow-card">
+      @if (isLoading2()) {
+        <div class="loading-state">
+          <span class="material-symbols-outlined spin-icon">refresh</span>
+          <p>Loading overall batch data...</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="payment-table">
+            <thead>
+              <tr>
+                <th>Branch Name</th>
+                <th>Unique Donors</th>
+                <th>OLD Donor<br><span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(Count - Amount)</span></th>
+                <th>NEW Donor<br><span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(Count - Amount)</span></th>
+                <th>Total Processed Amount</th>
+                <th>OK Records</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (stat of overallStats(); track stat.branch_id) {
+                <tr>
+                  <td class="font-medium text-dark"><strong>{{ stat.branch_name }}</strong></td>
+                  <td>{{ stat.unique_donors }}</td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <span class="tag-pill">{{ stat.old_donor_count }}</span>
+                      <span class="font-semibold" style="color: #0284c7;">₹{{ stat.old_donor_amount | number:'1.2-2' }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <span class="tag-pill" style="background: #fef3c7; color: #d97706;">{{ stat.new_donor_count }}</span>
+                      <span class="font-semibold" style="color: #d97706;">₹{{ stat.new_donor_amount | number:'1.2-2' }}</span>
+                    </div>
+                  </td>
+                  <td class="col-amount">₹{{ stat.total_amount | number:'1.2-2' }}</td>
+                  <td>
+                    <span class="status-badge badge-approved">
+                      {{ stat.record_count }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <span class="material-symbols-outlined empty-icon">rule_folder</span>
+                      <p class="empty-title">No records found</p>
+                      <p class="empty-sub">There are no batch records for the selected filters.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
 </main>

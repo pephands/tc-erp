@@ -373,7 +373,6 @@
   outline: none;
   transition: all 0.2s ease;
   background-color: #f8fafc;
-  appearance: none;
 }
 
 .input-wrapper select:focus {
