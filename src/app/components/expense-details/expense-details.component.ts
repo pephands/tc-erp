@@ -5,6 +5,8 @@ import { BranchExpenseService } from '../../services/branch-expense.service';
 import { BranchListService } from '../../services/branch-list.service';
 import { AuthService } from '../../services/auth.service';
 import { BranchExpenseRecord } from '../../models/branch-expense.model';
+import { BranchExpenseCategoryService } from '../../services/branch-expense-category.service';
+import { BranchExpenseCategory } from '../../models/branch-expense-category.model';
 
 @Component({
   selector: 'app-expense-details',
@@ -17,10 +19,12 @@ export class ExpenseDetailsComponent implements OnInit {
   private service = inject(BranchExpenseService);
   private branchListService = inject(BranchListService);
   private authService = inject(AuthService);
+  private categoryService = inject(BranchExpenseCategoryService);
 
   isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']));
 
   expenses = this.service.getExpenses();
+  expenseCategories = signal<BranchExpenseCategory[]>([]);
 
   // Role permissions
   get isAdmin(): boolean {
@@ -92,13 +96,24 @@ export class ExpenseDetailsComponent implements OnInit {
   inputBranchId = signal<string | number>('');
   selectedFile = signal<File | null>(null);
   uploadFileName = signal<string>('No file chosen');
+  currentFileUrl = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadBranches();
+    this.loadCategories();
     if (this.isTl && (this.userBranchId || this.userBranchName)) {
       this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName));
     }
     this.fetchExpensesFromApi();
+  }
+
+  loadCategories(): void {
+    this.categoryService.fetchCategories().subscribe({
+      next: (data) => {
+        this.expenseCategories.set(data.filter(c => c.is_active));
+      },
+      error: (err) => console.error('Failed to load expense categories', err)
+    });
   }
 
   loadBranches(): void {
@@ -322,6 +337,7 @@ export class ExpenseDetailsComponent implements OnInit {
     this.inputBranchId.set(expense.branchId || expense.branchName);
     this.selectedFile.set(null);
     this.uploadFileName.set(expense.fileName ? `Current: ${expense.fileName}` : 'No file chosen');
+    this.currentFileUrl.set(expense.fileUrl || null);
 
     this.isModalOpen.set(true);
   }
@@ -335,9 +351,28 @@ export class ExpenseDetailsComponent implements OnInit {
     if (file) {
       this.selectedFile.set(file);
       this.uploadFileName.set(file.name);
+      this.currentFileUrl.set(URL.createObjectURL(file));
     } else {
-      this.selectedFile.set(null);
-      this.uploadFileName.set('No file chosen');
+      this.clearSelectedFile();
+    }
+  }
+
+  viewCurrentFile(): void {
+    const url = this.currentFileUrl();
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+
+  clearSelectedFile(): void {
+    this.selectedFile.set(null);
+    this.uploadFileName.set('No file chosen');
+    this.currentFileUrl.set(null);
+    
+    // Reset file input value to allow re-selecting the same file if needed
+    const fileInput = document.getElementById('expenseFileInput') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
     }
   }
 
@@ -351,8 +386,7 @@ export class ExpenseDetailsComponent implements OnInit {
     } else {
       this.inputBranchId.set('');
     }
-    this.selectedFile.set(null);
-    this.uploadFileName.set('No file chosen');
+    this.clearSelectedFile();
   }
 
   onSubmitExpense(): void {

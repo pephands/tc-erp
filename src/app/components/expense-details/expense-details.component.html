@@ -330,12 +330,17 @@
             <!-- Form Group: Expense Name -->
             <div class="form-group margin-top-sm">
               <label>Expense Name *</label>
-              <input
-                type="text"
-                placeholder="e.g. Office Stationery, Internet Bill..."
-                [ngModel]="inputExpenseName()"
-                (ngModelChange)="inputExpenseName.set($event)"
-              />
+              <div class="select-wrapper">
+                <select
+                  [ngModel]="inputExpenseName()"
+                  (ngModelChange)="inputExpenseName.set($event)"
+                >
+                  <option value="" disabled selected>Select Category</option>
+                  @for (cat of expenseCategories(); track cat.id) {
+                    <option [value]="cat.name">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
             </div>
 
             <!-- Form Group: Branch Selection -->
@@ -372,10 +377,25 @@
               <label>Attach Bill / Receipt / Screenshot</label>
               <div class="file-upload-row">
                 <label class="btn-file-choose">
-                  Choose file
-                  <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx" (change)="onFileChange($event)" hidden />
+                  {{ uploadFileName() !== 'No file chosen' ? 'Replace file' : 'Choose file' }}
+                  <input type="file" id="expenseFileInput" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xlsx" (change)="onFileChange($event)" hidden />
                 </label>
-                <span class="file-chosen-name">{{ uploadFileName() }}</span>
+                
+                @if (uploadFileName() !== 'No file chosen') {
+                  <div class="file-actions-display" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="file-chosen-name" style="word-break: break-all;">{{ uploadFileName() }}</span>
+                    @if (currentFileUrl()) {
+                      <button type="button" class="btn-action-icon btn-view" (click)="viewCurrentFile()" title="View File" style="padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); background: #f8fafc; color: #0284c7; cursor: pointer; display: inline-flex; align-items: center;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                      </button>
+                    }
+                    <button type="button" class="btn-action-icon btn-delete" (click)="clearSelectedFile()" title="Clear File" style="padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); background: #fef2f2; color: #ef4444; cursor: pointer; display: inline-flex; align-items: center;">
+                      <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                    </button>
+                  </div>
+                } @else {
+                  <span class="file-chosen-name">No file chosen</span>
+                }
               </div>
             </div>
 

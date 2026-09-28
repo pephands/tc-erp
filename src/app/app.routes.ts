@@ -177,6 +177,11 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       {
+        path: 'branch-settings',
+        loadComponent: () => import('./components/branch-settings/branch-settings.component').then(m => m.BranchSettingsComponent),
+        canActivate: [deviceAuthGuard],
+      },
+      {
         path: 'expense-details',
         component: ExpenseDetailsComponent,
         canActivate: [deviceAuthGuard],

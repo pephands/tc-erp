@@ -367,6 +367,13 @@ export class SidebarComponent implements OnInit {
           route: '/expense-report',
         },
         {
+          id: 'branch_settings',
+          label: 'Branch Setting',
+          icon: 'settings',
+          allowedRoles: ['ADMIN'],
+          route: '/branch-settings',
+        },
+        {
           id: 'trust_children',
           label: 'Trust Children',
           icon: 'child_care',

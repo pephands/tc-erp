@@ -68,6 +68,10 @@ export class Endpoint {
     return this.baseUrl + 'branches/expenses/summary/';
   }
 
+  get branchExpenseCategories(): string {
+    return this.baseUrl + 'branches/expense-categories/';
+  }
+
 
 
   // Attendance Check-In / Check-Out

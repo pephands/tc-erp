@@ -504,3 +504,65 @@
 
 .spin-icon { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* RESPONSIVE DESIGN - MOBILE & TABLET STYLES */
+@media screen and (max-width: 768px) {
+  .expense-container {
+    padding: 1rem;
+  }
+  
+  .action-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .top-action-buttons {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-primary-action, .btn-secondary-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filter-controls-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .btn-filter {
+    width: 100%;
+  }
+
+  /* Make form rows stack vertically on mobile */
+  .form-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  /* Fix Modal layout on smaller screens */
+  .custom-modal-content {
+    width: 95%;
+    max-width: 100%;
+    margin: 10px;
+    max-height: 90vh;
+  }
+  
+  .file-upload-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  /* Expand modal actions to take full width */
+  .modal-actions-footer {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-submit, .btn-reset {
+    width: 100%;
+  }
+}
