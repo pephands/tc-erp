@@ -2,6 +2,7 @@ export interface MasterDonorRecord {
   id: number;
   donorName: string;
   phoneNumber: string;
+  alternative_number?: string;
   dob?: string;
   anniversary?: string;
   category: 'BASE' | 'NON BASE' | 'NON_BASE';

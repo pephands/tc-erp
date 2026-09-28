@@ -25,7 +25,7 @@
 
         <div class="queue-summary-badge">
           <span class="material-symbols-outlined icon">phone_in_talk</span>
-          <span>{{ activeTab() === 'PENDING' ? 'Pending Queue' : 'Completed Queue' }}: {{ totalRecords() }} Donors</span>
+          <span>{{ activeTab() === 'PENDING' ? 'Pending Queue' : activeTab() === 'COMPLETED' ? 'Completed Queue' : 'TL Assigned Base' }}: {{ totalRecords() }} Donors</span>
         </div>
       </div>
     </div>
@@ -37,6 +37,9 @@
       </button>
       <button class="tab-btn" [class.active]="activeTab() === 'COMPLETED'" (click)="setTab('COMPLETED')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
         Completed Calls
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'TL_BASE'" (click)="setTab('TL_BASE')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
+        TL Assigned Base
       </button>
     </div>
 
@@ -233,7 +236,7 @@
           </div>
 
           <div class="box-content-area">
-            <!-- Form Row 1: Donor Name, DOB, Anniversary -->
+            <!-- Form Row 1: Donor Name and Alternative Number -->
             <div class="form-row">
               <div class="form-group flex-1">
                 <label>Donor Name *</label>
@@ -244,23 +247,81 @@
                   (ngModelChange)="donorNameInput.set($event.toUpperCase())"
                 />
               </div>
-
               <div class="form-group flex-1">
-                <label>Date of Birth (DOB)</label>
+                <label>Alternative Number</label>
                 <input
-                  type="date"
-                  [ngModel]="dobInput()"
-                  (ngModelChange)="dobInput.set($event)"
+                  type="text"
+                  placeholder="e.g. +91 9876543210"
+                  [ngModel]="alternativeNumberInput()"
+                  (ngModelChange)="alternativeNumberInput.set($event)"
                 />
+              </div>
+            </div>
+
+            <!-- Form Row 2: DOB and Anniversary -->
+            <div class="form-row margin-top-sm">
+              <div class="form-group flex-1">
+                <label style="display: flex; justify-content: space-between;">
+                  <span>Date of Birth (DOB)</span>
+                  @if (dobDay() || dobMonth() || dobYear()) {
+                    <button type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearDob()">Clear</button>
+                  }
+                </label>
+                <div style="display: flex; gap: 0.35rem;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select [ngModel]="dobDay()" (ngModelChange)="dobDay.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">DD</option>
+                      @for (d of days; track d) { <option [value]="d">{{ d }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.2;">
+                    <select [ngModel]="dobMonth()" (ngModelChange)="dobMonth.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">MM</option>
+                      @for (m of months; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.4;">
+                    <select [ngModel]="dobYear()" (ngModelChange)="dobYear.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">YYYY</option>
+                      @for (y of years; track y) { <option [value]="y">{{ y }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group flex-1">
-                <label>Anniversary</label>
-                <input
-                  type="date"
-                  [ngModel]="anniversaryInput()"
-                  (ngModelChange)="anniversaryInput.set($event)"
-                />
+                <label style="display: flex; justify-content: space-between;">
+                  <span>Anniversary</span>
+                  @if (anniDay() || anniMonth() || anniYear()) {
+                    <button type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearAnniversary()">Clear</button>
+                  }
+                </label>
+                <div style="display: flex; gap: 0.35rem;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select [ngModel]="anniDay()" (ngModelChange)="anniDay.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">DD</option>
+                      @for (d of days; track d) { <option [value]="d">{{ d }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.2;">
+                    <select [ngModel]="anniMonth()" (ngModelChange)="anniMonth.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">MM</option>
+                      @for (m of months; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.4;">
+                    <select [ngModel]="anniYear()" (ngModelChange)="anniYear.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">YYYY</option>
+                      @for (y of years; track y) { <option [value]="y">{{ y }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -360,24 +421,82 @@
                 />
               </div>
             </div>
+            
+            <div class="form-row margin-top-sm">
+              <div class="form-group flex-1">
+                <label>Alternative Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g. +91 9876543210"
+                  [ngModel]="newRefAlternativeNumber()"
+                  (ngModelChange)="newRefAlternativeNumber.set($event)"
+                />
+              </div>
+            </div>
 
             <div class="form-row margin-top-sm">
               <div class="form-group flex-1">
-                <label>Date of Birth (DOB) <span style="font-size: 0.8em; color: #666;">(or Anniversary required)</span></label>
-                <input
-                  type="date"
-                  [ngModel]="newRefDob()"
-                  (ngModelChange)="newRefDob.set($event)"
-                />
+                <label style="display: flex; justify-content: space-between;">
+                  <span>Date of Birth (DOB) <span style="font-size: 0.8em; color: #666;">(or Anniversary required)</span></span>
+                  @if (newRefDobDay() || newRefDobMonth() || newRefDobYear()) {
+                    <button type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearNewRefDob()">Clear</button>
+                  }
+                </label>
+                <div style="display: flex; gap: 0.35rem;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select [ngModel]="newRefDobDay()" (ngModelChange)="newRefDobDay.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">DD</option>
+                      @for (d of days; track d) { <option [value]="d">{{ d }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.2;">
+                    <select [ngModel]="newRefDobMonth()" (ngModelChange)="newRefDobMonth.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">MM</option>
+                      @for (m of months; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.4;">
+                    <select [ngModel]="newRefDobYear()" (ngModelChange)="newRefDobYear.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">YYYY</option>
+                      @for (y of years; track y) { <option [value]="y">{{ y }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group flex-1">
-                <label>Anniversary <span style="font-size: 0.8em; color: #666;">(or DOB required)</span></label>
-                <input
-                  type="date"
-                  [ngModel]="newRefAnniversary()"
-                  (ngModelChange)="newRefAnniversary.set($event)"
-                />
+                <label style="display: flex; justify-content: space-between;">
+                  <span>Anniversary <span style="font-size: 0.8em; color: #666;">(or DOB required)</span></span>
+                  @if (newRefAnniDay() || newRefAnniMonth() || newRefAnniYear()) {
+                    <button type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearNewRefAnniversary()">Clear</button>
+                  }
+                </label>
+                <div style="display: flex; gap: 0.35rem;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select [ngModel]="newRefAnniDay()" (ngModelChange)="newRefAnniDay.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">DD</option>
+                      @for (d of days; track d) { <option [value]="d">{{ d }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.2;">
+                    <select [ngModel]="newRefAnniMonth()" (ngModelChange)="newRefAnniMonth.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">MM</option>
+                      @for (m of months; track m.value) { <option [value]="m.value">{{ m.label }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                  <div class="select-wrapper" style="flex: 1.4;">
+                    <select [ngModel]="newRefAnniYear()" (ngModelChange)="newRefAnniYear.set($event)" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                      <option value="">YYYY</option>
+                      @for (y of years; track y) { <option [value]="y">{{ y }}</option> }
+                    </select>
+                    <span class="material-symbols-outlined select-arrow" style="right: 0.25rem; font-size: 1.25rem;">expand_more</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -457,30 +576,34 @@
   
     <!-- Calling Queue Table Card -->
     <div class="table-card">
-      <div class="table-card-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+      <div class="table-card-header" style="display: flex; flex-direction: column; gap: 1rem; padding-bottom: 1rem;">
         
-        <div class="date-filter-group" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <label style="font-weight: 500; color: #374151; font-size: 0.9rem;">From:</label>
-            <input 
-              type="date" 
-              class="form-control" 
-              style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
-              [(ngModel)]="tlFilterStartDate" 
-              (change)="onTlFilterChange()"
-            />
+        <div class="date-filter-group" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1 1 140px; min-width: 140px;">
+              <label style="font-weight: 500; color: #374151; font-size: 0.9rem; white-space: nowrap;">From:</label>
+              <input 
+                type="date" 
+                class="form-control" 
+                style="flex: 1; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; min-width: 0;"
+                [(ngModel)]="tlFilterStartDate" 
+                (change)="onTlFilterChange()"
+              />
+            </div>
             
-            <label style="font-weight: 500; color: #374151; font-size: 0.9rem; margin-left: 0.25rem;">To:</label>
-            <input 
-              type="date" 
-              class="form-control" 
-              style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
-              [(ngModel)]="tlFilterEndDate" 
-              (change)="onTlFilterChange()"
-            />
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1 1 140px; min-width: 140px;">
+              <label style="font-weight: 500; color: #374151; font-size: 0.9rem; white-space: nowrap;">To:</label>
+              <input 
+                type="date" 
+                class="form-control" 
+                style="flex: 1; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; min-width: 0;"
+                [(ngModel)]="tlFilterEndDate" 
+                (change)="onTlFilterChange()"
+              />
+            </div>
 
             <select 
               class="form-control"
-              style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; margin-left: 0.5rem;"
+              style="flex: 1 1 140px; min-width: 140px; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
               [(ngModel)]="tlFilterAssignStatus"
               (change)="onTlFilterChange()"
             >
@@ -489,10 +612,21 @@
               <option value="UNASSIGNED">Not Assigned</option>
             </select>
             
+            <select 
+              class="form-control"
+              style="flex: 1 1 140px; min-width: 140px; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
+              [(ngModel)]="tlFilterBaseType"
+              (change)="onTlFilterChange()"
+            >
+              <option value="">Base Type (All)</option>
+              <option value="admin">Admin Base</option>
+              <option value="tl">TL Base</option>
+            </select>
+            
             @if (isAdmin()) {
               <select 
                 class="form-control"
-                style="padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; margin-left: 0.5rem;"
+                style="flex: 1 1 140px; min-width: 140px; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
                 [(ngModel)]="selectedBranch"
                 (change)="onTlFilterChange()"
               >
@@ -503,18 +637,19 @@
               </select>
             }
             
-            <button type="button" (click)="resetTlFilters()" style="display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: #f3f4f6; color: #4b5563; font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-left: 0.5rem;">
+            <button type="button" (click)="resetTlFilters()" style="flex: 1 1 auto; display: inline-flex; justify-content: center; align-items: center; gap: 0.2rem; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: #f3f4f6; color: #4b5563; font-size: 0.85rem; font-weight: 500; cursor: pointer;">
               <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Reset
             </button>
         </div>
 
-        <div class="search-box">
+        <div class="search-box" style="width: 100%; max-width: 100%;">
           <span class="material-symbols-outlined search-icon">search</span>
           <input
             type="text"
             placeholder="Search TC Name or EMP ID..."
             [ngModel]="tlSearchQuery()"
             (ngModelChange)="tlSearchQuery.set($event); onTlSearchChange()"
+            style="width: 100%; box-sizing: border-box;"
           />
         </div>
       </div>

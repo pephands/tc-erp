@@ -34,7 +34,7 @@ export class WorkstationComponent implements OnInit {
   // ----------------------------------------------------
   queue = this.service.tcQueueSignal;
 
-  activeTab = signal<'PENDING' | 'COMPLETED'>('PENDING');
+  activeTab = signal<'PENDING' | 'COMPLETED' | 'TL_BASE'>('PENDING');
   searchQuery = signal<string>('');
   filterDisposition = signal<string>('');
   currentPage = signal<number>(1);
@@ -52,10 +52,28 @@ export class WorkstationComponent implements OnInit {
   isCallModalOpen = signal<boolean>(false);
 
   donorNameInput = signal<string>('');
-  dobInput = signal<string>('');
-  anniversaryInput = signal<string>('');
+  
+  dobDay = signal<string>('');
+  dobMonth = signal<string>('');
+  dobYear = signal<string>('');
+
+  anniDay = signal<string>('');
+  anniMonth = signal<string>('');
+  anniYear = signal<string>('');
+  
+  alternativeNumberInput = signal<string>('');
+  
   callDisposition = signal<string>('');
   remarksInput = signal<string>('');
+
+  days = Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0'));
+  months = [
+    { value: '01', label: 'Jan' }, { value: '02', label: 'Feb' }, { value: '03', label: 'Mar' },
+    { value: '04', label: 'Apr' }, { value: '05', label: 'May' }, { value: '06', label: 'Jun' },
+    { value: '07', label: 'Jul' }, { value: '08', label: 'Aug' }, { value: '09', label: 'Sep' },
+    { value: '10', label: 'Oct' }, { value: '11', label: 'Nov' }, { value: '12', label: 'Dec' }
+  ];
+  years = Array.from({length: 201}, (_, i) => (new Date().getFullYear() + 100 - i).toString());
 
   dispositionOptions = signal<{value: string, label: string}[]>([]);
   
@@ -63,8 +81,16 @@ export class WorkstationComponent implements OnInit {
   isNewReferenceModalOpen = signal<boolean>(false);
   newRefPhone = signal<string>('');
   newRefName = signal<string>('');
-  newRefDob = signal<string>('');
-  newRefAnniversary = signal<string>('');
+  newRefAlternativeNumber = signal<string>('');
+  
+  newRefDobDay = signal<string>('');
+  newRefDobMonth = signal<string>('');
+  newRefDobYear = signal<string>('');
+
+  newRefAnniDay = signal<string>('');
+  newRefAnniMonth = signal<string>('');
+  newRefAnniYear = signal<string>('');
+  
   newRefDisposition = signal<string>('');
   newRefRemarks = signal<string>('');
   modalErrorMessage = signal<string>('');
@@ -98,7 +124,8 @@ export class WorkstationComponent implements OnInit {
   tlFilterEndDate = signal<string>(
     new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)
   );
-  tlFilterAssignStatus = signal<string>('');
+  tlFilterAssignStatus = signal<string>('ASSIGNED');
+  tlFilterBaseType = signal<string>('');
   tlSearchQuery = signal<string>('');
   isAdmin = signal<boolean>(false);
   branches = signal<any[]>([]);
@@ -244,8 +271,34 @@ export class WorkstationComponent implements OnInit {
     if (!this.isRowEditable(donor)) return;
     this.selectedDonor.set(donor);
     this.donorNameInput.set(donor.donorName);
-    this.dobInput.set(donor.dob || '');
-    this.anniversaryInput.set(donor.anniversary || '');
+    this.alternativeNumberInput.set(donor.alternative_number || '');
+
+    if (donor.dob) {
+      const parts = donor.dob.split('-');
+      if (parts.length === 3) {
+        this.dobYear.set(parts[0]);
+        this.dobMonth.set(parts[1]);
+        this.dobDay.set(parts[2]);
+      }
+    } else {
+      this.dobYear.set('');
+      this.dobMonth.set('');
+      this.dobDay.set('');
+    }
+
+    if (donor.anniversary) {
+      const parts = donor.anniversary.split('-');
+      if (parts.length === 3) {
+        this.anniYear.set(parts[0]);
+        this.anniMonth.set(parts[1]);
+        this.anniDay.set(parts[2]);
+      }
+    } else {
+      this.anniYear.set('');
+      this.anniMonth.set('');
+      this.anniDay.set('');
+    }
+
     this.callDisposition.set(donor.latestCallDisposition || '');
     this.remarksInput.set(donor.latestCallRemarks || '');
     this.isCallModalOpen.set(true);
@@ -260,15 +313,26 @@ export class WorkstationComponent implements OnInit {
     this.selectedDonor.set(null);
   }
 
+  clearDob(): void {
+    this.dobDay.set('');
+    this.dobMonth.set('');
+    this.dobYear.set('');
+  }
+
+  clearAnniversary(): void {
+    this.anniDay.set('');
+    this.anniMonth.set('');
+    this.anniYear.set('');
+  }
+
   onSubmitCallLog(): void {
     const donor = this.selectedDonor();
     if (!donor) return;
     const disposition = this.callDisposition();
     const remarks = this.remarksInput().trim().toUpperCase();
     const updatedName = this.donorNameInput().trim().toUpperCase();
-    const updatedDob = this.dobInput().trim();
-    const updatedAnniversary = this.anniversaryInput().trim();
-    
+    const updatedDob = (this.dobYear() && this.dobMonth() && this.dobDay()) ? `${this.dobYear()}-${this.dobMonth()}-${this.dobDay()}` : '';
+    const updatedAnniversary = (this.anniYear() && this.anniMonth() && this.anniDay()) ? `${this.anniYear()}-${this.anniMonth()}-${this.anniDay()}` : '';
     this.modalErrorMessage.set('');
 
     if (!disposition) {
@@ -277,7 +341,7 @@ export class WorkstationComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.service.logCall(donor.id, disposition, remarks, updatedName, updatedDob, updatedAnniversary).subscribe({
+    this.service.logCall(donor.id, disposition, remarks, updatedName, updatedDob, updatedAnniversary, this.alternativeNumberInput().trim()).subscribe({
       next: (res: any) => {
         this.isSubmitting.set(false);
         this.closeCallModal();
@@ -298,9 +362,14 @@ export class WorkstationComponent implements OnInit {
   // ----------------------------------------------------
   openNewReferenceModal(): void {
     this.newRefPhone.set('');
+    this.newRefAlternativeNumber.set('');
     this.newRefName.set('');
-    this.newRefDob.set('');
-    this.newRefAnniversary.set('');
+    this.newRefDobDay.set('');
+    this.newRefDobMonth.set('');
+    this.newRefDobYear.set('');
+    this.newRefAnniDay.set('');
+    this.newRefAnniMonth.set('');
+    this.newRefAnniYear.set('');
     this.newRefDisposition.set('');
     this.newRefRemarks.set('');
     this.modalErrorMessage.set('');
@@ -317,13 +386,26 @@ export class WorkstationComponent implements OnInit {
     this.newRefPhone.set(val);
   }
 
+  clearNewRefDob(): void {
+    this.newRefDobDay.set('');
+    this.newRefDobMonth.set('');
+    this.newRefDobYear.set('');
+  }
+
+  clearNewRefAnniversary(): void {
+    this.newRefAnniDay.set('');
+    this.newRefAnniMonth.set('');
+    this.newRefAnniYear.set('');
+  }
+
   onSubmitNewReference(): void {
     const phone = this.newRefPhone().trim();
     const name = this.newRefName().trim().toUpperCase();
     const disp = this.newRefDisposition();
     const rem = this.newRefRemarks().trim().toUpperCase();
-    const dob = this.newRefDob();
-    const anni = this.newRefAnniversary();
+    
+    const dob = (this.newRefDobYear() && this.newRefDobMonth() && this.newRefDobDay()) ? `${this.newRefDobYear()}-${this.newRefDobMonth()}-${this.newRefDobDay()}` : '';
+    const anni = (this.newRefAnniYear() && this.newRefAnniMonth() && this.newRefAnniDay()) ? `${this.newRefAnniYear()}-${this.newRefAnniMonth()}-${this.newRefAnniDay()}` : '';
     
     this.modalErrorMessage.set('');
 
@@ -341,7 +423,7 @@ export class WorkstationComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.service.logNewReferenceCall(phone, name, disp, rem, dob, anni).subscribe({
+    this.service.logNewReferenceCall(phone, name, disp, rem, dob, anni, this.newRefAlternativeNumber().trim()).subscribe({
       next: (res: any) => {
         this.isSubmitting.set(false);
         this.closeNewReferenceModal();
@@ -357,7 +439,7 @@ export class WorkstationComponent implements OnInit {
     });
   }
 
-  setTab(tab: 'PENDING' | 'COMPLETED'): void {
+  setTab(tab: 'PENDING' | 'COMPLETED' | 'TL_BASE'): void {
     this.activeTab.set(tab);
     this.filterDisposition.set('');
     this.currentPage.set(1);
@@ -419,6 +501,7 @@ export class WorkstationComponent implements OnInit {
       this.tlFilterAssignStatus(),
       this.tlSearchQuery(),
       this.selectedBranch(),
+      this.tlFilterBaseType(),
       this.tlCurrentPage()
     ).subscribe({
       next: (res: any) => {
@@ -455,7 +538,8 @@ export class WorkstationComponent implements OnInit {
   resetTlFilters(): void {
     this.tlFilterStartDate.set(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10));
     this.tlFilterEndDate.set(new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10));
-    this.tlFilterAssignStatus.set('');
+    this.tlFilterAssignStatus.set('ASSIGNED');
+    this.tlFilterBaseType.set('');
     this.selectedBranch.set('');
     this.tlSearchQuery.set('');
     this.tlCurrentPage.set(1);
@@ -469,7 +553,8 @@ export class WorkstationComponent implements OnInit {
       this.tlFilterEndDate(),
       this.tlFilterAssignStatus(),
       this.tlSearchQuery(),
-      this.selectedBranch()
+      this.selectedBranch(),
+      this.tlFilterBaseType()
     ).subscribe({
       next: (res: any) => {
         this.tlIsDownloading.set(false);
@@ -487,6 +572,7 @@ export class WorkstationComponent implements OnInit {
           'Phone Number': item['Phone Number'],
           'DOB': item['DOB'],
           'Anniversary': item['Anniversary'] || '',
+          'Base Type': item['Base Type'],
           'Assigned Date': item['Assigned Date'],
           'Call Completed Date': item['Call Completed Date'],
           'Call Disposition': item['Call Disposition'],

@@ -227,23 +227,25 @@ export class TelecallingService extends BaseHttpService {
       );
   }
 
-  fetchTlWorkstation(startDate?: string, endDate?: string, assignStatus?: string, search?: string, branch?: string, page: number = 1): Observable<any> {
+  fetchTlWorkstation(startDate?: string, endDate?: string, assignStatus?: string, search?: string, branch?: string, baseType?: string, page: number = 1): Observable<any> {
     let params: any = { page };
     if (startDate) params.start_date = startDate;
     if (endDate) params.end_date = endDate;
     if (assignStatus) params.assign_status = assignStatus;
     if (search) params.search = search;
     if (branch) params.branch = branch;
+    if (baseType) params.base_type = baseType;
     return this.httpClient.get<any>(this.endPoint.telecallingWorkstation, { headers: this.headers, params });
   }
 
-  fetchTlWorkstationExport(startDate?: string, endDate?: string, assignStatus?: string, search?: string, branch?: string): Observable<any[]> {
+  fetchTlWorkstationExport(startDate?: string, endDate?: string, assignStatus?: string, search?: string, branch?: string, baseType?: string): Observable<any[]> {
     let params: any = { export: 'true' };
     if (startDate) params.start_date = startDate;
     if (endDate) params.end_date = endDate;
     if (assignStatus) params.assign_status = assignStatus;
     if (search) params.search = search;
     if (branch) params.branch = branch;
+    if (baseType) params.base_type = baseType;
     return this.httpClient.get<any[]>(this.endPoint.telecallingWorkstation, { headers: this.headers, params });
   }
 
@@ -253,7 +255,8 @@ export class TelecallingService extends BaseHttpService {
     remarks?: string,
     updatedName?: string,
     updatedDob?: string,
-    updatedAnniversary?: string
+    updatedAnniversary?: string,
+    updatedAlternativeNumber?: string
   ): Observable<any> {
     const payload: any = {
       telecalling_data_id: telecallingDataId,
@@ -262,6 +265,7 @@ export class TelecallingService extends BaseHttpService {
       updated_donor_name: updatedName || '',
       updated_dob: updatedDob || null,
       updated_anniversary: updatedAnniversary || null,
+      updated_alternative_number: updatedAlternativeNumber || null,
     };
 
     return this.httpClient.post(this.endPoint.telecallingCallLog, payload, {
@@ -275,7 +279,8 @@ export class TelecallingService extends BaseHttpService {
     disposition: string,
     remarks?: string,
     dob?: string,
-    anniversary?: string
+    anniversary?: string,
+    alternativeNumber?: string
   ): Observable<any> {
     const payload: any = {
       is_new_reference: true,
@@ -285,6 +290,7 @@ export class TelecallingService extends BaseHttpService {
       remarks: remarks || '',
       updated_dob: dob || null,
       updated_anniversary: anniversary || null,
+      updated_alternative_number: alternativeNumber || null,
     };
     return this.httpClient.post(this.endPoint.telecallingCallLog, payload, {
       headers: this.headers,
