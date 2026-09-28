@@ -52,4 +52,9 @@ export class AttendanceService extends BaseHttpService {
   markManualAttendance(payload: any): Observable<any> {
     return this.httpClient.post(this.endPoint.manualMark, payload, { headers: this.headers });
   }
+
+  toggleMultipleSessions(attendanceId: string | number): Observable<any> {
+    const url = `${this.endPoint.attendanceList}${attendanceId}/toggle-multiple-sessions/`;
+    return this.httpClient.post(url, {}, { headers: this.headers });
+  }
 }

@@ -4,7 +4,7 @@ import { User, AuthSession } from '../models/user.model';
 import { AdminLoginService } from './login.service';
 import { LogoutService } from './logout.service';
 import { Endpoint } from '../http/endpoint';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
@@ -124,6 +124,18 @@ export class AuthService {
   }
 
   logout(): Observable<boolean> {
+    const today = new Date().toLocaleDateString('en-CA');
+    const lastCheckin = localStorage.getItem('tc_erp_last_checkin_date');
+    const hasCheckedOut = localStorage.getItem('tc_erp_has_checked_out_date');
+
+    const isCheckedIn = (lastCheckin === today && hasCheckedOut !== today);
+    const isAdmin = this.hasRole(['ADMIN']);
+
+    if (isCheckedIn && !isAdmin) {
+      alert("Please mark your Check-out before logging out.");
+      return throwError(() => new Error('Checkout required before logout.'));
+    }
+
     return this.logoutService.getData({}).pipe(
       map(() => {
         this.clearLocalSession();
@@ -139,6 +151,7 @@ export class AuthService {
   private clearLocalSession(): void {
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem('tc_erp_last_checkin_date');
+    localStorage.removeItem('tc_erp_has_checked_out_date');
     this.closePasswordResetModal(true);
     this.currentSession.set(null);
   }

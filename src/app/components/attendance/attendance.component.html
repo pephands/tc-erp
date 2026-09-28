@@ -213,9 +213,14 @@
                 </td>
                 @if (isAdmin) {
                   <td class="col-actions">
-                    <button type="button" class="btn-icon-only" (click)="openDetailModal(item)" title="View Details">
+                    <button type="button" class="btn-icon-action" (click)="openDetailModal(item)" title="View Details">
                       <span class="material-symbols-outlined">visibility</span>
                     </button>
+                    @if (item.status === 'Present') {
+                      <button type="button" class="btn-icon-action" [class.active-state]="item.allowMultipleSessions" (click)="toggleMultipleSessions(item)" [title]="item.allowMultipleSessions ? 'Disable Multiple Sessions' : 'Enable Multiple Sessions'" [ngStyle]="{'color': item.allowMultipleSessions ? '#10b981' : 'var(--text-muted)'}">
+                        <span class="material-symbols-outlined">{{ item.allowMultipleSessions ? 'lock_open' : 'lock' }}</span>
+                      </button>
+                    }
                   </td>
                 }
               </tr>

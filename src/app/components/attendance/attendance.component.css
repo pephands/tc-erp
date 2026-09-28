@@ -289,6 +289,12 @@
   white-space: nowrap;
 }
 
+.col-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .col-date {
   color: var(--text-muted);
   white-space: nowrap;
@@ -317,27 +323,32 @@
   color: #3b82f6;
 }
 
-.btn-action-view {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: var(--bg-card-subtle);
-  border: 1px solid var(--border-color);
+.btn-icon-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
   color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.btn-action-view:hover {
-  background: var(--primary-light);
+.btn-icon-action:hover {
+  background: var(--bg-input);
   color: var(--primary);
-  border-color: var(--border-focus);
+  transform: scale(1.05);
 }
 
-.btn-action-view .material-symbols-outlined {
-  font-size: 18px;
+.btn-icon-action.active-state:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.btn-icon-action .material-symbols-outlined {
+  font-size: 20px;
 }
 
 .empty-table-state {

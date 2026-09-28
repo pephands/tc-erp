@@ -279,6 +279,7 @@ export class AttendanceComponent implements OnInit {
       status,
       inTime: this.formatTime(item.in_time),
       outTime: this.formatTime(item.out_time),
+      allowMultipleSessions: !!item.allow_multiple_sessions,
       originalItem: item, // attach original raw item
     };
   }
@@ -398,6 +399,24 @@ export class AttendanceComponent implements OnInit {
   closeDetailModal(): void {
     this.isDetailModalOpen.set(false);
     this.selectedAttendance.set(null);
+  }
+
+  toggleMultipleSessions(item: AttendanceRecord): void {
+    if (!item.id) return;
+    this.attendanceService.toggleMultipleSessions(item.id).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.triggerToast(res.message || 'Multiple sessions updated.');
+          item.allowMultipleSessions = res.allow_multiple_sessions;
+          item.originalItem.allow_multiple_sessions = res.allow_multiple_sessions;
+        } else {
+          alert(res.message || 'Failed to update multiple sessions.');
+        }
+      },
+      error: (err: any) => {
+        alert(err.error?.message || 'Error updating multiple sessions.');
+      }
+    });
   }
 
 

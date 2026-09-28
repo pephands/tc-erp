@@ -8,5 +8,6 @@ export interface AttendanceRecord {
   status: 'Present' | 'Absent' | 'WFH' | string;
   inTime?: string;
   outTime?: string;
+  allowMultipleSessions?: boolean;
   originalItem?: any;
 }

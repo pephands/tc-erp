@@ -234,6 +234,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.checkInService.clearAttendanceMarked();
           } else if (res.data.has_checked_in) {
             this.statusState.set('MARKED');
+            
+            // Re-populate localStorage so guards pass
+            if (res.data.attendance) {
+              this.checkInService.setAttendanceMarked(res.data.attendance.id, res.data.attendance.in_time, res.data.attendance.is_wfh);
+            } else {
+              this.checkInService.setAttendanceMarked();
+            }
+            if (typeof localStorage !== 'undefined') {
+              localStorage.removeItem('tc_erp_has_checked_out_date');
+            }
+
             if (!this.checkInTime()) {
               const savedTime = this.checkInService.getCheckInTime();
               this.checkInTime.set(savedTime || '-- : --');
@@ -243,6 +254,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
           } else {
             this.statusState.set('IDLE');
+            if (typeof localStorage !== 'undefined') {
+              localStorage.removeItem('tc_erp_has_checked_out_date');
+            }
           }
         }
       },
