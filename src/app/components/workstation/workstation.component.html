@@ -25,21 +25,29 @@
 
         <div class="queue-summary-badge">
           <span class="material-symbols-outlined icon">phone_in_talk</span>
-          <span>{{ activeTab() === 'PENDING' ? 'Pending Queue' : activeTab() === 'COMPLETED' ? 'Completed Queue' : 'TL Assigned Base' }}: {{ totalRecords() }} Donors</span>
+          <span>{{ activeBaseTab() === 'ADMIN' ? 'Admin Assigned Base' : 'TL Assigned Base' }} ({{ activeStatusTab() === 'PENDING' ? 'Pending' : 'Completed' }}): {{ totalRecords() }} Donors</span>
         </div>
       </div>
     </div>
 
     <!-- Tabs Navigation -->
-    <div class="tabs-container" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e5e5e5; padding-bottom: 0;">
-      <button class="tab-btn" [class.active]="activeTab() === 'PENDING'" (click)="setTab('PENDING')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
+    <!-- Base Selection Tabs -->
+    <div class="tabs-container" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #e5e5e5; padding-bottom: 0;">
+      <button class="tab-btn" [class.active]="activeBaseTab() === 'ADMIN'" (click)="setBaseTab('ADMIN')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: #444; outline: none; transition: all 0.2s;">
+        Admin Assigned Base
+      </button>
+      <button class="tab-btn" [class.active]="activeBaseTab() === 'TL'" (click)="setBaseTab('TL')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: #444; outline: none; transition: all 0.2s;">
+        TL Assigned Base
+      </button>
+    </div>
+
+    <!-- Status Sub-Tabs -->
+    <div class="tabs-container" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0;">
+      <button class="tab-btn" [class.active]="activeStatusTab() === 'PENDING'" (click)="setStatusTab('PENDING')" style="padding: 0.5rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
         Pending Calls
       </button>
-      <button class="tab-btn" [class.active]="activeTab() === 'COMPLETED'" (click)="setTab('COMPLETED')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
+      <button class="tab-btn" [class.active]="activeStatusTab() === 'COMPLETED'" (click)="setStatusTab('COMPLETED')" style="padding: 0.5rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
         Completed Calls
-      </button>
-      <button class="tab-btn" [class.active]="activeTab() === 'TL_BASE'" (click)="setTab('TL_BASE')" style="padding: 0.75rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #666; outline: none; transition: all 0.2s;">
-        TL Assigned Base
       </button>
     </div>
 
@@ -56,7 +64,7 @@
           />
         </div>
 
-        @if (activeTab() === 'COMPLETED') {
+        @if (activeStatusTab() === 'COMPLETED') {
           <div class="select-wrapper" style="position: relative; min-width: 200px;">
             <select [ngModel]="filterDisposition()" (ngModelChange)="onDispositionFilterChange($event)" style="padding: 0.6rem 2rem 0.6rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; outline: none; width: 100%; appearance: none; background: #fff; font-size: 0.9rem;">
               <option value="">All Dispositions</option>
@@ -79,7 +87,7 @@
               <th>DOB</th>
               <th>Anniversary</th>
               <th>Assigned Date</th>
-              @if (activeTab() === 'COMPLETED') {
+              @if (activeStatusTab() === 'COMPLETED') {
                 <th>Completed Date</th>
                 <th>Call Disposition</th>
               }
@@ -103,9 +111,9 @@
                   <td class="font-bold phone-number">{{ item.phoneNumber }}</td>
                   <td class="text-muted">{{ item.dob || '-' }}</td>
                   <td class="text-muted">{{ item.anniversary || '-' }}</td>
-                  <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'shortDate') : (item.createdAt ? (item.createdAt | date:'shortDate') : '-') }}</td>
-                  @if (activeTab() === 'COMPLETED') {
-                    <td class="text-muted">{{ (item.status === 'COMPLETED' && item.updatedAt) ? (item.updatedAt | date:'shortDate') : '-' }}</td>
+                  <td class="text-muted">{{ item.assignedTcAt ? (item.assignedTcAt | date:'short') : (item.createdAt ? (item.createdAt | date:'short') : '-') }}</td>
+                  @if (activeStatusTab() === 'COMPLETED') {
+                    <td class="text-muted">{{ (item.status === 'COMPLETED' && item.updatedAt) ? (item.updatedAt | date:'short') : '-' }}</td>
                     <td class="font-medium text-muted" style="color: #4b5563;">{{ item.latestCallDisposition || '-' }}</td>
                   }
                   <td>

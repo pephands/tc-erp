@@ -34,7 +34,16 @@ export class WorkstationComponent implements OnInit {
   // ----------------------------------------------------
   queue = this.service.tcQueueSignal;
 
-  activeTab = signal<'PENDING' | 'COMPLETED' | 'TL_BASE'>('PENDING');
+  activeBaseTab = signal<'ADMIN' | 'TL'>('ADMIN');
+  activeStatusTab = signal<'PENDING' | 'COMPLETED'>('PENDING');
+
+  get currentQueueType(): string {
+    if (this.activeBaseTab() === 'ADMIN') {
+      return this.activeStatusTab() === 'PENDING' ? 'admin_pending' : 'admin_completed';
+    } else {
+      return this.activeStatusTab() === 'PENDING' ? 'tl_pending' : 'tl_completed';
+    }
+  }
   searchQuery = signal<string>('');
   filterDisposition = signal<string>('');
   currentPage = signal<number>(1);
@@ -220,7 +229,7 @@ export class WorkstationComponent implements OnInit {
     const search = this.searchQuery().trim();
     const page = this.currentPage();
     const size = this.pageSize();
-    const queueType = this.activeTab().toLowerCase();
+    const queueType = this.currentQueueType;
     const disposition = this.filterDisposition();
 
     this.service.fetchTcQueue(page, size, search, queueType, disposition).subscribe({
@@ -439,8 +448,15 @@ export class WorkstationComponent implements OnInit {
     });
   }
 
-  setTab(tab: 'PENDING' | 'COMPLETED' | 'TL_BASE'): void {
-    this.activeTab.set(tab);
+  setBaseTab(tab: 'ADMIN' | 'TL'): void {
+    this.activeBaseTab.set(tab);
+    this.filterDisposition.set('');
+    this.currentPage.set(1);
+    this.fetchQueue();
+  }
+
+  setStatusTab(tab: 'PENDING' | 'COMPLETED'): void {
+    this.activeStatusTab.set(tab);
     this.filterDisposition.set('');
     this.currentPage.set(1);
     this.fetchQueue();
@@ -448,7 +464,7 @@ export class WorkstationComponent implements OnInit {
 
   onDownloadAssignedData(): void {
     const search = this.searchQuery().trim();
-    const queueType = this.activeTab().toLowerCase();
+    const queueType = this.currentQueueType;
     this.service.fetchAllTcQueue(search, queueType).subscribe({
       next: (list) => {
         if (!list || list.length === 0) {
@@ -463,16 +479,16 @@ export class WorkstationComponent implements OnInit {
           'DOB': item.dob || '',
           'Anniversary': item.anniversary || '',
           'Assigned Date': item.assignedTcAt ? item.assignedTcAt.slice(0, 10) : (item.createdAt ? item.createdAt.slice(0, 10) : ''),
-          'Call Completed Date': (this.activeTab() === 'COMPLETED' && item.status === 'COMPLETED' && item.updatedAt) ? item.updatedAt.slice(0, 10) : '',
+          'Call Completed Date': (this.activeStatusTab() === 'COMPLETED' && item.status === 'COMPLETED' && item.updatedAt) ? item.updatedAt.slice(0, 10) : '',
           'Call Disposition': item.latestCallDisposition || '',
           'Remarks': item.latestCallRemarks || '',
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
-        const sheetName = this.activeTab() === 'PENDING' ? 'Pending Donors' : 'Completed Donors';
+        const sheetName = this.activeStatusTab() === 'PENDING' ? 'Pending Donors' : 'Completed Donors';
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-        const fileName = `${this.activeTab()}_Data_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const fileName = `${this.currentQueueType}_Data_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(workbook, fileName);
         this.triggerToast(`Downloaded ${list.length} assigned donors as Excel (.xlsx).`);
       },
