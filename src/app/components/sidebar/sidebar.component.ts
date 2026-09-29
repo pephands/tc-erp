@@ -388,6 +388,13 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
           route: '/trust-children',
         },
+        {
+          id: 'branch_vehicles',
+          label: 'Vehicle Details',
+          icon: 'directions_car',
+          allowedRoles: ['ADMIN', 'TL', 'SUPERINTENDENT', 'MANAGER'],
+          route: '/branch-vehicles',
+        },
       ],
     },
     // {
@@ -629,6 +636,7 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';
     if (url.includes('/trust-children')) return 'trust_children';
+    if (url.includes('/branch-vehicles')) return 'branch_vehicles';
 
     // Miscellaneous
     if (url.includes('/received-records')) return 'received-records';

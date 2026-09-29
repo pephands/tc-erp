@@ -1,0 +1,251 @@
+<div class="page-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Branch Vehicles</h1>
+      <p class="page-subtitle">Manage branch vehicle records, insurance, and certificates.</p>
+    </div>
+    <div class="header-right">
+      <button *ngIf="isAdmin()" class="btn-primary" (click)="openAddModal()">
+        <span class="material-symbols-outlined">add</span>
+        Add Vehicle
+      </button>
+    </div>
+  </header>
+
+  <!-- Controls -->
+  <div class="controls-panel">
+    <div class="search-box">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" placeholder="Search by vehicle no, name..." [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" />
+    </div>
+
+    <div class="filters" *ngIf="isAdmin()">
+      <select [ngModel]="filterBranch()" (ngModelChange)="onFilterBranch($event)">
+        <option value="">All Branches</option>
+        <option *ngFor="let b of branchesList()" [value]="b.id">{{ b.name }} ({{ b.code }})</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container custom-scrollbar">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Branch</th>
+          <th>Vehicle No</th>
+          <th>Registered Name</th>
+          <th>Type</th>
+          <th>Insurance EXP</th>
+          <th>FC EXP</th>
+          <th>Pollution EXP</th>
+          <th>Status</th>
+          <th *ngIf="isAdmin()">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of vehicles(); let i = index">
+          <td>{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+          <td>{{ item.branch_name || item.branch }}</td>
+          <td>{{ item.registered_vehicle_no }}</td>
+          <td>{{ item.registered_name }}<br><small>{{ item.registered_mobile_no }}</small></td>
+          <td>{{ item.vehicle_type }}</td>
+          <td>
+            <div class="date-doc-wrapper">
+              <span class="date-text">{{ item.insurance_end_date ? (item.insurance_end_date | date) : 'N/A' }}</span>
+              <a *ngIf="item.insurance_document" [href]="getAbsoluteUrl(item.insurance_document)" target="_blank" title="View Document" class="doc-link">
+                <span class="material-symbols-outlined">description</span>
+              </a>
+            </div>
+          </td>
+          <td>
+            <div class="date-doc-wrapper">
+              <span class="date-text">{{ item.fitness_certificate_end_date ? (item.fitness_certificate_end_date | date) : 'N/A' }}</span>
+              <a *ngIf="item.fitness_certificate_document" [href]="getAbsoluteUrl(item.fitness_certificate_document)" target="_blank" title="View Document" class="doc-link">
+                <span class="material-symbols-outlined">description</span>
+              </a>
+            </div>
+          </td>
+          <td>
+            <div class="date-doc-wrapper">
+              <span class="date-text">{{ item.pollution_certificate_end_date ? (item.pollution_certificate_end_date | date) : 'N/A' }}</span>
+              <a *ngIf="item.pollution_certificate_document" [href]="getAbsoluteUrl(item.pollution_certificate_document)" target="_blank" title="View Document" class="doc-link">
+                <span class="material-symbols-outlined">description</span>
+              </a>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="item.is_active" [class.inactive]="!item.is_active">
+              {{ item.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td *ngIf="isAdmin()">
+            <div class="action-buttons">
+              <button class="btn-icon edit" (click)="openEditModal(item)" title="Edit">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button class="btn-icon delete" (click)="deleteVehicle(item.id)" title="Delete">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="totalItems() === 0">
+          <td [attr.colspan]="isAdmin() ? 10 : 9" class="empty-state">No vehicles found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages() > 1">
+    <button class="btn-page" [disabled]="currentPage() === 1" (click)="changePage(currentPage() - 1)">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <span class="page-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
+    <button class="btn-page" [disabled]="currentPage() === totalPages()" (click)="changePage(currentPage() + 1)">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" *ngIf="showModal()" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode() ? 'Edit Vehicle' : 'Add New Vehicle' }}</h2>
+      <button class="btn-close" (click)="closeModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form [formGroup]="vehicleForm" (ngSubmit)="saveVehicle()">
+      <div class="modal-body custom-scrollbar">
+        <div class="form-grid">
+          
+          <div class="form-group" *ngIf="isAdmin()">
+            <label>Branch <span class="required">*</span></label>
+            <select formControlName="branch">
+              <option value="">Select Branch</option>
+              <option *ngFor="let b of branchesList()" [value]="b.id">{{ b.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Registered Name <span class="required">*</span></label>
+            <input type="text" formControlName="registered_name" placeholder="Enter name" style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-group">
+            <label>Mobile No <span class="required">*</span></label>
+            <input type="text" formControlName="registered_mobile_no" placeholder="Enter mobile no">
+          </div>
+
+          <div class="form-group">
+            <label>Vehicle No <span class="required">*</span></label>
+            <input type="text" formControlName="registered_vehicle_no" placeholder="e.g. TN-00-XX-0000" style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-group">
+            <label>Vehicle Type <span class="required">*</span></label>
+            <input type="text" formControlName="vehicle_type" placeholder="e.g. Car, Bike, Van" style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-group">
+            <label>User Name <span class="required">*</span></label>
+            <input type="text" formControlName="vehicle_user_name" placeholder="Who uses this vehicle?" style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-section-title">Insurance Details</div>
+          
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" formControlName="insurance_start_date">
+          </div>
+
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" formControlName="insurance_end_date">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Insurance Document (PDF/Image)</label>
+            <div class="file-upload-container">
+              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.insurance_document">
+                <span class="material-symbols-outlined">description</span>
+                <a [href]="getAbsoluteUrl(currentVehicle().insurance_document)" target="_blank">View Current Document</a>
+              </div>
+              <input type="file" (change)="onFileChange($event, 'insurance_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.insurance_document">
+              <small *ngIf="isEditMode()">{{ currentVehicle()?.insurance_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+            </div>
+          </div>
+
+          <div class="form-section-title">Fitness Certificate (FC)</div>
+
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" formControlName="fitness_certificate_start_date">
+          </div>
+
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" formControlName="fitness_certificate_end_date">
+          </div>
+
+          <div class="form-group full-width">
+            <label>FC Document</label>
+            <div class="file-upload-container">
+              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.fitness_certificate_document">
+                <span class="material-symbols-outlined">description</span>
+                <a [href]="getAbsoluteUrl(currentVehicle().fitness_certificate_document)" target="_blank">View Current Document</a>
+              </div>
+              <input type="file" (change)="onFileChange($event, 'fitness_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.fitness_certificate_document">
+              <small *ngIf="isEditMode()">{{ currentVehicle()?.fitness_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+            </div>
+          </div>
+
+          <div class="form-section-title">Pollution Certificate (PC)</div>
+
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" formControlName="pollution_certificate_start_date">
+          </div>
+
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" formControlName="pollution_certificate_end_date">
+          </div>
+
+          <div class="form-group full-width">
+            <label>PC Document</label>
+            <div class="file-upload-container">
+              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.pollution_certificate_document">
+                <span class="material-symbols-outlined">description</span>
+                <a [href]="getAbsoluteUrl(currentVehicle().pollution_certificate_document)" target="_blank">View Current Document</a>
+              </div>
+              <input type="file" (change)="onFileChange($event, 'pollution_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.pollution_certificate_document">
+              <small *ngIf="isEditMode()">{{ currentVehicle()?.pollution_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+            </div>
+          </div>
+
+          <div class="form-group full-width checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="is_active">
+              Active Status
+            </label>
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="submitting()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="submitting() || vehicleForm.invalid">
+          <span class="material-symbols-outlined" *ngIf="submitting()">sync</span>
+          {{ isEditMode() ? 'Update Vehicle' : 'Save Vehicle' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

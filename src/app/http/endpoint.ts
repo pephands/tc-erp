@@ -55,6 +55,10 @@ export class Endpoint {
     return this.baseUrl + 'branches/trust-children/';
   }
 
+  get branchVehicles(): string {
+    return this.baseUrl + 'branches/vehicles/';
+  }
+
 
   get branchExpenses(): string {
     return this.baseUrl + 'branches/expenses/';

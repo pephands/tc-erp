@@ -7,6 +7,9 @@ import { AttendanceComponent } from './components/attendance/attendance.componen
 import { ApproveAssignComponent } from './components/approve-assign/approve-assign.component';
 import { TlDataManagementComponent } from './components/tl-data-management/tl-data-management.component';
 import { BranchDocumentsComponent } from './components/branch-documents/branch-documents.component';
+import { BranchVehiclesComponent } from './components/branch-vehicles/branch-vehicles.component';
+import { BranchSettingsComponent } from './components/branch-settings/branch-settings.component';
+import { TrustChildrenComponent } from './components/trust-children/trust-children.component';
 import { ExpenseDetailsComponent } from './components/expense-details/expense-details.component';
 import { ExpenseReportComponent } from './components/expense-report/expense-report.component';
 import { WhatsappCampaignsComponent } from './components/whatsapp-campaigns/whatsapp-campaigns.component';
@@ -184,8 +187,13 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       {
+        path: 'branch-vehicles',
+        component: BranchVehiclesComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
         path: 'branch-settings',
-        loadComponent: () => import('./components/branch-settings/branch-settings.component').then(m => m.BranchSettingsComponent),
+        component: BranchSettingsComponent,
         canActivate: [deviceAuthGuard],
       },
       {
@@ -290,9 +298,10 @@ export const routes: Routes = [
       },
       {
         path: 'trust-children',
-        loadComponent: () => import('./components/trust-children/trust-children.component').then(m => m.TrustChildrenComponent),
+        component: TrustChildrenComponent,
         canActivate: [deviceAuthGuard],
       },
+
       {
         path: '',
         redirectTo: 'dashboard',
