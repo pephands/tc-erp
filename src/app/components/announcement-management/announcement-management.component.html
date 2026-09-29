@@ -1,0 +1,230 @@
+<div class="header-actions">
+  <h2>Announcement Management</h2>
+  <button class="btn-primary" (click)="openCreateModal()">
+    <span class="material-symbols-outlined">add</span> Create Announcement
+  </button>
+</div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Created At</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ann of announcements(); track ann.id) {
+            <tr>
+              <td>#{{ ann.id }}</td>
+              <td>{{ ann.title }}</td>
+              <td>{{ ann.created_at | date:'medium' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="ann.is_active" [class.inactive]="!ann.is_active">
+                  {{ ann.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons-group">
+                  <button class="btn-icon" (click)="toggleActive(ann)" [title]="ann.is_active ? 'Deactivate' : 'Activate'">
+                    <span class="material-symbols-outlined">{{ ann.is_active ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                  <button class="btn-icon edit" (click)="openEditModal(ann)" title="Edit">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="btn-icon delete" (click)="deleteAnnouncement(ann.id)" title="Delete">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+            @if (announcements().length === 0) {
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">No announcements found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+<!-- Create / Edit Modal -->
+@if (showModal()) {
+<div class="modal-overlay">
+  <div class="modal-content split-layout">
+    
+    <!-- Left Side: Form -->
+    <div class="modal-left">
+      <div class="modal-header">
+        <h3>{{ isEdit() ? 'Edit Announcement' : 'Create Announcement' }}</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body form-body">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" [(ngModel)]="formTitle" placeholder="Announcement Title" />
+        </div>
+
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea rows="5" [(ngModel)]="formDescription" placeholder="Enter announcement description... (line breaks will be preserved)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Media Type</label>
+          <select [(ngModel)]="formMediaType" class="form-select">
+            <option value="none">None (Text Only)</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+            <option value="document">Document (PDF/Doc)</option>
+            <option value="youtube">YouTube Embed</option>
+            <option value="instagram">Instagram Embed</option>
+          </select>
+        </div>
+
+        @if (formMediaType() === 'image') {
+          <div class="form-group">
+            <label>Image Upload 
+              @if (isEdit() && previewImageUrl() && !selectedImage()) {
+                <span class="existing-file">(Existing image uploaded)</span>
+              }
+            </label>
+            <input type="file" (change)="onImageChange($event)" accept="image/*" />
+          </div>
+        }
+
+        @if (formMediaType() === 'video') {
+          <div class="form-group">
+            <label>Video Upload
+              @if (isEdit() && previewVideoUrl() && !selectedVideo()) {
+                <span class="existing-file">(Existing video uploaded)</span>
+              }
+            </label>
+            <input type="file" (change)="onVideoChange($event)" accept="video/*" />
+          </div>
+        }
+
+        @if (formMediaType() === 'document') {
+          <div class="form-group">
+            <label>Document Upload
+              @if (isEdit() && existingDocumentUrl() && !selectedDocument()) {
+                <span class="existing-file">(Existing document uploaded)</span>
+              }
+            </label>
+            <input type="file" (change)="onDocumentChange($event)" accept=".pdf,.doc,.docx" />
+          </div>
+        }
+
+        @if (formMediaType() === 'youtube') {
+          <div class="form-group">
+            <label>YouTube Link</label>
+            <input type="text" [(ngModel)]="formYoutubeLink" placeholder="e.g. https://www.youtube.com/watch?v=..." />
+          </div>
+        }
+
+        @if (formMediaType() === 'instagram') {
+          <div class="form-group">
+            <label>Instagram Embed Link</label>
+            <input type="text" [(ngModel)]="formInstagramLink" placeholder="e.g. https://www.instagram.com/p/..." />
+          </div>
+        }
+
+        <div class="form-group">
+          <label>Call-to-Action Link (Optional)</label>
+          <input type="text" [(ngModel)]="formCtaLink" placeholder="e.g. https://example.com/apply" />
+        </div>
+        
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="isActiveCheck" [(ngModel)]="formIsActive" />
+          <label for="isActiveCheck">Is Active</label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button class="btn-primary" (click)="onSubmit()">{{ isEdit() ? 'Update' : 'Create' }}</button>
+      </div>
+    </div>
+
+    <!-- Right Side: Live Preview -->
+    <div class="modal-right preview-section">
+      <h4>Live Preview</h4>
+      <div class="preview-device">
+        <!-- Re-using WhatsApp styled card logic from the actual modal -->
+        <div class="announcement-card whatsapp-style preview-card">
+          <div class="announcement-header">
+            <div class="header-icon">
+              <span class="material-symbols-outlined">campaign</span>
+            </div>
+            <h2>{{ formTitle() || 'Untitled Announcement' }}</h2>
+          </div>
+      
+          <div class="announcement-body">
+            @if (formMediaType() === 'image' && previewImageUrl()) {
+              <div class="media-container image-container">
+                <img [src]="previewImageUrl()" alt="Preview Image">
+              </div>
+            }
+            
+            @if (formMediaType() === 'video' && previewVideoUrl()) {
+              <div class="media-container video-container">
+                <video [src]="previewVideoUrl()" controls autoplay muted playsinline></video>
+              </div>
+            }
+      
+            @if (formMediaType() === 'youtube' && getPreviewYoutube()) {
+              <div class="media-container iframe-container">
+                <iframe [src]="getPreviewYoutube()" frameborder="0" allowfullscreen></iframe>
+              </div>
+            }
+      
+            @if (formMediaType() === 'instagram' && getPreviewInstagram()) {
+              <div class="media-container iframe-container instagram">
+                <iframe [src]="getPreviewInstagram()" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+              </div>
+            }
+      
+            @if (formMediaType() === 'document' && (selectedDocument() || (isEdit() && previewImageUrl() === null && previewVideoUrl() === null))) {
+              <div class="media-container document-container">
+                <div class="document-link">
+                  <span class="material-symbols-outlined">description</span>
+                  Document Attached
+                </div>
+              </div>
+            }
+      
+            <div class="description-text">
+              {{ formDescription() || 'Description will appear here...' }}
+            </div>
+          </div>
+      
+          <div class="announcement-footer">
+            @if (formCtaLink()) {
+              <button class="btn cta-btn" (click)="openCtaPreview()">
+                <span class="material-symbols-outlined">link</span>
+                Click This Link
+              </button>
+            }
+            
+            <div class="action-buttons">
+              <button class="btn remind-btn">
+                <span class="material-symbols-outlined">schedule</span>
+                Remind (1hr)
+              </button>
+              <button class="btn noted-btn">
+                <span class="material-symbols-outlined">check_circle</span>
+                Noted
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}

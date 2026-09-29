@@ -55,6 +55,7 @@ import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
 
 import { ReferenceLeadsComponent } from './components/reference-leads/reference-leads.component';
+import { AnnouncementManagementComponent } from './components/announcement-management/announcement-management.component';
 
 export const routes: Routes = [
   {
@@ -79,6 +80,11 @@ export const routes: Routes = [
       {
         path: 'branches',
         component: BranchesComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'announcements',
+        component: AnnouncementManagementComponent,
         canActivate: [deviceAuthGuard],
       },
       // --- Users Module Routes ---

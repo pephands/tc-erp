@@ -119,6 +119,14 @@ export class SidebarComponent implements OnInit {
       route: '/branches',
     },
     {
+      id: 'announcements',
+      label: 'Announcements',
+      icon: 'campaign',
+      category: 'Core',
+      allowedRoles: ['ADMIN'],
+      route: '/announcements',
+    },
+    {
       id: 'users',
       label: 'Users',
       icon: 'group',

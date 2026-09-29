@@ -3,11 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { DeviceAuthModalComponent } from './modals/device-auth-modal/device-auth-modal.component';
 import { ForcePasswordResetModalComponent } from './modals/force-password-reset-modal/force-password-reset-modal.component';
 import { ToastComponent } from './modals/toast/toast.component';
+import { AnnouncementModalComponent } from './components/announcement-modal/announcement-modal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DeviceAuthModalComponent, ForcePasswordResetModalComponent, ToastComponent],
+  imports: [RouterOutlet, DeviceAuthModalComponent, ForcePasswordResetModalComponent, ToastComponent, AnnouncementModalComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

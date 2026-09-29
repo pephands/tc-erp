@@ -1,0 +1,79 @@
+@if (isVisible()) {
+<div class="announcement-overlay">
+  <div class="announcement-card whatsapp-style">
+    <div class="announcement-header">
+      <div class="header-icon">
+        <span class="material-symbols-outlined">campaign</span>
+      </div>
+      <h2>{{ announcement()?.title }}</h2>
+    </div>
+
+    <div class="announcement-body">
+      <!-- Media Section -->
+      @if (announcement()?.image) {
+        <div class="media-container image-container">
+          <img [src]="announcement()?.image" alt="Announcement Image">
+        </div>
+      }
+      
+      @if (announcement()?.video) {
+        <div class="media-container video-container">
+          <video [src]="announcement()?.video" controls autoplay muted playsinline></video>
+        </div>
+      }
+
+      @if (youtubeEmbedUrl()) {
+        <div class="media-container iframe-container">
+          <iframe [src]="youtubeEmbedUrl()" frameborder="0" allowfullscreen></iframe>
+        </div>
+      }
+
+      @if (instagramEmbedHtml()) {
+        <div class="media-container iframe-container instagram">
+          <iframe [src]="instagramEmbedHtml()" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+        </div>
+      }
+
+      @if (announcement()?.document) {
+        <div class="media-container document-container">
+          <a [href]="announcement()?.document" target="_blank" class="document-link">
+            <span class="material-symbols-outlined">description</span>
+            View Attached Document
+          </a>
+        </div>
+      }
+
+      <!-- Description Section -->
+      <div class="description-text">
+        {{ announcement()?.description }}
+      </div>
+    </div>
+
+    <div class="announcement-footer">
+      @if (announcement()?.cta_link) {
+        <button class="btn cta-btn" (click)="openCta()">
+          <span class="material-symbols-outlined">link</span>
+          Click This Link
+        </button>
+      }
+      
+      <div class="action-buttons">
+        <button class="btn remind-btn" (click)="onRemind()" [disabled]="!buttonsEnabled()" [class.disabled]="!buttonsEnabled()">
+          <span class="material-symbols-outlined">schedule</span>
+          Remind Me (1hr) 
+          @if (!buttonsEnabled()) {
+            <span class="timer">({{timeLeft()}}s)</span>
+          }
+        </button>
+        <button class="btn noted-btn" (click)="onNoted()" [disabled]="!buttonsEnabled()" [class.disabled]="!buttonsEnabled()">
+          <span class="material-symbols-outlined">check_circle</span>
+          Noted
+          @if (!buttonsEnabled()) {
+            <span class="timer">({{timeLeft()}}s)</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}
