@@ -357,14 +357,14 @@ export class SidebarComponent implements OnInit {
           id: 'branch_documents',
           label: 'Branch Documents',
           icon: 'folder_shared',
-          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
+          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS','SUPERINTENDENT'],
           route: '/branch-documents',
         },
         {
           id: 'expense_details',
           label: 'Expense Details',
           icon: 'receipt',
-          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
+          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS','SUPERINTENDENT'],
           route: '/expense-details',
         },
         {

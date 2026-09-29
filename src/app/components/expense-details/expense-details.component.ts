@@ -101,7 +101,7 @@ export class ExpenseDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.loadBranches();
     this.loadCategories();
-    if (this.isTl && (this.userBranchId || this.userBranchName)) {
+    if (this.userBranchId || this.userBranchName) {
       this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName));
     }
     this.fetchExpensesFromApi();
@@ -130,7 +130,7 @@ export class ExpenseDetailsComponent implements OnInit {
 
   fetchExpensesFromApi(): void {
     this.isLoading.set(true);
-    const branch = this.isTl ? (this.userBranchName || this.selectedBranchFilter()) : this.selectedBranchFilter();
+    const branch = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.selectedBranchFilter()) : this.selectedBranchFilter();
     const single = this.singleDate();
     const start = this.startDate();
     const end = this.endDate();
@@ -253,12 +253,12 @@ export class ExpenseDetailsComponent implements OnInit {
   }
 
   private updateFilterAppliedState(): void {
-    const isBranchFiltered = this.isTl ? false : !!this.selectedBranchFilter();
+    const isBranchFiltered = (this.userBranchId || this.userBranchName) ? false : !!this.selectedBranchFilter();
     this.isFilterApplied.set(!!(isBranchFiltered || this.singleDate() || this.startDate() || this.endDate() || this.searchQuery()));
   }
 
   onResetFilters(): void {
-    this.selectedBranchFilter.set(this.isTl ? String(this.userBranchId || this.userBranchName) : '');
+    this.selectedBranchFilter.set((this.userBranchId || this.userBranchName) ? String(this.userBranchId || this.userBranchName) : '');
     this.singleDate.set('');
     this.startDate.set('');
     this.endDate.set('');
@@ -315,7 +315,7 @@ export class ExpenseDetailsComponent implements OnInit {
     const todayStr = new Date().toISOString().slice(0, 10);
     this.inputDate.set(todayStr);
 
-    if (this.isTl) {
+    if (this.userBranchId || this.userBranchName) {
       if (this.userBranchId) {
         this.inputBranchId.set(this.userBranchId);
       } else if (this.userBranchName) {
@@ -381,7 +381,7 @@ export class ExpenseDetailsComponent implements OnInit {
     this.inputExpenseName.set('');
     this.inputAmount.set(null);
     this.inputRemarks.set('');
-    if (this.isTl) {
+    if (this.userBranchId || this.userBranchName) {
       this.inputBranchId.set(this.userBranchId || this.userBranchName || '');
     } else {
       this.inputBranchId.set('');
@@ -409,7 +409,7 @@ export class ExpenseDetailsComponent implements OnInit {
       alert('Please enter a valid Amount.');
       return;
     }
-    if (!branchVal && !this.isTl) {
+    if (!branchVal && !(this.userBranchId || this.userBranchName)) {
       alert('Please select a Branch.');
       return;
     }

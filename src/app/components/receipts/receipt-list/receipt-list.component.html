@@ -20,6 +20,8 @@
           <span class="material-symbols-outlined">download</span>
           <span>Export to Excel</span>
         </button>
+      }
+      @if (isAdmin()) {
         <button type="button" class="btn-action" style="background-color: #f43f5e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 0.2s;" (click)="onExportPDFZip()" [disabled]="isZipping()">
           <span class="material-symbols-outlined">{{ isZipping() ? 'hourglass_empty' : 'folder_zip' }}</span>
           <span>{{ isZipping() ? (zipProgress() || 'Zipping...') : 'Download PDF Zip' }}</span>

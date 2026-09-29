@@ -24,6 +24,14 @@ export class BranchDocumentsComponent implements OnInit {
     return this.authService.userRoles().includes('ADMIN');
   }
 
+  get userBranchName(): string {
+    return this.authService.currentUser()?.branch?.name || '';
+  }
+
+  get userBranchId(): number | null {
+    return this.authService.currentUser()?.branch?.id || null;
+  }
+
   documents = this.service.getDocuments();
 
   // Search, Filter & Pagination State
@@ -51,6 +59,9 @@ export class BranchDocumentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadBranches();
+    if (this.userBranchId || this.userBranchName) {
+      this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName));
+    }
     this.fetchDocumentsFromApi();
   }
 
@@ -68,7 +79,7 @@ export class BranchDocumentsComponent implements OnInit {
 
   fetchDocumentsFromApi(): void {
     this.isLoading.set(true);
-    const branchFilter = this.selectedBranchFilter();
+    const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.selectedBranchFilter()) : this.selectedBranchFilter();
     const search = this.searchQuery().trim();
 
     this.service.fetchDocuments(branchFilter, search).subscribe({
@@ -181,7 +192,11 @@ export class BranchDocumentsComponent implements OnInit {
     this.uploadFileName.set('No file chosen');
     this.inputDocumentName.set('');
     this.inputExpiryDate.set('');
-    this.inputBranchId.set('');
+    if (this.userBranchId || this.userBranchName) {
+      this.inputBranchId.set(this.userBranchId || this.userBranchName || '');
+    } else {
+      this.inputBranchId.set('');
+    }
   }
 
   onSubmitDocument(): void {
@@ -198,7 +213,7 @@ export class BranchDocumentsComponent implements OnInit {
       alert('Please enter a Document Name.');
       return;
     }
-    if (!branch) {
+    if (!branch && !(this.userBranchId || this.userBranchName)) {
       alert('Please select a Branch.');
       return;
     }

@@ -23,6 +23,13 @@ export class TrustChildrenComponent implements OnInit {
 
   isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']) && !this.authService.hasRole(['ADMIN', 'MANAGER']));
 
+  get userBranchName(): string {
+    return this.authService.currentUser()?.branch?.name || '';
+  }
+
+  get userBranchId(): number | null {
+    return this.authService.currentUser()?.branch?.id || null;
+  }
 
   children = this.service.getChildren();
 
@@ -102,6 +109,9 @@ export class TrustChildrenComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadBranches();
+    if (this.userBranchId || this.userBranchName) {
+      this.filterBranch.set(String(this.userBranchId || this.userBranchName));
+    }
     this.fetchChildrenFromApi();
   }
 
@@ -120,8 +130,9 @@ export class TrustChildrenComponent implements OnInit {
   fetchChildrenFromApi(): void {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
+    const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.filterBranch()) : this.filterBranch();
     const filters = {
-      trust_name: this.filterBranch(),
+      trust_name: branchFilter,
       gender: this.filterGender(),
       category: this.filterCategory(),
       is_active: this.filterStatus(),
@@ -194,7 +205,11 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   onClearFilters(): void {
-    this.filterBranch.set('');
+    if (this.userBranchId || this.userBranchName) {
+      this.filterBranch.set(String(this.userBranchId || this.userBranchName));
+    } else {
+      this.filterBranch.set('');
+    }
     this.filterGender.set('');
     this.filterCategory.set('');
     this.filterStatus.set('');
@@ -207,8 +222,9 @@ export class TrustChildrenComponent implements OnInit {
   downloadExcel(): void {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
+    const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.filterBranch()) : this.filterBranch();
     const filters = {
-      trust_name: this.filterBranch(),
+      trust_name: branchFilter,
       gender: this.filterGender(),
       category: this.filterCategory(),
       is_active: this.filterStatus(),
@@ -265,12 +281,8 @@ export class TrustChildrenComponent implements OnInit {
     this.editingChild.set(null);
     this.onResetForm();
 
-    if (this.isSuperintendent()) {
-      const userBranch: any = this.authService.currentUser()?.branch;
-      if (userBranch) {
-        const branchId = typeof userBranch === 'object' ? userBranch.id : userBranch;
-        this.childForm.patchValue({ trust_name: branchId });
-      }
+    if (this.userBranchId || this.userBranchName) {
+      this.childForm.patchValue({ trust_name: this.userBranchId || this.userBranchName });
     }
 
     this.isModalOpen.set(true);
@@ -311,12 +323,8 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   onSubmitForm(): void {
-    if (this.isSuperintendent() && !this.childForm.value.trust_name) {
-      const userBranch: any = this.authService.currentUser()?.branch;
-      if (userBranch) {
-        const branchId = typeof userBranch === 'object' ? userBranch.id : userBranch;
-        this.childForm.patchValue({ trust_name: branchId });
-      }
+    if ((this.userBranchId || this.userBranchName) && !this.childForm.value.trust_name) {
+      this.childForm.patchValue({ trust_name: this.userBranchId || this.userBranchName });
     }
 
     if (this.childForm.invalid) {
@@ -332,6 +340,7 @@ export class TrustChildrenComponent implements OnInit {
     if (values.children_name) values.children_name = values.children_name.toUpperCase();
     if (values.parent_details) values.parent_details = values.parent_details.toUpperCase();
     if (values.address) values.address = values.address.toUpperCase();
+    if (values.license_no) values.license_no = values.license_no.toUpperCase();
 
     Object.keys(values).forEach(key => {
       if (values[key] !== null && values[key] !== undefined) {
