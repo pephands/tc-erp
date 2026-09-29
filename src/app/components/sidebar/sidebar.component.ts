@@ -195,6 +195,14 @@ export class SidebarComponent implements OnInit {
       route: '/workstation',
     },
     {
+      id: 'reference_leads',
+      label: 'Reference Leads',
+      icon: 'person_add',
+      category: 'Operations',
+      allowedRoles: ['ADMIN', 'TL', 'TC'],
+      route: '/reference-leads',
+    },
+    {
       id: 'send-records',
       label: 'Send Records',
       icon: 'payments',

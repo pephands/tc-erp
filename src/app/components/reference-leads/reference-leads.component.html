@@ -1,0 +1,225 @@
+<div class="page-container">
+  <div *ngIf="showToast()" class="toast-notification shadow-card">
+    <span class="material-symbols-outlined check-icon">info</span>
+    <span>{{ toastMessage() }}</span>
+  </div>
+  <div class="action-header-bar">
+    <div class="header-title-section">
+      <h2 class="section-heading">Reference Leads</h2>
+      <p class="section-subheading">Manage and monitor telecaller reference leads.</p>
+    </div>
+    <div class="header-right-actions">
+      <button *ngIf="role() === 'TC'" type="button" class="btn-primary" (click)="openNewLeadModal()">
+        <span class="material-symbols-outlined">person_add</span> Add Reference Lead
+      </button>
+      
+      <div *ngIf="role() === 'ADMIN'" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+        <button type="button" class="btn-secondary" (click)="exportExcel()">
+          <span class="material-symbols-outlined">download</span> Export XLSX
+        </button>
+        <button type="button" class="btn-primary" (click)="openUploadModal()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+          <span class="material-symbols-outlined">upload</span> Upload Updated Records
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card" style="margin-top: 1rem; overflow-x: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); fetchLeads()" class="form-control" placeholder="Search leads..." style="max-width: 250px;">
+        
+        <div *ngIf="role() === 'ADMIN'" class="select-wrapper" style="max-width: 200px; width: 100%;">
+          <select [ngModel]="filterBranch()" (ngModelChange)="filterBranch.set($event); fetchLeads()" class="form-control">
+            <option value="">All Branches</option>
+            <option *ngFor="let b of branches()" [value]="b.id">{{ b.name }}</option>
+          </select>
+        </div>
+
+        <div class="select-wrapper" style="max-width: 200px; width: 100%;">
+          <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event); fetchLeads()" class="form-control">
+            <option value="">All Statuses</option>
+            <option value="IN REVIEW">In Review</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Branch Name</th>
+          <th>Employee ID</th>
+          <th>TC Name</th>
+          <th>Donor Name</th>
+          <th>Number</th>
+          <th>Alternative Number</th>
+          <th>DOB</th>
+          <th>Anniversary</th>
+          <th>Status</th>
+          <th *ngIf="role() !== 'TC'">Approver</th>
+          <th>Date Submitted</th>
+          <th *ngIf="role() === 'ADMIN' || role() === 'TL'">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading()">
+          <td colspan="15" style="text-align: center; padding: 2rem;">Loading...</td>
+        </tr>
+        <tr *ngIf="!isLoading() && leads().length === 0">
+          <td colspan="15" style="text-align: center; padding: 2rem;">No reference leads found.</td>
+        </tr>
+        <tr *ngFor="let lead of leads(); let i = index">
+          <td>{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+          <td>{{ lead.branch_name || '-' }}</td>
+          <td>{{ lead.tc_employee_id || '-' }}</td>
+          <td>{{ lead.telecaller_name || '-' }}</td>
+          <td>{{ lead.donor_name || '-' }}</td>
+          <td>{{ lead.phone_number }}</td>
+          <td>{{ lead.alternative_number || '-' }}</td>
+          <td>{{ lead.dob || '-' }}</td>
+          <td>{{ lead.anniversary || '-' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="{
+              'in-review': lead.status === 'IN REVIEW',
+              'approved': lead.status === 'APPROVED',
+              'rejected': lead.status === 'REJECTED'
+            }">{{ lead.status }}</span>
+          </td>
+          <td *ngIf="role() !== 'TC'">{{ lead.approver_name || '-' }}</td>
+          <td>{{ lead.created_at | date:'short' }}</td>
+          <td *ngIf="role() === 'ADMIN' || role() === 'TL'">
+            <div style="display: flex; gap: 0.5rem;" *ngIf="lead.status === 'IN REVIEW'">
+              <button class="btn-action approve-btn" (click)="updateLeadStatus(lead.id, 'APPROVED')">Approve</button>
+              <button class="btn-action reject-btn" (click)="updateLeadStatus(lead.id, 'REJECTED')">Reject</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+      <div style="font-size: 0.875rem; color: #6b7280;">
+        Total Records: <strong>{{ totalRecords() }}</strong>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button class="btn-secondary" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1); fetchLeads()" style="padding: 0.4rem 0.8rem;">Previous</button>
+        <span style="font-size: 0.875rem; font-weight: 500;">Page {{ currentPage() }}</span>
+        <button class="btn-secondary" [disabled]="leads().length < pageSize()" (click)="currentPage.set(currentPage() + 1); fetchLeads()" style="padding: 0.4rem 0.8rem;">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="isNewLeadModalOpen()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span class="material-symbols-outlined icon">person_add</span>
+        Add Reference Lead
+      </h3>
+      <button class="close-btn" (click)="closeNewLeadModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="text" [value]="newLead().phone_number" (input)="handlePhoneInput($event, 'phone_number')" class="form-control" placeholder="Enter 10-digit phone number" maxlength="10" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" [(ngModel)]="newLead().donor_name" (input)="$any($event.target).value = $any($event.target).value.toUpperCase(); newLead().donor_name = $any($event.target).value" style="text-transform: uppercase;" class="form-control" placeholder="Enter full name">
+      </div>
+      <div class="form-group">
+        <label>Alternative Number</label>
+        <input type="text" [(ngModel)]="newLead().alternative_number" class="form-control" placeholder="e.g. +91 9876543210">
+      </div>
+      
+      <div class="form-row" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label style="display: flex; justify-content: space-between;">
+            <span>Date of Birth (DOB)</span>
+            <button *ngIf="dobDay() || dobMonth() || dobYear()" type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearDob()">Clear</button>
+          </label>
+          <div style="display: flex; gap: 0.35rem;">
+            <div style="flex: 1;">
+              <input type="text" [value]="dobDay()" (input)="handleDayInput($event, dobDay)" placeholder="11" maxlength="2" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            </div>
+            <div class="select-wrapper" style="flex: 1.2;">
+              <select [ngModel]="dobMonth()" (ngModelChange)="dobMonth.set($event)" class="form-control" [style.color]="dobMonth() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                <option value="" disabled selected hidden>MM</option>
+                <option *ngFor="let m of months" [value]="m.value" style="color: inherit;">{{ m.label }}</option>
+              </select>
+            </div>
+            <div style="flex: 1.4;">
+              <input type="text" [value]="dobYear()" (input)="handleYearInput($event, dobYear)" placeholder="1999" maxlength="4" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label style="display: flex; justify-content: space-between;">
+            <span>Anniversary</span>
+            <button *ngIf="anniDay() || anniMonth() || anniYear()" type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearAnni()">Clear</button>
+          </label>
+          <div style="display: flex; gap: 0.35rem;">
+            <div style="flex: 1;">
+              <input type="text" [value]="anniDay()" (input)="handleDayInput($event, anniDay)" placeholder="11" maxlength="2" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            </div>
+            <div class="select-wrapper" style="flex: 1.2;">
+              <select [ngModel]="anniMonth()" (ngModelChange)="anniMonth.set($event)" class="form-control" [style.color]="anniMonth() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                <option value="" disabled selected hidden>MM</option>
+                <option *ngFor="let m of months" [value]="m.value" style="color: inherit;">{{ m.label }}</option>
+              </select>
+            </div>
+            <div style="flex: 1.4;">
+              <input type="text" [value]="anniYear()" (input)="handleYearInput($event, anniYear)" placeholder="1999" maxlength="4" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-primary" (click)="submitNewLead()">Submit Lead</button>
+      <button type="button" class="btn-secondary" (click)="closeNewLeadModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" *ngIf="isUploadModalOpen()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Upload Updated Records</h3>
+      <button type="button" class="close-btn" (click)="closeUploadModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div style="margin-bottom: 1.5rem; text-align: center;">
+      <button type="button" class="btn-secondary" (click)="downloadSample()" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; display: inline-flex;">
+        <span class="material-symbols-outlined">info</span> Download Sample Format
+      </button>
+      <p style="font-size: 0.85rem; color: #6b7280; margin-top: 0.5rem;">
+        Make sure your uploaded file uses this exact format with all required headers.
+      </p>
+    </div>
+
+    <div class="form-group" style="text-align: center; padding: 2rem; border: 2px dashed #d1d5db; border-radius: 8px; background: #f9fafb;">
+      <label class="btn-primary" style="cursor: pointer; display: inline-flex; margin: 0;">
+        <span class="material-symbols-outlined">upload_file</span> Select XLSX File
+        <input type="file" (change)="onFileUpload($event)" accept=".xlsx,.xls" style="display: none;">
+      </label>
+    </div>
+
+    <div class="modal-footer" style="justify-content: flex-end;">
+      <button type="button" class="btn-secondary" (click)="closeUploadModal()">Close</button>
+    </div>
+  </div>
+</div>

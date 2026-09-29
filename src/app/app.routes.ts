@@ -51,6 +51,8 @@ import { UserSettingsComponent } from './components/user-settings/user-settings.
 import { authGuard, loginGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
 
+import { ReferenceLeadsComponent } from './components/reference-leads/reference-leads.component';
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -62,6 +64,11 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
+      {
+        path: 'reference-leads',
+        component: ReferenceLeadsComponent,
+        title: 'Reference Leads',
+      },
       {
         path: 'dashboard',
         component: DashboardComponent,
