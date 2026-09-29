@@ -31,7 +31,9 @@ export class PaymentService extends BaseHttpService {
     excludeStatus: string = '',
     unbatched: boolean = false,
     branch: string = '',
-    isExport: boolean = false
+    isExport: boolean = false,
+    panStatus: string = '',
+    donationType: string = ''
   ): Observable<any> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
@@ -43,6 +45,8 @@ export class PaymentService extends BaseHttpService {
     if (unbatched) params = params.set('unbatched', 'true');
     if (branch) params = params.set('branch', branch);
     if (isExport) params = params.set('export', 'true');
+    if (panStatus) params = params.set('pan_status', panStatus);
+    if (donationType) params = params.set('donation_type', donationType);
 
     return this.httpClient.get<any>(this.endPoint.paymentRecords, {
       headers: this.headers,

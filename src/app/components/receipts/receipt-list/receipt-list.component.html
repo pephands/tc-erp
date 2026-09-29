@@ -20,44 +20,15 @@
           <span class="material-symbols-outlined">download</span>
           <span>Export to Excel</span>
         </button>
+        <button type="button" class="btn-action" style="background-color: #f43f5e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 0.2s;" (click)="onExportPDFZip()" [disabled]="isZipping()">
+          <span class="material-symbols-outlined">{{ isZipping() ? 'hourglass_empty' : 'folder_zip' }}</span>
+          <span>{{ isZipping() ? (zipProgress() || 'Zipping...') : 'Download PDF Zip' }}</span>
+        </button>
       }
     </div>
   </div>
 
-  @if (isSuperintendent() || isPR()) {
-    <div class="tabs-container" style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
-      <button 
-        type="button" 
-        style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-weight: 500; font-size: 1rem; position: relative;"
-        [style.color]="activeTab() === 'All' ? '#4f46e5' : '#64748b'"
-        (click)="activeTab.set('All')">
-        All Receipts
-        @if (activeTab() === 'All') {
-          <div style="position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background-color: #4f46e5; border-radius: 3px 3px 0 0;"></div>
-        }
-      </button>
-      <button 
-        type="button" 
-        style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-weight: 500; font-size: 1rem; position: relative;"
-        [style.color]="activeTab() === 'Amount' ? '#4f46e5' : '#64748b'"
-        (click)="activeTab.set('Amount')">
-        Amount Donation Receipts
-        @if (activeTab() === 'Amount') {
-          <div style="position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background-color: #4f46e5; border-radius: 3px 3px 0 0;"></div>
-        }
-      </button>
-      <button 
-        type="button" 
-        style="padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-weight: 500; font-size: 1rem; position: relative;"
-        [style.color]="activeTab() === 'Goodies' ? '#4f46e5' : '#64748b'"
-        (click)="activeTab.set('Goodies')">
-        Goodies Donation
-        @if (activeTab() === 'Goodies') {
-          <div style="position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background-color: #4f46e5; border-radius: 3px 3px 0 0;"></div>
-        }
-      </button>
-    </div>
-  }
+
 
   <!-- Filter Card -->
   <div class="filter-card shadow-card">
@@ -76,8 +47,8 @@
         </div>
       </div>
 
-      <!-- Branch Filter (Admin/TL/Manager view) -->
-      @if (isAdmin() || isManager() || isTL()) {
+      <!-- Branch Filter (Admin/Manager view) -->
+      @if (isAdmin() || isManager() || isPR()) {
         <div class="filter-field">
           <label>Branch</label>
           <div class="input-wrapper">
@@ -85,7 +56,6 @@
             <select
               [ngModel]="branchFilter()"
               (ngModelChange)="onBranchChange($event)"
-              [disabled]="!isAdmin() && !isManager() && !isTL()"
             >
               <option value="">All Branches</option>
               @for (b of branches(); track b.id || b.name) {
@@ -95,6 +65,35 @@
           </div>
         </div>
       }
+
+      <!-- Donation Type Filter -->
+      <div class="filter-field">
+        <label>Donation Type</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">category</span>
+          <select [ngModel]="activeTab()" (ngModelChange)="onTabChange($event)">
+            <option value="All">All Receipts</option>
+            <option value="Amount">Amount Donation</option>
+            <option value="Goodies">Goodies Donation</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PAN Status Filter -->
+      <div class="filter-field">
+        <label>PAN Status</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">badge</span>
+          <select
+            [ngModel]="panStatusFilter()"
+            (ngModelChange)="onPanStatusChange($event)"
+          >
+            <option value="">All</option>
+            <option value="with_pan">With PAN</option>
+            <option value="without_pan">Without PAN</option>
+          </select>
+        </div>
+      </div>
 
       <!-- Date Filters -->
       <div class="filter-field">
@@ -140,6 +139,9 @@
         <thead>
           <tr>
             <th>Date</th>
+            <th>Receipt ID</th>
+            <th>Branch</th>
+            <th>TC Name & EMP ID</th>
             <th>Donor Number</th>
             <th>Donor Name</th>
             <th>Donation Type</th>
@@ -153,7 +155,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="9" class="loading-state">
+              <td colspan="12" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading receipts...</p>
               </td>
@@ -162,6 +164,9 @@
             @for (rec of filteredRecords(); track rec.id) {
               <tr>
                 <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
+                <td class="col-ref"><code>{{ rec.receipt_id || '-' }}</code></td>
+                <td><strong>{{ rec.branch_name || '-' }}</strong></td>
+                <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id || 'N/A' }})</small></td>
                 <td class="col-mobile">{{ rec.mobile_number }}</td>
                 <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
                 <td class="col-type">
@@ -242,4 +247,16 @@
     (close)="onModalClose()"
     (submitted)="onModalSubmit()"
   ></app-add-online-payment-modal>
+}
+
+@if (isZipping()) {
+  <div class="loader-overlay">
+    <span class="material-symbols-outlined spin-icon" style="font-size: 3.5rem; color: #f43f5e;">progress_activity</span>
+    <h3 style="margin-top: 1.5rem; color: #1e293b; font-size: 1.5rem; margin-bottom: 0.5rem;">Packaging Receipts</h3>
+    <p style="color: #64748b; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">{{ zipProgress() }}</p>
+    <div style="background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 0.5rem;">
+      <span class="material-symbols-outlined" style="font-size: 1.1rem;">timer</span>
+      {{ formatZipTime(zipElapsedTime()) }} Elapsed
+    </div>
+  </div>
 }

@@ -1,6 +1,9 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import { HttpClient } from '@angular/common/http';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../../services/payment.service';
@@ -23,10 +26,15 @@ export class ReceiptListComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private datePipe = inject(DatePipe);
+  private http = inject(HttpClient);
 
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
   isLoading = signal<boolean>(false);
+  isZipping = signal<boolean>(false);
+  zipProgress = signal<string>('');
+  zipElapsedTime = signal<number>(0);
+  private zipTimer: any = null;
   showEditModal = signal<boolean>(false);
   editRecord = signal<OnlinePaymentRecord | null>(null);
 
@@ -35,11 +43,7 @@ export class ReceiptListComponent implements OnInit {
   isSuperintendent = signal<boolean>(false);
 
   filteredRecords = computed(() => {
-    let recs = this.records();
-    if ((this.isSuperintendent() || this.isPR()) && this.activeTab() !== 'All') {
-      recs = recs.filter(r => (r as any).donation_type === this.activeTab() || (!((r as any).donation_type) && this.activeTab() === 'Amount'));
-    }
-    return recs;
+    return this.records();
   });
 
   // Filters
@@ -47,6 +51,7 @@ export class ReceiptListComponent implements OnInit {
   startDate = signal<string>('');
   endDate = signal<string>('');
   branchFilter = signal<string>('');
+  panStatusFilter = signal<string>('');
   isFilterApplied = signal<boolean>(false);
 
   // Auth & Roles
@@ -133,11 +138,13 @@ export class ReceiptListComponent implements OnInit {
     const end = this.endDate();
     const page = this.currentPage();
     const branch = this.branchFilter();
+    const panStatus = this.panStatusFilter();
+    const donationType = this.activeTab();
 
     // For Receipts: list only status 'OK'.
     const status = 'OK';
 
-    this.paymentService.getRecords(status, search, start, end, page, '', false, branch).subscribe({
+    this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
@@ -165,6 +172,13 @@ export class ReceiptListComponent implements OnInit {
   }
 
   // Filter Handlers
+  onTabChange(val: string): void {
+    this.activeTab.set(val);
+    this.updateFilterState();
+    this.currentPage.set(1);
+    this.fetchReceiptRecords();
+  }
+
   onSearchChange(val: string): void {
     this.searchQuery.set(val);
     this.updateFilterState();
@@ -193,6 +207,13 @@ export class ReceiptListComponent implements OnInit {
     this.fetchReceiptRecords();
   }
 
+  onPanStatusChange(val: string): void {
+    this.panStatusFilter.set(val);
+    this.updateFilterState();
+    this.currentPage.set(1);
+    this.fetchReceiptRecords();
+  }
+
   onResetFilters(): void {
     this.searchQuery.set('');
     if (this.isTC()) {
@@ -213,13 +234,15 @@ export class ReceiptListComponent implements OnInit {
       this.endDate.set('');
     }
     this.branchFilter.set('');
+    this.panStatusFilter.set('');
+    this.activeTab.set('All');
     this.isFilterApplied.set(false);
     this.currentPage.set(1);
     this.fetchReceiptRecords();
   }
 
   private updateFilterState(): void {
-    this.isFilterApplied.set(!!(this.searchQuery() || (this.startDate() && !this.isTC()) || (this.endDate() && !this.isTC()) || this.branchFilter()));
+    this.isFilterApplied.set(!!(this.searchQuery() || (this.startDate() && !this.isTC()) || (this.endDate() && !this.isTC()) || this.branchFilter() || this.activeTab() !== 'All' || this.panStatusFilter()));
   }
 
   // Pagination Handlers
@@ -244,9 +267,11 @@ export class ReceiptListComponent implements OnInit {
     const start = this.startDate();
     const end = this.endDate();
     const branch = this.branchFilter();
+    const panStatus = this.panStatusFilter();
+    const donationType = this.activeTab();
     const status = 'OK';
 
-    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true).subscribe({
+    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true, panStatus, donationType).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         if (res && res.data) {
@@ -255,12 +280,13 @@ export class ReceiptListComponent implements OnInit {
           items = res;
         }
 
-        if (this.isSuperintendent() && this.activeTab() !== 'All') {
-          items = items.filter(r => (r.donation_type || 'Amount') === this.activeTab());
-        }
-
         const exportData = items.map(rec => ({
           'Date': this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at,
+          'Receipt ID': rec.receipt_id || '-',
+          'Receipt Url': rec.generated_receipt_url || '-',
+          'Branch': rec.branch_name || '-',
+          'TC Name': rec.telecaller_name || '-',
+          'EMP ID': rec.telecaller_employee_Id || '-',
           'Donor Number': rec.mobile_number,
           'Donor Name': rec.donor_name,
           'Donation Type': rec.donation_type || 'Amount',
@@ -282,6 +308,138 @@ export class ReceiptListComponent implements OnInit {
     });
   }
 
+  formatZipTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  formatETA(totalSeconds: number): string {
+    const d = Math.floor(totalSeconds / (3600 * 24));
+    const h = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.floor(totalSeconds % 60);
+
+    if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  async onExportPDFZip(): Promise<void> {
+    const search = this.searchQuery().trim();
+    const start = this.startDate();
+    const end = this.endDate();
+    const branch = this.branchFilter();
+    const panStatus = this.panStatusFilter();
+    const donationType = this.activeTab();
+    const status = 'OK';
+
+    this.isZipping.set(true);
+    this.zipProgress.set('Fetching records...');
+    this.zipElapsedTime.set(0);
+    
+    if (this.zipTimer) clearInterval(this.zipTimer);
+    this.zipTimer = setInterval(() => {
+      this.zipElapsedTime.update(v => v + 1);
+    }, 1000);
+
+    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true, panStatus, donationType).subscribe({
+      next: async (res: any) => {
+        let items: any[] = [];
+        if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+
+        // Apply strict filter: only Amount donation_type and OK status
+        const pdfItems = items.filter(r => 
+          ((r.donation_type === 'Amount') || (!r.donation_type)) && 
+          r.status === 'OK'
+        );
+
+        if (pdfItems.length === 0) {
+          this.zipProgress.set('No Amount receipts found for this filter.');
+          if (this.zipTimer) clearInterval(this.zipTimer);
+          setTimeout(() => {
+            this.isZipping.set(false);
+            this.zipProgress.set('');
+          }, 3000);
+          return;
+        }
+
+        const zip = new JSZip();
+        let downloadedCount = 0;
+        const total = pdfItems.length;
+        
+        // Batch configuration for faster yet safe processing
+        const BATCH_SIZE = 5;
+        const DELAY_BETWEEN_BATCHES_MS = 300;
+        
+        const startTime = Date.now();
+
+        for (let i = 0; i < total; i += BATCH_SIZE) {
+          const batch = pdfItems.slice(i, i + BATCH_SIZE);
+          
+          let progressStr = `Downloading ${downloadedCount}/${total}...`;
+          if (downloadedCount > 0) {
+            const elapsed = Date.now() - startTime;
+            const avgTimePerItem = elapsed / downloadedCount;
+            const remainingItems = total - downloadedCount;
+            const etaSeconds = Math.ceil((avgTimePerItem * remainingItems) / 1000);
+            progressStr += ` (Est. ${this.formatETA(etaSeconds)} remaining)`;
+          }
+          this.zipProgress.set(progressStr);
+          
+          const promises = batch.map(async (rec) => {
+            try {
+              // Use paymentService.downloadReceipt to trigger backend generation if missing
+              const blob = await this.paymentService.downloadReceipt(rec.id).toPromise();
+              if (blob) {
+                const fileName = rec.receipt_id ? `${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
+                zip.file(fileName, blob);
+                downloadedCount++;
+              }
+            } catch (e) {
+              console.error('Failed to download PDF for:', rec.receipt_id, e);
+            }
+          });
+
+          await Promise.all(promises);
+
+          // Give the server a small breather
+          if (i + BATCH_SIZE < total) {
+            await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS));
+          }
+        }
+
+        if (downloadedCount > 0) {
+          this.zipProgress.set('Zipping files...');
+          const content = await zip.generateAsync({ type: 'blob' });
+          saveAs(content, `Receipts_PDFs_${new Date().toISOString().slice(0, 10)}.zip`);
+          this.zipProgress.set(`Success! Downloaded ${downloadedCount} receipts.`);
+        } else {
+          this.zipProgress.set('Failed to download any PDFs.');
+        }
+
+        if (this.zipTimer) clearInterval(this.zipTimer);
+        setTimeout(() => {
+          this.isZipping.set(false);
+          this.zipProgress.set('');
+        }, 3000);
+      },
+      error: (err: any) => {
+        console.error('Error fetching receipts for zip:', err);
+        this.zipProgress.set('Failed to fetch receipts for export.');
+        if (this.zipTimer) clearInterval(this.zipTimer);
+        setTimeout(() => {
+          this.isZipping.set(false);
+          this.zipProgress.set('');
+        }, 3000);
+      }
+    });
+  }
   onCreateReceipt(): void {
     this.router.navigate(['/receipts/create']);
   }

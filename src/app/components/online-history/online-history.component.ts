@@ -51,7 +51,7 @@ export class OnlineHistoryComponent implements OnInit {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
 
-    if (!this.isAdmin() && !this.isManager()) {
+    if (!this.isAdmin() && !this.isManager() && !this.authService.hasRole(['TL'])) {
       const today = new Date();
       const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);

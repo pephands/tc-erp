@@ -385,4 +385,182 @@
   <!-- ==========================================
        MODAL: ADD NEW REFERENCE DIALOG
        ========================================== -->
+} @else if (role() === 'TL' || role() === 'ADMIN') {
+<main class="content-body">
+    <!-- Header Bar -->
+    <div class="action-header-bar">
+      <div class="header-title-section">
+        <h2 class="section-heading">{{ role() === 'ADMIN' ? 'Admin' : 'TL' }} Workstation</h2>
+        <p class="section-subheading">
+          Monitor your telecallers, including their daily assigned, pending, and completed calls.
+        </p>
+      </div>
+  
+      <div class="header-right-actions" style="display: flex; align-items: center; gap: 0.85rem;">
+        <button type="button" class="btn-primary" (click)="downloadTlExcel()" [disabled]="tlIsDownloading()" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; font-size: 0.825rem; font-weight: 600; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+          @if (tlIsDownloading()) {
+            <span class="material-symbols-outlined spin-icon" style="font-size: 18px; margin: 0;">progress_activity</span>
+            <span>Downloading...</span>
+          } @else {
+            <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+            <span>Download xlsx</span>
+          }
+        </button>
+      </div>
+    </div>
+  
+    <!-- Calling Queue Table Card -->
+    <div class="table-card shadow-card">
+      <div class="table-card-header" style="display: flex; flex-direction: column; gap: 1rem; padding-bottom: 1rem;">
+        
+        <div class="date-filter-group" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1 1 140px; min-width: 140px;">
+              <label style="font-weight: 500; color: #374151; font-size: 0.9rem; white-space: nowrap;">From:</label>
+              <input 
+                type="date" 
+                class="form-control" 
+                style="flex: 1; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; min-width: 0;"
+                [(ngModel)]="tlFilterStartDate" 
+                (change)="onTlFilterChange()"
+              />
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1 1 140px; min-width: 140px;">
+              <label style="font-weight: 500; color: #374151; font-size: 0.9rem; white-space: nowrap;">To:</label>
+              <input 
+                type="date" 
+                class="form-control" 
+                style="flex: 1; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem; min-width: 0;"
+                [(ngModel)]="tlFilterEndDate" 
+                (change)="onTlFilterChange()"
+              />
+            </div>
+
+            <select 
+              class="form-control"
+              style="flex: 1 1 140px; min-width: 140px; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
+              [(ngModel)]="tlFilterAssignStatus"
+              (change)="onTlFilterChange()"
+            >
+              <option value="">Assign Status (All)</option>
+              <option value="ASSIGNED">Assigned</option>
+              <option value="UNASSIGNED">Not Assigned</option>
+            </select>
+            
+            <select 
+              class="form-control"
+              style="flex: 1 1 140px; min-width: 140px; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
+              [(ngModel)]="tlFilterBaseType"
+              (change)="onTlFilterChange()"
+            >
+              <option value="">Base Type (All)</option>
+              <option value="admin">Admin Base</option>
+              <option value="tl">TL Base</option>
+            </select>
+            
+            @if (isAdmin()) {
+              <select 
+                class="form-control"
+                style="flex: 1 1 140px; min-width: 140px; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.9rem;"
+                [(ngModel)]="selectedBranch"
+                (change)="onTlFilterChange()"
+              >
+                <option value="">All Branches</option>
+                @for (branch of branches(); track branch.id) {
+                  <option [value]="branch.id">{{ branch.name }}</option>
+                }
+              </select>
+            }
+            
+            <button type="button" (click)="resetTlFilters()" style="flex: 1 1 auto; display: inline-flex; justify-content: center; align-items: center; gap: 0.2rem; padding: 0.4rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: #f3f4f6; color: #4b5563; font-size: 0.85rem; font-weight: 500; cursor: pointer;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Reset
+            </button>
+        </div>
+
+        <div class="search-box" style="width: 100%; max-width: 100%;">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input
+            type="text"
+            placeholder="Search TC Name or EMP ID..."
+            [ngModel]="tlSearchQuery()"
+            (ngModelChange)="tlSearchQuery.set($event); onTlSearchChange()"
+            style="width: 100%; box-sizing: border-box;"
+          />
+        </div>
+      </div>
+  
+      <div class="table-responsive">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Branch</th>
+              <th>Name</th>
+              <th>EMP ID</th>
+              <th>Total Assigned</th>
+              <th>Pending Calls</th>
+              <th>Completed Calls</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (tlIsLoading()) {
+              <tr>
+                <td colspan="7" class="loading-table-state">
+                  <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
+                  <p class="loading-title">Fetching workstation data...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (item of tlDataList(); track item.id; let i = $index) {
+                <tr>
+                  <td class="font-medium">{{ i + 1 + (tlCurrentPage() - 1) * 10 }}</td>
+                  <td class="text-muted">{{ item.branch_name }}</td>
+                  <td class="font-semibold donor-name">{{ item.full_name }}</td>
+                  <td class="text-muted">{{ item.employee_Id }}</td>
+                  <td class="font-bold text-center">{{ item.total_assigned }}</td>
+                  <td class="font-bold text-center" style="color: #ea580c;">{{ item.pending }}</td>
+                  <td class="font-bold text-center" style="color: #16a34a;">{{ item.completed }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="empty-table-state">
+                    <span class="material-symbols-outlined empty-icon">group_off</span>
+                    <p class="empty-title">No Telecallers Found</p>
+                    <p class="empty-subtitle">Adjust your search or filter date.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        
+        <!-- TL Paginator -->
+        @if (tlTotalPagesSignal() > 1 && !tlIsLoading()) {
+          <div class="pagination-bar">
+            <div class="pagination-controls">
+              <button class="page-btn nav-btn" [disabled]="tlCurrentPage() === 1" (click)="setTlPage(1)">
+                First
+              </button>
+              <button class="page-btn nav-btn" [disabled]="tlCurrentPage() === 1" (click)="setTlPage(tlCurrentPage() - 1)">
+                Prev
+              </button>
+
+              @for (page of tlPagesArray(); track page) {
+                <button class="page-btn" [class.active]="page === tlCurrentPage()" (click)="setTlPage(page)">
+                  {{ page }}
+                </button>
+              }
+
+              <button class="page-btn nav-btn" [disabled]="tlCurrentPage() === tlTotalPagesSignal()" (click)="nextTlPage()">
+                Next
+              </button>
+            </div>
+            <div class="pagination-info">
+              Showing page {{ tlCurrentPage() }} of {{ tlTotalPagesSignal() }} ({{ tlTotalRecords() }} Telecallers)
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </main>
 }
