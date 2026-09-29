@@ -14,9 +14,9 @@
 
   <!-- Designations Tab -->
   <div class="tab-content" *ngIf="activeTab === 'designations'">
-    <div class="tab-header">
+    <div class="tab-header" style="flex-wrap: wrap;">
       <h3>Designations List</h3>
-      <div class="filter-bar">
+      <div class="filter-bar" style="flex-wrap: wrap;">
         <!-- Status Filter -->
         <div class="filter-group">
           <span class="material-symbols-outlined filter-icon">tune</span>
@@ -47,6 +47,7 @@
       </div>
     </div>
 
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -85,6 +86,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <!-- Roles Tab -->
@@ -94,6 +96,7 @@
       <!-- Roles creation not allowed by requirement -->
     </div>
 
+    <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
@@ -101,6 +104,7 @@
           <th>Role Code</th>
           <th>Role Name</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -113,12 +117,21 @@
               {{ role.is_active ? 'Active' : 'Inactive' }}
             </span>
           </td>
+          <td class="actions">
+            <button class="btn-icon edit-btn" (click)="openRoleModal(role)" title="Edit">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="btn-icon" [ngClass]="role.is_active ? 'deactivate-btn' : 'activate-btn'" (click)="toggleRoleStatus(role)" [title]="role.is_active ? 'Deactivate' : 'Activate'">
+              <span class="material-symbols-outlined">{{ role.is_active ? 'block' : 'check_circle' }}</span>
+            </button>
+          </td>
         </tr>
         <tr *ngIf="!roles.length">
-          <td colspan="4" class="text-center">No roles found.</td>
+          <td colspan="5" class="text-center">No roles found.</td>
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 
