@@ -26,6 +26,8 @@ export interface User {
   is_staff: boolean;
   date_joined?: string;
   slab?: string;
+  current_address?: string;
+  permanent_address?: string;
 }
 
 export interface AuthSession {

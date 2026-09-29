@@ -29,7 +29,8 @@ export interface UserRecord {
   bankAccountNumber: string;
   bankHolderName: string;
   bankIfscCode: string;
-  address: string;
+  currentAddress?: string;
+  permanentAddress?: string;
   status: string;
   branch: string;
   branchId?: number;
@@ -149,7 +150,8 @@ export class UserListComponent implements OnInit {
   formBankAccountNumber = '';
   formBankHolderName = '';
   formBankIfscCode = '';
-  formAddress = '';
+  formCurrentAddress = '';
+  formPermanentAddress = '';
 
   selectedAadharFile: File | null = null;
   existingAadharUrl: string | null = null;
@@ -313,7 +315,8 @@ export class UserListComponent implements OnInit {
       bankAccountNumber: u.bank_account_number || '',
       bankHolderName: u.bank_holder_name || '',
       bankIfscCode: u.bank_ifsc_code || '',
-      address: u.address || '',
+      currentAddress: u.current_address || '',
+      permanentAddress: u.permanent_address || '',
       status: u.status || (u.is_active ? 'Active' : 'Inactive'),
       branch: u.branch?.name || '',
       branchId: u.branch?.id,
@@ -439,7 +442,8 @@ export class UserListComponent implements OnInit {
     this.formBankAccountNumber = user.bankAccountNumber;
     this.formBankHolderName = user.bankHolderName;
     this.formBankIfscCode = user.bankIfscCode;
-    this.formAddress = user.address;
+    this.formCurrentAddress = user.currentAddress || '';
+    this.formPermanentAddress = user.permanentAddress || '';
     
     this.existingAadharUrl = user.aadharImage || null;
     this.isAadharReplaced = false;
@@ -491,7 +495,8 @@ export class UserListComponent implements OnInit {
     this.formBankAccountNumber = '';
     this.formBankHolderName = '';
     this.formBankIfscCode = '';
-    this.formAddress = '';
+    this.formCurrentAddress = '';
+    this.formPermanentAddress = '';
     this.formStatus = 'Active';
     this.formManagedBranchIds = [];
     this.isManagedBranchDropdownOpen.set(false);
@@ -652,7 +657,8 @@ export class UserListComponent implements OnInit {
     if (this.formBankAccountNumber.trim()) formData.append('bank_account_number', this.formBankAccountNumber.trim());
     if (this.formBankHolderName.trim()) formData.append('bank_holder_name', this.formBankHolderName.trim());
     if (this.formBankIfscCode.trim()) formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
-    if (this.formAddress.trim()) formData.append('address', this.formAddress.trim());
+    if (this.formCurrentAddress.trim()) formData.append('current_address', this.formCurrentAddress.trim());
+    if (this.formPermanentAddress.trim()) formData.append('permanent_address', this.formPermanentAddress.trim());
     if (this.selectedAadharFile) formData.append('aadhar_image', this.selectedAadharFile);
     if (this.roleCode === 'MANAGER') {
       if (this.formManagedBranchIds.length > 0) {
@@ -716,7 +722,8 @@ export class UserListComponent implements OnInit {
     formData.append('bank_account_number', this.formBankAccountNumber.trim());
     formData.append('bank_holder_name', this.formBankHolderName.trim());
     formData.append('bank_ifsc_code', this.formBankIfscCode.trim());
-    formData.append('address', this.formAddress.trim());
+    formData.append('current_address', this.formCurrentAddress.trim());
+    formData.append('permanent_address', this.formPermanentAddress.trim());
     
     if (this.selectedAadharFile) {
       formData.append('aadhar_image', this.selectedAadharFile);
