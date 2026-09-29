@@ -223,3 +223,53 @@ html, body {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   vertical-align: middle;
 }
+
+/* Global Responsive Adjustments for all devices */
+@media (max-width: 768px) {
+  .action-header-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+  }
+  
+  .action-header-bar > div,
+  .action-header-bar > .search-field {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .action-header-bar .top-action-buttons,
+  .action-header-bar .action-header-right,
+  .action-header-bar > div:last-child {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  
+  .action-header-bar button, 
+  .action-header-bar .btn-primary-action,
+  .action-header-bar .btn-secondary-action,
+  .action-header-bar .btn-add-branch,
+  .action-header-bar .btn-export {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  
+  .table-responsive {
+    overflow-x: auto !important;
+    width: 100% !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pagination-bar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+  
+  .filter-controls-grid, .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}

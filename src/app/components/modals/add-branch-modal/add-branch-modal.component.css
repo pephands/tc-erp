@@ -328,4 +328,32 @@
   .form-row {
     grid-template-columns: 1fr;
   }
+  
+  .ip-row {
+    flex-direction: column;
+    align-items: stretch;
+    border: 1px dashed var(--border-color);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+  }
+  
+  .ip-row > .form-group {
+    flex: 1 1 auto !important;
+  }
+  
+  .ip-row > .btn-icon-danger {
+    margin-top: 0.25rem;
+    align-self: flex-end;
+    width: auto;
+  }
+  
+  .input-with-action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-action {
+    width: 100%;
+    padding: 0.65rem;
+  }
 }
