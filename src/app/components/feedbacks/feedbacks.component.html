@@ -28,8 +28,6 @@
                 <th>Submitted Date</th>
                 <th>Subject</th>
                 <th>Category</th>
-                <th>Status</th>
-                <th>Admin Response</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -40,20 +38,6 @@
                   <td class="font-semibold">{{ item.subject }}</td>
                   <td>
                     <span class="category-pill">{{ getCategoryLabel(item.category) }}</span>
-                  </td>
-                  <td>
-                    <span class="status-badge" [ngClass]="'status-' + item.status.toLowerCase()">
-                      {{ item.status }}
-                    </span>
-                  </td>
-                  <td>
-                    @if (item.admin_notes) {
-                      <span class="admin-response-preview" [title]="item.admin_notes">
-                        {{ item.admin_notes }}
-                      </span>
-                    } @else {
-                      <span class="text-dim">Awaiting review...</span>
-                    }
                   </td>
                   <td>
                     <button type="button" class="btn-sm btn-outline" (click)="openDetailModal(item)">
@@ -122,6 +106,16 @@
               (ngModelChange)="messageInput.set($event)"
             ></textarea>
           </div>
+          <div class="form-group margin-top-sm">
+            <label>Upload Document / Image (Optional)</label>
+            <div class="file-upload-row" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 10px;">
+              <label class="btn-file-choose">
+                Choose file
+                <input type="file" accept="image/*,video/*,.pdf,.doc,.docx" (change)="onFileChange($event)" hidden />
+              </label>
+              <span class="file-chosen-name">{{ uploadFileName() }}</span>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" (click)="closeSubmitModal()" [disabled]="isSubmitting()">Cancel</button>
@@ -142,7 +136,7 @@
     <div class="modal-overlay" (click)="closeDetailModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>Feedback Detail #{{ selectedFeedback()?.id }}</h3>
+          <h3>Feedback Detail</h3>
           <button type="button" class="close-btn" (click)="closeDetailModal()">&times;</button>
         </div>
         <div class="modal-body">
@@ -158,17 +152,23 @@
             <span class="detail-label">Submitted On:</span>
             <span class="detail-value">{{ selectedFeedback()?.created_at | date:'medium' }}</span>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Current Status:</span>
-            <span class="status-badge" [ngClass]="'status-' + selectedFeedback()!.status.toLowerCase()">
-              {{ selectedFeedback()?.status }}
-            </span>
-          </div>
 
           <div class="form-group margin-top-md">
             <label>My Complaint Message:</label>
             <div class="content-box">{{ selectedFeedback()?.message }}</div>
           </div>
+
+          @if (selectedFeedback()?.attachment) {
+            <div class="form-group margin-top-md">
+              <label>Attachment:</label>
+              <div class="content-box" style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined">attachment</span>
+                <a [href]="selectedFeedback()?.attachment" target="_blank" class="attachment-link" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+                  View / Download Attached File
+                </a>
+              </div>
+            </div>
+          }
 
           @if (selectedFeedback()?.admin_notes) {
             <div class="form-group margin-top-md">

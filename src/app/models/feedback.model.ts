@@ -8,6 +8,7 @@ export interface FeedbackRecord {
   subject: string;
   category: 'TL_CONCERN' | 'BRANCH_ENVIRONMENT' | 'INFRA_WORKSTATION' | 'SYSTEM_BUG' | 'OTHER';
   message: string;
+  attachment?: string;
   status: 'PENDING' | 'UNDER_REVIEW' | 'RESOLVED' | 'CLOSED';
   admin_notes?: string;
   reviewed_by?: number;

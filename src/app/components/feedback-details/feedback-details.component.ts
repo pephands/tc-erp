@@ -26,6 +26,8 @@ export class FeedbackDetailsComponent implements OnInit {
   selectedCategoryFilter = signal<string>('');
   selectedStatusFilter = signal<string>('');
   searchQuery = signal<string>('');
+  startDate = signal<string>('');
+  endDate = signal<string>('');
 
   // Resolve Modal State
   isResolveModalOpen = signal<boolean>(false);
@@ -49,7 +51,7 @@ export class FeedbackDetailsComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.telecallingService.fetchBranches().subscribe({
+    this.telecallingService.fetchBranches({ is_active: 'true', page_size: 1000 }).subscribe({
       next: (res: any) => {
         if (Array.isArray(res)) this.branchesList.set(res);
         else if (res && res.data) this.branchesList.set(res.data);
@@ -65,6 +67,8 @@ export class FeedbackDetailsComponent implements OnInit {
     if (this.selectedCategoryFilter()) params.category = this.selectedCategoryFilter();
     if (this.selectedStatusFilter()) params.status = this.selectedStatusFilter();
     if (this.searchQuery()) params.search = this.searchQuery();
+    if (this.startDate()) params.start_date = this.startDate();
+    if (this.endDate()) params.end_date = this.endDate();
 
     this.feedbackService.fetchFeedbacks(params).subscribe({
       next: (res: any) => {
@@ -83,6 +87,16 @@ export class FeedbackDetailsComponent implements OnInit {
   }
 
   onFilterChange(): void {
+    this.loadFeedbacks();
+  }
+
+  resetFilters(): void {
+    this.selectedBranchFilter.set('');
+    this.selectedCategoryFilter.set('');
+    this.selectedStatusFilter.set('');
+    this.searchQuery.set('');
+    this.startDate.set('');
+    this.endDate.set('');
     this.loadFeedbacks();
   }
 

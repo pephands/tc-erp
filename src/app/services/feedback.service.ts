@@ -45,9 +45,15 @@ export class FeedbackService {
     });
   }
 
-  submitFeedback(subject: string, category: string, message: string): Observable<any> {
-    const payload = { subject, category, message };
-    return this.httpClient.post(this.endPoint.feedbacks, payload, {
+  submitFeedback(subject: string, category: string, message: string, file: File | null = null): Observable<any> {
+    const formData = new FormData();
+    formData.append('subject', subject);
+    formData.append('category', category);
+    formData.append('message', message);
+    if (file) {
+      formData.append('attachment', file);
+    }
+    return this.httpClient.post(this.endPoint.feedbacks, formData, {
       headers: this.headers,
     });
   }

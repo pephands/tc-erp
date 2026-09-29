@@ -23,6 +23,8 @@ export class FeedbacksComponent implements OnInit {
   subjectInput = signal<string>('');
   categoryInput = signal<string>('TL_CONCERN');
   messageInput = signal<string>('');
+  selectedFile = signal<File | null>(null);
+  uploadFileName = signal<string>('No file chosen');
 
   // Detail Modal State
   isDetailModalOpen = signal<boolean>(false);
@@ -64,6 +66,8 @@ export class FeedbacksComponent implements OnInit {
     this.subjectInput.set('');
     this.categoryInput.set('TL_CONCERN');
     this.messageInput.set('');
+    this.selectedFile.set(null);
+    this.uploadFileName.set('No file chosen');
     this.isSubmitModalOpen.set(true);
   }
 
@@ -79,7 +83,7 @@ export class FeedbacksComponent implements OnInit {
 
     this.isSubmitting.set(true);
     this.feedbackService
-      .submitFeedback(this.subjectInput(), this.categoryInput(), this.messageInput())
+      .submitFeedback(this.subjectInput(), this.categoryInput(), this.messageInput(), this.selectedFile())
       .subscribe({
         next: (res: any) => {
           this.isSubmitting.set(false);
@@ -112,6 +116,17 @@ export class FeedbacksComponent implements OnInit {
       case 'INFRA_WORKSTATION': return 'Infrastructure / Workstation';
       case 'SYSTEM_BUG': return 'ERP / System Issue';
       default: return 'Other Concern';
+    }
+  }
+
+  onFileChange(event: any): void {
+    const file = event.target?.files?.[0];
+    if (file) {
+      this.selectedFile.set(file);
+      this.uploadFileName.set(file.name);
+    } else {
+      this.selectedFile.set(null);
+      this.uploadFileName.set('No file chosen');
     }
   }
 }

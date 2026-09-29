@@ -61,6 +61,33 @@
               (ngModelChange)="searchQuery.set($event)"
             />
           </div>
+
+          <div class="filter-group">
+            <label>Start Date</label>
+            <input
+              type="date"
+              class="form-input"
+              [ngModel]="startDate()"
+              (ngModelChange)="startDate.set($event); onFilterChange()"
+            />
+          </div>
+          <div class="filter-group">
+            <label>End Date</label>
+            <input
+              type="date"
+              class="form-input"
+              [ngModel]="endDate()"
+              (ngModelChange)="endDate.set($event); onFilterChange()"
+            />
+          </div>
+
+          <div class="filter-group">
+            <label style="visibility: hidden;">Reset</label>
+            <button type="button" class="btn-secondary" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; width: 100%;" (click)="resetFilters()">
+              <span class="material-symbols-outlined" style="font-size: 1.1rem;">restart_alt</span>
+              Reset
+            </button>
+          </div>
         </div>
       </div>
 
@@ -85,7 +112,7 @@
                 <tr>
                   <td class="text-muted">{{ item.created_at | date:'short' }}</td>
                   <td class="font-semibold">{{ item.branch_name || 'N/A' }}</td>
-                  <td class="font-bold text-primary">{{ item.telecaller_name || item.telecaller_employee_Id }}</td>
+                  <td class="font-bold text-primary">{{ item.telecaller_name ? item.telecaller_name + ' (' + item.telecaller_employee_Id + ')' : item.telecaller_employee_Id }}</td>
                   <td class="font-semibold">{{ item.subject }}</td>
                   <td>
                     <span class="category-pill">{{ getCategoryLabel(item.category) }}</span>
