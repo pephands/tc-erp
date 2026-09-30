@@ -13,6 +13,9 @@ export interface Branch {
   address: string;
   phone: string;
   email?: string;
+  regd_no?: string;
+  pan_no?: string;
+  ngo_darpan_id?: string;
   latitude?: number;
   longitude?: number;
   geofence_radius_meters?: number;

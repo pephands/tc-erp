@@ -40,6 +40,9 @@ export class AddBranchModalComponent implements OnInit {
   formIpValidation: boolean = true;
   formLocationValidation: boolean = true;
   formIsTrust: boolean = false;
+  formRegdNo = '';
+  formPanNo = '';
+  formNgoDarpanId = '';
 
   // IPs array
   ips = signal<{ ip: string; label: string }[]>([{ ip: '', label: 'Main Office' }]);
@@ -69,6 +72,9 @@ export class AddBranchModalComponent implements OnInit {
       this.formIpValidation = this.editBranch.ip_validation_enabled ?? true;
       this.formLocationValidation = this.editBranch.location_validation_enabled ?? true;
       this.formIsTrust = this.editBranch.is_trust ?? false;
+      this.formRegdNo = this.editBranch.regd_no || '';
+      this.formPanNo = this.editBranch.pan_no || '';
+      this.formNgoDarpanId = this.editBranch.ngo_darpan_id || '';
 
       if (this.editBranch.allowed_ips && this.editBranch.allowed_ips.length > 0) {
         this.ips.set(this.editBranch.allowed_ips.map(ip => ({ ip: ip.ip_address, label: ip.label })));
@@ -169,6 +175,9 @@ export class AddBranchModalComponent implements OnInit {
       ip_validation_enabled: this.formIpValidation,
       location_validation_enabled: this.formLocationValidation,
       is_trust: this.formIsTrust,
+      regd_no: this.formRegdNo.trim(),
+      pan_no: this.formPanNo.trim(),
+      ngo_darpan_id: this.formNgoDarpanId.trim(),
       is_active: true,
       allowed_ips: this.ips().filter(ip => ip.ip.trim() !== '').map(ip => ({
         ip_address: ip.ip.trim(),

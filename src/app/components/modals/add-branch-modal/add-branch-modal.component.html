@@ -59,6 +59,26 @@
             <label for="formAddress">Branch Address</label>
             <textarea id="formAddress" name="formAddress" rows="2" [(ngModel)]="formAddress" placeholder="Full address..."></textarea>
           </div>
+          
+          @if (formIsTrust) {
+            <div class="form-row" style="margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+              <div class="form-group">
+                <label for="formRegdNo">Trust Regd. No</label>
+                <input type="text" id="formRegdNo" name="formRegdNo" [(ngModel)]="formRegdNo" placeholder="e.g. Regd. No.211/2023" />
+              </div>
+              <div class="form-group">
+                <label for="formPanNo">PAN No</label>
+                <input type="text" id="formPanNo" name="formPanNo" [(ngModel)]="formPanNo" (ngModelChange)="formPanNo = $event.toUpperCase()" placeholder="e.g. AAFTP3736R" />
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label for="formNgoDarpanId">NGO Darpan ID</label>
+                <input type="text" id="formNgoDarpanId" name="formNgoDarpanId" [(ngModel)]="formNgoDarpanId" placeholder="e.g. TN/2023/0343930" />
+              </div>
+            </div>
+          }
         </div>
 
         <!-- IP Whitelisting -->

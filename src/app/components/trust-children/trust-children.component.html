@@ -166,6 +166,16 @@
                             <span class="material-symbols-outlined">{{ item.is_active ? 'block' : 'check_circle' }}</span>
                           </button>
                         }
+                        @if (isSuperintendent() || authService.hasRole(['ADMIN', 'MANAGER'])) {
+                          <button 
+                            type="button" 
+                            class="btn-action-icon btn-view" 
+                            (click)="downloadApplication(item)" 
+                            title="Download Application"
+                          >
+                            <span class="material-symbols-outlined">download</span>
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>
@@ -345,6 +355,36 @@
                       </select>
                       <span class="material-symbols-outlined select-arrow">expand_more</span>
                     </div>
+                  </div>
+
+                  <div class="form-group margin-top-sm">
+                    <label>Date of Birth</label>
+                    <input type="date" formControlName="date_of_birth" />
+                  </div>
+                  
+                  <div class="form-group margin-top-sm">
+                    <label>Parent Name</label>
+                    <input type="text" formControlName="parent_name" placeholder="Parent Name" style="text-transform: uppercase;" />
+                  </div>
+
+                  <div class="form-group margin-top-sm">
+                    <label>Parent Occupation</label>
+                    <input type="text" formControlName="parent_occupation" placeholder="Parent Occupation" style="text-transform: uppercase;" />
+                  </div>
+
+                  <div class="form-group margin-top-sm">
+                    <label>Birth Marks</label>
+                    <input type="text" formControlName="birth_marks" placeholder="Birth Marks" style="text-transform: uppercase;" />
+                  </div>
+
+                  <div class="form-group margin-top-sm">
+                    <label>UDID No</label>
+                    <input type="text" formControlName="udid_no" placeholder="UDID Number" style="text-transform: uppercase;" />
+                  </div>
+
+                  <div class="form-group margin-top-sm">
+                    <label>Disability Certificate No</label>
+                    <input type="text" formControlName="disability_certificate_no" placeholder="Certificate Number" style="text-transform: uppercase;" />
                   </div>
   
                   <div class="form-group margin-top-sm">

@@ -5,7 +5,10 @@ import { TrustChildrenService, TrustChildRecord } from '../../services/trust-chi
 import { BranchListService } from '../../services/branch-list.service';
 import { AuthService } from '../../services/auth.service';
 import * as XLSX from 'xlsx';
+import { PAAVAI_NEW_LETTERHEAD_B64 } from '../../constants/new-letterhead-image';
+import { PAAVAI_LOGO_B64 } from '../../constants/logo-image';
 
+declare var html2pdf: any;
 @Component({
   selector: 'app-trust-children',
   standalone: true,
@@ -103,13 +106,19 @@ export class TrustChildrenComponent implements OnInit {
       discharge_date: [''],
       address: ['', Validators.required],
       parent_details: ['', Validators.required],
+      parent_name: [''],
+      parent_occupation: [''],
+      birth_marks: [''],
+      udid_no: [''],
+      disability_certificate_no: [''],
+      date_of_birth: [''],
       is_active: [true]
     });
   }
 
   ngOnInit(): void {
     this.loadBranches();
-    if (this.userBranchId || this.userBranchName) {
+    if (!this.authService.hasRole(['ADMIN']) && (this.userBranchId || this.userBranchName)) {
       this.filterBranch.set(String(this.userBranchId || this.userBranchName));
     }
     this.fetchChildrenFromApi();
@@ -130,7 +139,10 @@ export class TrustChildrenComponent implements OnInit {
   fetchChildrenFromApi(): void {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
-    const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.filterBranch()) : this.filterBranch();
+    let branchFilter = this.filterBranch();
+    if (!this.authService.hasRole(['ADMIN']) && !branchFilter) {
+      branchFilter = this.userBranchName || '';
+    }
     const filters = {
       trust_name: branchFilter,
       gender: this.filterGender(),
@@ -205,7 +217,7 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   onClearFilters(): void {
-    if (this.userBranchId || this.userBranchName) {
+    if (!this.authService.hasRole(['ADMIN']) && (this.userBranchId || this.userBranchName)) {
       this.filterBranch.set(String(this.userBranchId || this.userBranchName));
     } else {
       this.filterBranch.set('');
@@ -222,7 +234,10 @@ export class TrustChildrenComponent implements OnInit {
   downloadExcel(): void {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
-    const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.filterBranch()) : this.filterBranch();
+    let branchFilter = this.filterBranch();
+    if (!this.authService.hasRole(['ADMIN']) && !branchFilter) {
+      branchFilter = this.userBranchName || '';
+    }
     const filters = {
       trust_name: branchFilter,
       gender: this.filterGender(),
@@ -341,6 +356,11 @@ export class TrustChildrenComponent implements OnInit {
     if (values.parent_details) values.parent_details = values.parent_details.toUpperCase();
     if (values.address) values.address = values.address.toUpperCase();
     if (values.license_no) values.license_no = values.license_no.toUpperCase();
+    if (values.parent_name) values.parent_name = values.parent_name.toUpperCase();
+    if (values.parent_occupation) values.parent_occupation = values.parent_occupation.toUpperCase();
+    if (values.birth_marks) values.birth_marks = values.birth_marks.toUpperCase();
+    if (values.udid_no) values.udid_no = values.udid_no.toUpperCase();
+    if (values.disability_certificate_no) values.disability_certificate_no = values.disability_certificate_no.toUpperCase();
 
     Object.keys(values).forEach(key => {
       if (values[key] !== null && values[key] !== undefined) {
@@ -409,6 +429,12 @@ export class TrustChildrenComponent implements OnInit {
       discharge_date: child.discharge_date,
       address: child.address,
       parent_details: child.parent_details,
+      parent_name: child.parent_name,
+      parent_occupation: child.parent_occupation,
+      birth_marks: child.birth_marks,
+      udid_no: child.udid_no,
+      disability_certificate_no: child.disability_certificate_no,
+      date_of_birth: child.date_of_birth,
       is_active: child.is_active
     });
 
@@ -441,5 +467,125 @@ export class TrustChildrenComponent implements OnInit {
     } else {
       alert(`No document file available for "${child.children_name}".`);
     }
+  }
+
+  downloadApplication(child: TrustChildRecord): void {
+    const branch = this.branchesList().find(b => b.id === child.trust_name) || {
+      name: child.trust_branch_name || 'N/A',
+      address: 'N/A',
+      phone: 'N/A',
+      email: 'N/A'
+    };
+
+    let age = 'N/A';
+    if (child.date_of_birth) {
+      const dob = new Date(child.date_of_birth);
+      const diff_ms = Date.now() - dob.getTime();
+      const age_dt = new Date(diff_ms); 
+      age = Math.abs(age_dt.getUTCFullYear() - 1970) + ' YEARS';
+    }
+
+    const regdHtml = branch.regd_no ? `<div style="margin-bottom: 3px; background: white; display: inline-block; padding: 0 4px;">Regd. No.${branch.regd_no}</div>` : '';
+    const panHtml = branch.pan_no ? `<div style="margin-bottom: 3px; background: white; display: inline-block; padding: 0 4px;">PAN No: ${branch.pan_no}</div>` : '';
+    const ngoHtml = branch.ngo_darpan_id ? `<div style="margin-bottom: 3px; background: white; display: inline-block; padding: 0 4px;">NGO Darpan ID: ${branch.ngo_darpan_id}</div>` : '';
+
+    const printWindow = window.open('', '_blank', 'width=900,height=1000');
+    if (!printWindow) {
+      alert("Please allow popups to print the application.");
+      return;
+    }
+    
+    const element = document.createElement('div');
+    element.innerHTML = `
+      <div style="font-family: 'Arial', sans-serif; position: relative; width: 794px; height: 1123px; color: #333; background-image: url('${PAAVAI_NEW_LETTERHEAD_B64}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; box-sizing: border-box;">
+        
+        <!-- Trust Details Overlay (Top Right) -->
+        <div style="position: absolute; top: 50px; right: 25px; width: 170px; height: 60px; background: white; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-end; font-size: 9px; color: #333; font-weight: bold; line-height: 1.5; z-index: 10; padding: 2px;">
+          ${branch.regd_no ? `<div>Regd. No. ${branch.regd_no}</div>` : ''}
+          ${branch.pan_no ? `<div>PAN No: ${branch.pan_no}</div>` : ''}
+          ${branch.ngo_darpan_id ? `<div>NGO Darpan ID: ${branch.ngo_darpan_id}</div>` : ''}
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 0 50px; position: absolute; top: 220px; left: 0; right: 0; z-index: 2;">
+          <div style="position: absolute; top: 0; right: 50px; width: 110px; height: 140px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #999; background: white;">
+            Affix Photo
+          </div>
+          
+          <div style="font-weight: bold; margin-bottom: 30px; font-size: 14px;">
+            ADMISSION DATE: ${child.date_of_joining ? new Date(child.date_of_joining).toLocaleDateString('en-GB') : '-'}
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 15px; font-size: 14px;">
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">1. NAME:</span>
+              <span>${child.children_name}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">2. PARENT / GUARDIAN NAME:</span>
+              <span>${child.parent_name || child.parent_details || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">3. DOB/AGE:</span>
+              <span>${(child.date_of_birth ? new Date(child.date_of_birth).toLocaleDateString('en-GB') : '-')} / ${age}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">4. GENDER:</span>
+              <span>${child.gender || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">5. PERMANENT ADDRESS:</span>
+              <span>${child.address || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">6. PARENTAL OCCUPATION:</span>
+              <span>${child.parent_occupation || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">7. BIRTH MARKS:</span>
+              <span>${child.birth_marks || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">8. CHILDREN CATEGORY:</span>
+              <span>${child.category || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">9. DISABILITY PERCENTAGE:</span>
+              <span>-</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">10. UDID NO:</span>
+              <span>${child.udid_no || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">11. DISABILITY CERTIFICATE NO:</span>
+              <span>${child.disability_certificate_no || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">12. AADHAR CARD NO:</span>
+              <span>${child.aadhar_no || '-'}</span>
+            </div>
+            <div style="display: flex;">
+              <span style="font-weight: bold; width: 260px;">13. PHONE NO:</span>
+              <span>${child.mobile_number || '-'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(element);
+
+    const opt = {
+      margin:       0,
+      filename:     `Application_${child.children_name.replace(/\\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().from(element).set(opt).save().then(() => {
+      document.body.removeChild(element);
+    });
   }
 }

@@ -18,6 +18,12 @@ export interface TrustChildRecord {
   discharge_date: string | null;
   address: string;
   parent_details: string;
+  parent_name?: string;
+  parent_occupation?: string;
+  birth_marks?: string;
+  udid_no?: string;
+  disability_certificate_no?: string;
+  date_of_birth?: string;
   document: string | null;
   file_name: string;
   is_active: boolean;
