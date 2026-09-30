@@ -491,23 +491,24 @@ export class SidebarComponent implements OnInit {
       label: 'Food Bookings',
       icon: 'restaurant',
       category: 'Services',
-      allowedRoles: ['ADMIN'],
+      allowedRoles: ['ADMIN', 'TL', 'SUPERINTENDENT'],
+      route: '/food-calendar',
     },
-    {
-      id: 'upload_pan',
-      label: 'Upload PAN Details',
-      icon: 'badge',
-      category: 'Compliance',
-      allowedRoles: ['ADMIN'],
-    },
+    // {
+    //   id: 'upload_pan',
+    //   label: 'Upload PAN Details',
+    //   icon: 'badge',
+    //   category: 'Compliance',
+    //   allowedRoles: ['ADMIN'],
+    // },
     
-    {
-      id: 'website_activities',
-      label: 'Website Activities',
-      icon: 'web',
-      category: 'Analytics',
-      allowedRoles: ['ADMIN'],
-    },
+    // {
+    //   id: 'website_activities',
+    //   label: 'Website Activities',
+    //   icon: 'web',
+    //   category: 'Analytics',
+    //   allowedRoles: ['ADMIN'],
+    // },
     {
       id: 'feedback_details',
       label: 'Feedback Details',
@@ -657,6 +658,9 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/received-status')) return 'received_status';
     if (url.includes('/feedback-details')) return 'feedback_details';
     if (url.includes('/feedbacks')) return 'feedbacks';
+    if (url.includes('/food-calendar')) return 'food_bookings';
+    if (url.includes('/upload-pan')) return 'upload_pan';
+    if (url.includes('/website-activities')) return 'website_activities';
 
     return 'dashboard';
   }
