@@ -14,6 +14,7 @@ export interface Announcement {
   instagram_link?: string;
   cta_link?: string;
   is_active: boolean;
+  hold_timer?: number;
   created_at: string;
   updated_at: string;
 }

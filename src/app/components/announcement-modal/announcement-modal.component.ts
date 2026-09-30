@@ -92,11 +92,14 @@ export class AnnouncementModalComponent implements OnInit {
     }
     
     if (ann.instagram_link) {
-      // Very basic instagram embed logic
+      // Basic instagram embed logic
       let url = ann.instagram_link;
-      if (!url.endsWith('/')) url += '/';
-      url += 'embed';
-      this.instagramEmbedHtml.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+      let cleanUrl = url.split('?')[0];
+      if (!cleanUrl.endsWith('/')) {
+        cleanUrl += '/';
+      }
+      cleanUrl += 'embed';
+      this.instagramEmbedHtml.set(this.sanitizer.bypassSecurityTrustResourceUrl(cleanUrl));
     }
   }
   
@@ -107,12 +110,15 @@ export class AnnouncementModalComponent implements OnInit {
   }
   
   startEnableTimer(ann: Announcement) {
-    this.buttonsEnabled.set(false);
-    let seconds = 15; // default 15 seconds
-    if (ann.video || ann.youtube_link || ann.instagram_link) {
-      seconds = 30; // 30 seconds for video/embeds
-    }
+    let seconds = ann.hold_timer || 0;
     this.timeLeft.set(seconds);
+    
+    if (seconds <= 0) {
+      this.buttonsEnabled.set(true);
+      return;
+    }
+    
+    this.buttonsEnabled.set(false);
     
     if (this.timerInterval) clearInterval(this.timerInterval);
     

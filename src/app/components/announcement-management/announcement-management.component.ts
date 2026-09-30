@@ -28,6 +28,7 @@ export class AnnouncementManagementComponent implements OnInit {
   formCtaLink = signal<string>('');
   formMediaType = signal<string>('none');
   formIsActive = signal<boolean>(true);
+  formHoldTimer = signal<number>(0);
   
   selectedImage = signal<File | null>(null);
   selectedVideo = signal<File | null>(null);
@@ -67,6 +68,7 @@ export class AnnouncementManagementComponent implements OnInit {
     this.formInstagramLink.set(ann.instagram_link || '');
     this.formCtaLink.set(ann.cta_link || '');
     this.formIsActive.set(ann.is_active);
+    this.formHoldTimer.set(ann.hold_timer || 0);
     
     if (ann.image) this.formMediaType.set('image');
     else if (ann.video) this.formMediaType.set('video');
@@ -97,6 +99,7 @@ export class AnnouncementManagementComponent implements OnInit {
     this.formCtaLink.set('');
     this.formMediaType.set('none');
     this.formIsActive.set(true);
+    this.formHoldTimer.set(0);
     
     this.selectedImage.set(null);
     this.selectedVideo.set(null);
@@ -163,6 +166,7 @@ export class AnnouncementManagementComponent implements OnInit {
     fd.append('title', this.formTitle());
     fd.append('description', this.formDescription());
     fd.append('is_active', this.formIsActive().toString());
+    fd.append('hold_timer', this.formHoldTimer().toString());
     
     const mType = this.formMediaType();
     
@@ -210,9 +214,15 @@ export class AnnouncementManagementComponent implements OnInit {
     if (this.formMediaType() !== 'instagram') return null;
     let url = this.formInstagramLink();
     if (!url) return null;
-    if (!url.endsWith('/')) url += '/';
-    url += 'embed';
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    
+    // Remove query parameters like ?hl=en before appending embed
+    let cleanUrl = url.split('?')[0];
+    if (!cleanUrl.endsWith('/')) {
+      cleanUrl += '/';
+    }
+    cleanUrl += 'embed';
+    
+    return this.sanitizer.bypassSecurityTrustResourceUrl(cleanUrl);
   }
   
   extractYoutubeId(url: string): string | null {

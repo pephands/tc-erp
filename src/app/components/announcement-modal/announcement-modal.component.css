@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #128C7E, #075E54); /* WhatsApp inspired green */
+  background: var(--primary-gradient);
   color: white;
 }
 
@@ -56,8 +56,8 @@
   padding: 20px;
   overflow-y: auto;
   flex: 1;
-  background-color: #e5ddd5; /* WhatsApp chat background color */
-  background-image: url('data:image/svg+xml,%3Csvg width="20" height="20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1 1h2v2H1V1zm4 4h2v2H5V5zm4 4h2v2H9V9zm4 4h2v2h-2v-2zm4 4h2v2h-2v-2z" fill="%23d6d0c4" fill-opacity="0.4" fill-rule="evenodd"/%3E%3C/svg%3E');
+  background-color: var(--bg-app);
+  background-image: none;
 }
 
 .media-container {
@@ -72,9 +72,11 @@
 .media-container img,
 .media-container video {
   width: 100%;
-  max-height: 250px;
-  object-fit: cover;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
   display: block;
+  background-color: transparent;
 }
 
 .iframe-container {
@@ -98,14 +100,14 @@
 .document-container {
   padding: 12px;
   background: #fff;
-  border-left: 4px solid #128C7E;
+  border-left: 4px solid var(--primary);
 }
 
 .document-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #128C7E;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
 }
@@ -138,7 +140,7 @@
 .announcement-footer {
   padding: 16px 20px;
   background: #ffffff;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -166,12 +168,23 @@
 
 .cta-btn {
   width: 100%;
-  background: #e8f4fd;
-  color: #1a73e8;
-  border: 1px solid #d2e3fc;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--border-color);
 }
 .cta-btn:hover {
-  background: #d2e3fc;
+  background: var(--primary-light);
+  opacity: 0.9;
+}
+
+.cta-btn.highlighted {
+  font-weight: bold;
+  font-size: 1.05rem;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  box-shadow: var(--shadow-glow);
 }
 
 .action-buttons {
@@ -182,21 +195,21 @@
 
 .remind-btn {
   flex: 1;
-  background: #f1f3f4;
-  color: #5f6368;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
 }
 .remind-btn:hover {
-  background: #e8eaed;
+  background: var(--border-color);
 }
 
 .noted-btn {
   flex: 1;
-  background: #128C7E;
+  background: var(--primary);
   color: white;
-  box-shadow: 0 4px 10px rgba(18, 140, 126, 0.3);
+  box-shadow: var(--shadow-glow);
 }
 .noted-btn:hover {
-  background: #075E54;
+  background: var(--primary-hover);
   transform: translateY(-2px);
 }
 

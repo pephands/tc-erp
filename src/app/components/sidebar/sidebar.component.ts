@@ -600,8 +600,10 @@ export class SidebarComponent implements OnInit {
     // Core & Operations
     if (url.includes('/dashboard')) return 'dashboard';
     if (url.includes('/branches')) return 'branches';
+    if (url.includes('/announcements')) return 'announcements';
     if (url.includes('/attendance')) return 'attendance';
     if (url.includes('/workstation') || url.includes('/work-details') || url.includes('/telecaller-workstation')) return 'workstation';
+    if (url.includes('/reference-leads')) return 'reference_leads';
     if (url.includes('/send-records')) return 'send-records';
     if (url.includes('/approve-assign')) return 'approve_assign';
     if (url.includes('/tl-data-management')) return 'tl_data_management';
@@ -613,6 +615,7 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/users/manager') || url.includes('/managers')) return 'manager';
     if (url.includes('/users/backend')) return 'backend';
     if (url.includes('/users/trust-users')) return 'trust_users';
+    if (url.includes('/users/settings')) return 'user_setting';
     if (url.includes('/users/driver')) return 'driver';
     if (url.includes('/users/cook')) return 'cook';
     if (url.includes('/users/assistant-cook')) return 'assistant_cook';
@@ -634,15 +637,16 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
     if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
     if (url.includes('/whatsapp-send')) return 'send_whatsapp_message';
+    if (url.includes('/whatsapp-history')) return 'whatsapp_send_history';
 
     // Receipts
-    if (url.includes('/receipts/view')) return 'view_receipt';
-    if (url.includes('/receipts/create')) return 'create_receipt';
+    if (url.includes('/receipts/view') || url.includes('/receipts/create')) return 'receipts';
 
     // Branch Details
     if (url.includes('/branch-documents')) return 'branch_documents';
     if (url.includes('/expense-details')) return 'expense_details';
     if (url.includes('/expense-report')) return 'expense_report';
+    if (url.includes('/branch-settings')) return 'branch_settings';
     if (url.includes('/trust-children')) return 'trust_children';
     if (url.includes('/branch-vehicles')) return 'branch_vehicles';
 

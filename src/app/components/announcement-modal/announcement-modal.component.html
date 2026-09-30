@@ -50,29 +50,32 @@
     </div>
 
     <div class="announcement-footer">
-      @if (announcement()?.cta_link) {
-        <button class="btn cta-btn" (click)="openCta()">
-          <span class="material-symbols-outlined">link</span>
-          Click This Link
-        </button>
-      }
-      
       <div class="action-buttons">
         <button class="btn remind-btn" (click)="onRemind()" [disabled]="!buttonsEnabled()" [class.disabled]="!buttonsEnabled()">
           <span class="material-symbols-outlined">schedule</span>
-          Remind Me (1hr) 
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <span>Remind Me</span>
+            <span style="font-size: 0.75rem;">(1hr)</span>
+          </div>
           @if (!buttonsEnabled()) {
-            <span class="timer">({{timeLeft()}}s)</span>
+            <span class="timer" style="margin-left:4px;">({{timeLeft()}}s)</span>
           }
         </button>
         <button class="btn noted-btn" (click)="onNoted()" [disabled]="!buttonsEnabled()" [class.disabled]="!buttonsEnabled()">
           <span class="material-symbols-outlined">check_circle</span>
           Noted
           @if (!buttonsEnabled()) {
-            <span class="timer">({{timeLeft()}}s)</span>
+            <span class="timer" style="margin-left:4px;">({{timeLeft()}}s)</span>
           }
         </button>
       </div>
+      
+      @if (announcement()?.cta_link) {
+        <button class="btn cta-btn highlighted" (click)="openCta()">
+          <span class="material-symbols-outlined">link</span>
+          Click This Link
+        </button>
+      }
     </div>
   </div>
 </div>

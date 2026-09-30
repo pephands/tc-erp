@@ -89,34 +89,58 @@
 
         @if (formMediaType() === 'image') {
           <div class="form-group">
-            <label>Image Upload 
-              @if (isEdit() && previewImageUrl() && !selectedImage()) {
-                <span class="existing-file">(Existing image uploaded)</span>
-              }
-            </label>
-            <input type="file" (change)="onImageChange($event)" accept="image/*" />
+            <label>Image Upload</label>
+            @if (isEdit() && previewImageUrl() && !selectedImage()) {
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <a [href]="previewImageUrl()" target="_blank" class="btn-secondary" style="display:flex; align-items:center; gap:4px; text-decoration:none; font-size:0.85rem; padding:6px 10px;">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;">visibility</span> View
+                </a>
+                <button type="button" class="btn-secondary" style="display:flex; align-items:center; gap:4px; font-size:0.85rem; padding:6px 10px;" (click)="imageInput.click()">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;">upload_file</span> Replace
+                </button>
+              </div>
+              <input #imageInput type="file" style="display:none" (change)="onImageChange($event)" accept="image/*" />
+            } @else {
+              <input type="file" (change)="onImageChange($event)" accept="image/*" />
+            }
           </div>
         }
 
         @if (formMediaType() === 'video') {
           <div class="form-group">
-            <label>Video Upload
-              @if (isEdit() && previewVideoUrl() && !selectedVideo()) {
-                <span class="existing-file">(Existing video uploaded)</span>
-              }
-            </label>
-            <input type="file" (change)="onVideoChange($event)" accept="video/*" />
+            <label>Video Upload</label>
+            @if (isEdit() && previewVideoUrl() && !selectedVideo()) {
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <a [href]="previewVideoUrl()" target="_blank" class="btn-secondary" style="display:flex; align-items:center; gap:4px; text-decoration:none; font-size:0.85rem; padding:6px 10px;">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;">visibility</span> View
+                </a>
+                <button type="button" class="btn-secondary" style="display:flex; align-items:center; gap:4px; font-size:0.85rem; padding:6px 10px;" (click)="videoInput.click()">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;">upload_file</span> Replace
+                </button>
+              </div>
+              <input #videoInput type="file" style="display:none" (change)="onVideoChange($event)" accept="video/*" />
+            } @else {
+              <input type="file" (change)="onVideoChange($event)" accept="video/*" />
+            }
           </div>
         }
 
         @if (formMediaType() === 'document') {
           <div class="form-group">
-            <label>Document Upload
-              @if (isEdit() && existingDocumentUrl() && !selectedDocument()) {
-                <span class="existing-file">(Existing document uploaded)</span>
-              }
-            </label>
-            <input type="file" (change)="onDocumentChange($event)" accept=".pdf,.doc,.docx" />
+            <label>Document Upload</label>
+            @if (isEdit() && existingDocumentUrl() && !selectedDocument()) {
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <a [href]="existingDocumentUrl()" target="_blank" class="btn-secondary" style="display:flex; align-items:center; gap:4px; text-decoration:none; font-size:0.85rem; padding:6px 10px;">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;">visibility</span> View
+                </a>
+                <button type="button" class="btn-secondary" style="display:flex; align-items:center; gap:4px; font-size:0.85rem; padding:6px 10px;" (click)="documentInput.click()">
+                  <span class="material-symbols-outlined" style="font-size:1.1rem;">upload_file</span> Replace
+                </button>
+              </div>
+              <input #documentInput type="file" style="display:none" (change)="onDocumentChange($event)" accept=".pdf,.doc,.docx" />
+            } @else {
+              <input type="file" (change)="onDocumentChange($event)" accept=".pdf,.doc,.docx" />
+            }
           </div>
         }
 
@@ -137,6 +161,12 @@
         <div class="form-group">
           <label>Call-to-Action Link (Optional)</label>
           <input type="text" [(ngModel)]="formCtaLink" placeholder="e.g. https://example.com/apply" />
+        </div>
+        
+        <div class="form-group">
+          <label>Hold Timer (Seconds)</label>
+          <input type="number" [(ngModel)]="formHoldTimer" placeholder="e.g. 30" min="0" />
+          <small style="color: #5f6368; margin-top: 4px;">Set to 0 to disable timer. Disables Action Buttons until timer finishes.</small>
         </div>
         
         <div class="form-group checkbox-group">
@@ -204,23 +234,28 @@
           </div>
       
           <div class="announcement-footer">
+            <div class="action-buttons">
+              <button class="btn remind-btn" [disabled]="formHoldTimer() > 0" [style.opacity]="formHoldTimer() > 0 ? 0.5 : 1">
+                <span class="material-symbols-outlined">schedule</span>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span>Remind Me</span>
+                  <span style="font-size: 0.75rem;">(1hr)</span>
+                </div>
+                @if (formHoldTimer() > 0) { <span style="margin-left:4px;">({{formHoldTimer()}}s)</span> }
+              </button>
+              <button class="btn noted-btn" [disabled]="formHoldTimer() > 0" [style.opacity]="formHoldTimer() > 0 ? 0.5 : 1">
+                <span class="material-symbols-outlined">check_circle</span>
+                Noted
+                @if (formHoldTimer() > 0) { <span style="margin-left:4px;">({{formHoldTimer()}}s)</span> }
+              </button>
+            </div>
+
             @if (formCtaLink()) {
-              <button class="btn cta-btn" (click)="openCtaPreview()">
+              <button class="btn cta-btn highlighted" (click)="openCtaPreview()">
                 <span class="material-symbols-outlined">link</span>
                 Click This Link
               </button>
             }
-            
-            <div class="action-buttons">
-              <button class="btn remind-btn">
-                <span class="material-symbols-outlined">schedule</span>
-                Remind (1hr)
-              </button>
-              <button class="btn noted-btn">
-                <span class="material-symbols-outlined">check_circle</span>
-                Noted
-              </button>
-            </div>
           </div>
         </div>
       </div>
