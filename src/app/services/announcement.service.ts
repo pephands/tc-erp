@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 export interface Announcement {
   id: number;
   title: string;
-  description: string;
+  description?: string;
   image?: string;
   video?: string;
   document?: string;

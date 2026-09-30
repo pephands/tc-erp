@@ -111,14 +111,6 @@ export class SidebarComponent implements OnInit {
       route: '/dashboard',
     },
     {
-      id: 'branches',
-      label: 'Branches',
-      icon: 'domain',
-      category: 'Core',
-      allowedRoles: ['ADMIN'],
-      route: '/branches',
-    },
-    {
       id: 'announcements',
       label: 'Announcements',
       icon: 'campaign',
@@ -126,6 +118,15 @@ export class SidebarComponent implements OnInit {
       allowedRoles: ['ADMIN'],
       route: '/announcements',
     },
+    {
+      id: 'branches',
+      label: 'Branches',
+      icon: 'domain',
+      category: 'Core',
+      allowedRoles: ['ADMIN'],
+      route: '/branches',
+    },
+    
     {
       id: 'users',
       label: 'Users',
@@ -499,6 +500,7 @@ export class SidebarComponent implements OnInit {
       category: 'Compliance',
       allowedRoles: ['ADMIN'],
     },
+    
     {
       id: 'website_activities',
       label: 'Website Activities',

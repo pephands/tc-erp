@@ -63,7 +63,7 @@ export class AnnouncementManagementComponent implements OnInit {
     this.resetForm();
     this.formId.set(ann.id);
     this.formTitle.set(ann.title);
-    this.formDescription.set(ann.description);
+    this.formDescription.set(ann.description || '');
     this.formYoutubeLink.set(ann.youtube_link || '');
     this.formInstagramLink.set(ann.instagram_link || '');
     this.formCtaLink.set(ann.cta_link || '');

@@ -44,9 +44,11 @@
       }
 
       <!-- Description Section -->
-      <div class="description-text">
-        {{ announcement()?.description }}
-      </div>
+      @if (announcement()?.description) {
+        <div class="description-text">
+          {{ announcement()?.description }}
+        </div>
+      }
     </div>
 
     <div class="announcement-footer">
