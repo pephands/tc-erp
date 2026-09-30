@@ -239,16 +239,17 @@
             <div class="action-buttons">
               <button class="btn remind-btn" [disabled]="formHoldTimer() > 0" [style.opacity]="formHoldTimer() > 0 ? 0.5 : 1">
                 <span class="material-symbols-outlined">schedule</span>
-                <div style="display:flex; flex-direction:column; align-items:center;">
+                <div style="display:flex; flex-direction:column; align-items:center; line-height: 1.2;">
                   <span>Remind Me</span>
-                  <span style="font-size: 0.75rem;">(1hr)</span>
+                  <span style="font-size: 0.75rem;">@if (formHoldTimer() > 0) { ({{formHoldTimer()}}s) }</span>
                 </div>
-                @if (formHoldTimer() > 0) { <span style="margin-left:4px;">({{formHoldTimer()}}s)</span> }
               </button>
               <button class="btn noted-btn" [disabled]="formHoldTimer() > 0" [style.opacity]="formHoldTimer() > 0 ? 0.5 : 1">
                 <span class="material-symbols-outlined">check_circle</span>
-                Noted
-                @if (formHoldTimer() > 0) { <span style="margin-left:4px;">({{formHoldTimer()}}s)</span> }
+                <div style="display:flex; flex-direction:column; align-items:center; line-height: 1.2;">
+                  <span>Noted</span>
+                  @if (formHoldTimer() > 0) { <span style="font-size: 0.75rem;">({{formHoldTimer()}}s)</span> }
+                </div>
               </button>
             </div>
 

@@ -55,20 +55,17 @@
       <div class="action-buttons">
         <button class="btn remind-btn" (click)="onRemind()" [disabled]="!buttonsEnabled()" [class.disabled]="!buttonsEnabled()">
           <span class="material-symbols-outlined">schedule</span>
-          <div style="display:flex; flex-direction:column; align-items:center;">
+          <div style="display:flex; flex-direction:column; align-items:center; line-height: 1.2;">
             <span>Remind Me</span>
-            <span style="font-size: 0.75rem;">(1hr)</span>
+            <span style="font-size: 0.75rem;"> @if (!buttonsEnabled()) { ({{timeLeft()}}s) }</span>
           </div>
-          @if (!buttonsEnabled()) {
-            <span class="timer" style="margin-left:4px;">({{timeLeft()}}s)</span>
-          }
         </button>
         <button class="btn noted-btn" (click)="onNoted()" [disabled]="!buttonsEnabled()" [class.disabled]="!buttonsEnabled()">
           <span class="material-symbols-outlined">check_circle</span>
-          Noted
-          @if (!buttonsEnabled()) {
-            <span class="timer" style="margin-left:4px;">({{timeLeft()}}s)</span>
-          }
+          <div style="display:flex; flex-direction:column; align-items:center; line-height: 1.2;">
+            <span>Noted</span>
+            @if (!buttonsEnabled()) { <span style="font-size: 0.75rem;">({{timeLeft()}}s)</span> }
+          </div>
         </button>
       </div>
       
