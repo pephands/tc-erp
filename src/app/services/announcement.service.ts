@@ -45,8 +45,8 @@ export class AnnouncementService {
     return this.http.get<{ status: string; data: Announcement | null }>(this.apiUrl, this.getHeaders());
   }
 
-  getAnnouncements(): Observable<{ status: string; data: Announcement[] }> {
-    return this.http.get<{ status: string; data: Announcement[] }>(this.adminApiUrl, this.getHeaders());
+  getAnnouncements(page: number = 1, pageSize: number = 10): Observable<{ count: number, next: string | null, previous: string | null, results: Announcement[] }> {
+    return this.http.get<{ count: number, next: string | null, previous: string | null, results: Announcement[] }>(`${this.adminApiUrl}?page=${page}&page_size=${pageSize}`, this.getHeaders());
   }
 
   createAnnouncement(data: FormData): Observable<{ status: string; data: Announcement }> {

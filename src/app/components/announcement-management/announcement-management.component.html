@@ -1,27 +1,34 @@
-<div class="header-actions">
-  <h2>Announcement Management</h2>
-  <button class="btn-primary" (click)="openCreateModal()">
-    <span class="material-symbols-outlined">add</span> Create Announcement
-  </button>
-</div>
+<main class="page-container">
+  <div class="header-actions">
+    <h2>Announcement Management</h2>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openCreateModal()">
+        <span class="material-symbols-outlined">add</span> Create Announcement
+      </button>
+    }
+  </div>
 
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>S.No</th>
               <th>Title</th>
-              <th>Created At</th>
+              @if (isAdmin()) {
+                <th>Created At</th>
+              }
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            @for (ann of announcements(); track ann.id) {
+            @for (ann of announcements(); track ann.id; let i = $index) {
             <tr>
-              <td>#{{ ann.id }}</td>
+              <td>{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
               <td>{{ ann.title }}</td>
-              <td>{{ ann.created_at | date:'medium' }}</td>
+              @if (isAdmin()) {
+                <td>{{ ann.created_at | date:'medium' }}</td>
+              }
               <td>
                 <span class="status-badge" [class.active]="ann.is_active" [class.inactive]="!ann.is_active">
                   {{ ann.is_active ? 'Active' : 'Inactive' }}
@@ -29,33 +36,54 @@
               </td>
               <td>
                 <div class="action-buttons-group">
-                  <button class="btn-icon" (click)="toggleActive(ann)" [title]="ann.is_active ? 'Deactivate' : 'Activate'">
-                    <span class="material-symbols-outlined">{{ ann.is_active ? 'visibility_off' : 'visibility' }}</span>
-                  </button>
-                  <button class="btn-icon edit" (click)="openEditModal(ann)" title="Edit">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button class="btn-icon delete" (click)="deleteAnnouncement(ann.id)" title="Delete">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
+                  @if (isAdmin()) {
+                    <button class="btn-icon" (click)="toggleActive(ann)" [title]="ann.is_active ? 'Deactivate' : 'Activate'">
+                      <span class="material-symbols-outlined">{{ ann.is_active ? 'visibility_off' : 'visibility' }}</span>
+                    </button>
+                    <button class="btn-icon edit" (click)="openEditModal(ann)" title="Edit">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="btn-icon delete" (click)="deleteAnnouncement(ann.id)" title="Delete">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  } @else {
+                    <button class="btn-icon" (click)="openEditModal(ann)" title="View Announcement">
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
             }
             @if (announcements().length === 0) {
               <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem;">No announcements found.</td>
+                <td [attr.colspan]="isAdmin() ? 5 : 4" style="text-align: center; padding: 2rem;">No announcements found.</td>
               </tr>
             }
           </tbody>
         </table>
+        
+        <!-- Pagination Bar -->
+        @if (totalCount() > 0) {
+          <div class="pagination-bar">
+            <div class="pagination-info">
+              Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total)
+            </div>
+            <div class="pagination-controls">
+              <button type="button" class="page-btn" [disabled]="currentPage() === 1" (click)="prevPage()">Prev</button>
+              <button type="button" class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Next</button>
+            </div>
+          </div>
+        }
       </div>
+</main>
 <!-- Create / Edit Modal -->
 @if (showModal()) {
 <div class="modal-overlay">
-  <div class="modal-content split-layout">
+  <div [class]="isAdmin() ? 'modal-content split-layout' : 'tl-modal-content'">
     
     <!-- Left Side: Form -->
+    @if (isAdmin()) {
     <div class="modal-left">
       <div class="modal-header">
         <h3>{{ isEdit() ? 'Edit Announcement' : 'Create Announcement' }}</h3>
@@ -180,11 +208,20 @@
         <button class="btn-primary" (click)="onSubmit()">{{ isEdit() ? 'Update' : 'Create' }}</button>
       </div>
     </div>
+    }
 
     <!-- Right Side: Live Preview -->
-    <div class="modal-right preview-section">
-      <h4>Live Preview</h4>
-      <div class="preview-device">
+    <div [class]="isAdmin() ? 'modal-right preview-section' : 'tl-preview-section'">
+      @if (isAdmin()) {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h4 style="margin: 0;">Live Preview</h4>
+        </div>
+      } @else {
+        <button class="btn-icon tl-close-btn" (click)="closeModal()" title="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      }
+      <div class="preview-device" [style.margin]="!isAdmin() ? '0' : ''">
         <!-- Re-using WhatsApp styled card logic from the actual modal -->
         <div class="announcement-card whatsapp-style preview-card">
           <div class="announcement-header">

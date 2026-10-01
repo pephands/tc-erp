@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
 import { AnnouncementService, Announcement } from '../../services/announcement.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-announcement-management',
@@ -14,6 +15,11 @@ import { AnnouncementService, Announcement } from '../../services/announcement.s
 export class AnnouncementManagementComponent implements OnInit {
   announcementService = inject(AnnouncementService);
   sanitizer = inject(DomSanitizer);
+  authService = inject(AuthService);
+
+  isAdmin(): boolean {
+    return this.authService.hasRole(['ADMIN']);
+  }
 
   announcements = signal<Announcement[]>([]);
   showModal = signal<boolean>(false);
@@ -39,18 +45,43 @@ export class AnnouncementManagementComponent implements OnInit {
   previewVideoUrl = signal<string | null>(null);
   existingDocumentUrl = signal<string | null>(null);
 
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+  totalCount = signal<number>(0);
+  totalPages = signal<number>(1);
+
   ngOnInit() {
     this.loadAnnouncements();
   }
 
   loadAnnouncements() {
-    this.announcementService.getAnnouncements().subscribe({
-      next: (res) => {
-        if (res.status === 'success') {
+    this.announcementService.getAnnouncements(this.currentPage(), this.pageSize()).subscribe({
+      next: (res: any) => {
+        // If it's the paginated response
+        if (res.results) {
+          this.announcements.set(res.results);
+          this.totalCount.set(res.count);
+          this.totalPages.set(Math.ceil(res.count / this.pageSize()) || 1);
+        } else if (res.status === 'success') {
+          // fallback
           this.announcements.set(res.data);
         }
       }
     });
+  }
+
+  nextPage() {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.update(p => p + 1);
+      this.loadAnnouncements();
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(p => p - 1);
+      this.loadAnnouncements();
+    }
   }
 
   openCreateModal() {

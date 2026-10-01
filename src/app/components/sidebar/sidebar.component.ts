@@ -115,7 +115,7 @@ export class SidebarComponent implements OnInit {
       label: 'Announcements',
       icon: 'campaign',
       category: 'Core',
-      allowedRoles: ['ADMIN'],
+      allowedRoles: ['ADMIN','TL'],
       route: '/announcements',
     },
     {
