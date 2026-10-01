@@ -491,14 +491,14 @@ export class SidebarComponent implements OnInit {
       label: 'Food Bookings',
       icon: 'restaurant',
       category: 'Services',
-      allowedRoles: ['ADMIN', 'TL'],
+      allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
       submenus: [
         {
           id: 'food_calendar',
           label: 'Calendar & Bookings',
           icon: 'calendar_today',
           route: '/food-calendar',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS'],
         },
         {
           id: 'occasions',

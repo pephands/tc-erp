@@ -48,14 +48,14 @@ export class ReferenceLeadsComponent implements OnInit {
   anniMonth = signal<string>('');
   anniYear = signal<string>('');
 
-  days = Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0'));
+  days = Array.from({length: 31}, (_, i) => (i + 1).toString());
   months = [
-    { value: '01', label: 'Jan' }, { value: '02', label: 'Feb' }, { value: '03', label: 'Mar' },
-    { value: '04', label: 'Apr' }, { value: '05', label: 'May' }, { value: '06', label: 'Jun' },
-    { value: '07', label: 'Jul' }, { value: '08', label: 'Aug' }, { value: '09', label: 'Sep' },
-    { value: '10', label: 'Oct' }, { value: '11', label: 'Nov' }, { value: '12', label: 'Dec' }
+    { value: '01', label: 'January' }, { value: '02', label: 'February' }, { value: '03', label: 'March' },
+    { value: '04', label: 'April' }, { value: '05', label: 'May' }, { value: '06', label: 'June' },
+    { value: '07', label: 'July' }, { value: '08', label: 'August' }, { value: '09', label: 'September' },
+    { value: '10', label: 'October' }, { value: '11', label: 'November' }, { value: '12', label: 'December' }
   ];
-  years = Array.from({length: 201}, (_, i) => (new Date().getFullYear() + 100 - i).toString());
+  years = Array.from({length: 100}, (_, i) => (new Date().getFullYear() - i).toString());
 
   clearDob() {
     this.dobDay.set('');
@@ -247,7 +247,12 @@ export class ReferenceLeadsComponent implements OnInit {
     let params = `?`;
     if (this.searchQuery()) params += `&search=${this.searchQuery()}`;
     if (this.filterStatus()) params += `&status=${this.filterStatus()}`;
-    if (this.filterBranch()) params += `&branch=${this.filterBranch()}`;
+    
+    if (this.role() === 'TL' && this.authService.currentUser()?.branch?.id) {
+       params += `&branch=${this.authService.currentUser()?.branch?.id}`;
+    } else if (this.filterBranch()) {
+       params += `&branch=${this.filterBranch()}`;
+    }
 
     this.http.get(`${environment.baseUrl}telecalling/reference-leads/export/${params}`, {
       headers: this.telecallingService.headers,

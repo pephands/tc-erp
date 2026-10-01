@@ -13,11 +13,11 @@
         <span class="material-symbols-outlined">person_add</span> Add Reference Lead
       </button>
       
-      <div *ngIf="role() === 'ADMIN'" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+      <div *ngIf="role() === 'ADMIN' || role() === 'TL'" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
         <button type="button" class="btn-secondary" (click)="exportExcel()">
           <span class="material-symbols-outlined">download</span> Export XLSX
         </button>
-        <button type="button" class="btn-primary" (click)="openUploadModal()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+        <button *ngIf="role() === 'ADMIN'" type="button" class="btn-primary" (click)="openUploadModal()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
           <span class="material-symbols-outlined">upload</span> Upload Updated Records
         </button>
       </div>
@@ -147,17 +147,23 @@
             <button *ngIf="dobDay() || dobMonth() || dobYear()" type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearDob()">Clear</button>
           </label>
           <div style="display: flex; gap: 0.35rem;">
-            <div style="flex: 1;">
-              <input type="text" [value]="dobDay()" (input)="handleDayInput($event, dobDay)" placeholder="11" maxlength="2" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            <div class="select-wrapper" style="flex: 1;">
+              <select [ngModel]="dobDay()" (ngModelChange)="dobDay.set($event)" class="form-control" [style.color]="dobDay() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                <option value="" disabled selected hidden>Day</option>
+                <option *ngFor="let d of days" [value]="d" style="color: inherit;">{{ d }}</option>
+              </select>
             </div>
             <div class="select-wrapper" style="flex: 1.2;">
               <select [ngModel]="dobMonth()" (ngModelChange)="dobMonth.set($event)" class="form-control" [style.color]="dobMonth() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
-                <option value="" disabled selected hidden>MM</option>
+                <option value="" disabled selected hidden>Month</option>
                 <option *ngFor="let m of months" [value]="m.value" style="color: inherit;">{{ m.label }}</option>
               </select>
             </div>
-            <div style="flex: 1.4;">
-              <input type="text" [value]="dobYear()" (input)="handleYearInput($event, dobYear)" placeholder="1999" maxlength="4" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            <div class="select-wrapper" style="flex: 1.4;">
+              <select [ngModel]="dobYear()" (ngModelChange)="dobYear.set($event)" class="form-control" [style.color]="dobYear() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                <option value="" disabled selected hidden>Year</option>
+                <option *ngFor="let y of years" [value]="y" style="color: inherit;">{{ y }}</option>
+              </select>
             </div>
           </div>
         </div>
@@ -168,17 +174,23 @@
             <button *ngIf="anniDay() || anniMonth() || anniYear()" type="button" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0;" (click)="clearAnni()">Clear</button>
           </label>
           <div style="display: flex; gap: 0.35rem;">
-            <div style="flex: 1;">
-              <input type="text" [value]="anniDay()" (input)="handleDayInput($event, anniDay)" placeholder="11" maxlength="2" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            <div class="select-wrapper" style="flex: 1;">
+              <select [ngModel]="anniDay()" (ngModelChange)="anniDay.set($event)" class="form-control" [style.color]="anniDay() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                <option value="" disabled selected hidden>Day</option>
+                <option *ngFor="let d of days" [value]="d" style="color: inherit;">{{ d }}</option>
+              </select>
             </div>
             <div class="select-wrapper" style="flex: 1.2;">
               <select [ngModel]="anniMonth()" (ngModelChange)="anniMonth.set($event)" class="form-control" [style.color]="anniMonth() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
-                <option value="" disabled selected hidden>MM</option>
+                <option value="" disabled selected hidden>Month</option>
                 <option *ngFor="let m of months" [value]="m.value" style="color: inherit;">{{ m.label }}</option>
               </select>
             </div>
-            <div style="flex: 1.4;">
-              <input type="text" [value]="anniYear()" (input)="handleYearInput($event, anniYear)" placeholder="1999" maxlength="4" inputmode="numeric" class="form-control" style="text-align: center; padding: 0.5rem;">
+            <div class="select-wrapper" style="flex: 1.4;">
+              <select [ngModel]="anniYear()" (ngModelChange)="anniYear.set($event)" class="form-control" [style.color]="anniYear() === '' ? '#9ca3af' : 'inherit'" style="padding-left: 0.5rem; padding-right: 1.5rem;">
+                <option value="" disabled selected hidden>Year</option>
+                <option *ngFor="let y of years" [value]="y" style="color: inherit;">{{ y }}</option>
+              </select>
             </div>
           </div>
         </div>

@@ -36,6 +36,15 @@ export class FoodBookingCalendarComponent implements OnInit {
   isTL = computed(() => {
     return this.authService.userRoles().includes('TL');
   });
+
+  isPR = computed(() => {
+    return this.authService.userRoles().includes('PUBLIC_RELATIONS');
+  });
+
+  roleFilterLocked = computed(() => {
+    // If TL or PR, they are locked to their own mapped branch
+    return this.isTL() || this.isPR();
+  });
   
   foodMenus = signal<FoodMenu[]>([]);
   bookings = signal<FoodBooking[]>([]);
@@ -196,7 +205,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     let defaultTrust = null;
     let defaultBranch = null;
     
-    if (this.isTL() && !isAdmin) {
+    if (this.roleFilterLocked() && !isAdmin) {
        const userBranchId = user && user.branch ? user.branch.id : null;
        if (userBranchId) {
           const b = this.branchesList().find((br: Branch) => br.id === userBranchId);

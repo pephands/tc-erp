@@ -35,6 +35,7 @@ export class OnlineHistoryComponent implements OnInit {
   // Auth & Roles
   isAdmin = signal<boolean>(false);
   isManager = signal<boolean>(false);
+  isTL = signal<boolean>(false);
   branches = signal<any[]>([]);
 
   // Pagination
@@ -50,8 +51,9 @@ export class OnlineHistoryComponent implements OnInit {
   checkUserRole(): void {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
+    this.isTL.set(this.authService.hasRole(['TL']));
 
-    if (!this.isAdmin() && !this.isManager() && !this.authService.hasRole(['TL'])) {
+    if (!this.isAdmin() && !this.isManager() && !this.isTL()) {
       const today = new Date();
       const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);

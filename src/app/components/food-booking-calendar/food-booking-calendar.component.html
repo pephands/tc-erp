@@ -16,7 +16,7 @@
         <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'calendar' ? '1' : '0.6'" (click)="activeTab.set('calendar')">
           <span class="material-symbols-outlined" style="font-size: 18px;">event</span> Calendar View
         </button>
-        <button *ngIf="!isTL()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
+        <button *ngIf="!isTL() && !isPR()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
           <span class="material-symbols-outlined" style="font-size: 18px;">restaurant_menu</span> Menu Setup
         </button>
       </div>
@@ -80,7 +80,7 @@
         <button class="btn btn-outline" style="margin-right: 10px;" (click)="resetListFilters()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">restart_alt</span> Reset
         </button>
-        <button *ngIf="!isTL()" class="btn btn-primary" (click)="exportXLSX()">
+        <button *ngIf="!isTL() && !isPR()" class="btn btn-primary" (click)="exportXLSX()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">download</span> Export XLSX
         </button>
       </div>
@@ -91,7 +91,7 @@
             <tr>
               <th>S.No</th>
               <th>Trust Name</th>
-              <th>Branch</th>
+              <th *ngIf="!isPR()">Branch</th>
               <th>Booking Date</th>
               <th>Donor Name</th>
               <th>Mobile</th>
@@ -101,14 +101,14 @@
               <th>Attach.</th>
               <th>Created At</th>
               <th>Status</th>
-              <th *ngIf="!isTL()">Action</th>
+              <th *ngIf="!isTL() && !isPR()">Action</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let bk of allBookings(); let i = index">
               <td>{{ (listPagination().page - 1) * listPagination().limit + i + 1 }}</td>
               <td>{{ bk.trust_name_display }}</td>
-              <td>{{ bk.branch_display || 'N/A' }}</td>
+              <td *ngIf="!isPR()">{{ bk.branch_display || 'N/A' }}</td>
               <td><strong>{{ bk.booking_date }}</strong></td>
               <td>{{ bk.donor_name }}</td>
               <td>{{ bk.mobile_number }}</td>
@@ -127,14 +127,14 @@
                   {{ bk.booking_status }}
                 </span>
               </td>
-              <td *ngIf="!isTL()">
+              <td *ngIf="!isTL() && !isPR()">
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; display: flex; align-items: center; gap: 4px;" (click)="editBookingDirectly(bk)">
                   <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
                 </button>
               </td>
             </tr>
             <tr *ngIf="allBookings().length === 0">
-              <td colspan="13" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
+              <td [colSpan]="isPR() ? (isTL() ? 12 : 11) : (isTL() ? 12 : 13)" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
             </tr>
           </tbody>
         </table>
@@ -196,8 +196,8 @@
                         class="micro-slot" 
                         [ngClass]="status.toLowerCase()"
                         [class.hidden-slot]="status === 'NONE'"
-                        [style.cursor]="(status !== 'NONE' && !isTL()) ? 'pointer' : 'default'"
-                        (click)="status !== 'NONE' && !isTL() && onSlotGroupClick(day, slot)"
+                        [style.cursor]="(status !== 'NONE' && !isTL() && !isPR()) ? 'pointer' : 'default'"
+                        (click)="status !== 'NONE' && !isTL() && !isPR() && onSlotGroupClick(day, slot)"
                         title="{{slot}}: {{status}}">
                      <span class="slot-name" style="font-weight: 800; text-transform: uppercase;">{{ slot === 'CAKE CUTTING' ? 'CAKE' : slot }}</span>
                      <span class="slot-status-text" style="font-size: 9px; opacity: 0.9;">{{ status === 'OPEN' ? 'Available' : status }}</span>

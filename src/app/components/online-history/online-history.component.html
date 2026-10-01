@@ -40,7 +40,7 @@
             (ngModelChange)="onStartDateChange($event)"
             [min]="minDate()"
             [max]="maxDate()"
-            [disabled]="!isAdmin() && !isManager()"
+            [disabled]="!isAdmin() && !isManager() && !isTL()"
           />
         </div>
       </div>
@@ -57,7 +57,7 @@
             (ngModelChange)="onEndDateChange($event)"
             [min]="minDate()"
             [max]="maxDate()"
-            [disabled]="!isAdmin() && !isManager()"
+            [disabled]="!isAdmin() && !isManager() && !isTL()"
           />
         </div>
       </div>
