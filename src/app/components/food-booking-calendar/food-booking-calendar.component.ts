@@ -30,8 +30,11 @@ export class FoodBookingCalendarComponent implements OnInit {
   activeTab = signal<'list' | 'calendar' | 'menus'>('list');
 
   isAdmin = computed(() => {
-    const user: any = this.authService.currentUser();
-    return user && user.role === 'ADMIN';
+    return this.authService.userRoles().includes('ADMIN');
+  });
+  
+  isTL = computed(() => {
+    return this.authService.userRoles().includes('TL');
   });
   
   foodMenus = signal<FoodMenu[]>([]);
@@ -114,7 +117,6 @@ export class FoodBookingCalendarComponent implements OnInit {
     this.loadBranches();
     this.loadOccasions();
     this.loadPaymentModes();
-    this.fetchAllBookings();
   }
 
   loadBranches() {
@@ -123,11 +125,22 @@ export class FoodBookingCalendarComponent implements OnInit {
       this.branchesList.set(data);
       const user: any = this.authService.currentUser();
       let selected = false;
-      if (user && user.branch_name) {
-        const b = data.find((br: Branch) => br.name === user.branch_name);
+      const isAdmin = this.authService.userRoles().includes('ADMIN');
+      const userBranchId = user && user.branch ? user.branch.id : null;
+      
+      if (userBranchId && !isAdmin) {
+        const b = data.find((br: Branch) => br.id === userBranchId);
         if (b) {
-          this.selectedBranchId.set(b.id);
-          this.listFilters.trust_name = b.id;
+          if (b.is_trust) {
+            this.selectedBranchId.set(b.id);
+            this.listFilters.trust_name = b.id;
+          } else {
+            this.listFilters.branch_name = b.id;
+            const trusts = data.filter((br: Branch) => br.is_trust === true);
+            if (trusts.length > 0) {
+              this.selectedBranchId.set(trusts[0].id);
+            }
+          }
           selected = true;
         }
       }
@@ -141,6 +154,7 @@ export class FoodBookingCalendarComponent implements OnInit {
       }
       
       this.fetchData();
+      this.fetchAllBookings();
     });
   }
 
@@ -176,9 +190,29 @@ export class FoodBookingCalendarComponent implements OnInit {
   }
 
   resetListFilters() {
+    const user: any = this.authService.currentUser();
+    const isAdmin = this.authService.userRoles().includes('ADMIN');
+    
+    let defaultTrust = null;
+    let defaultBranch = null;
+    
+    if (this.isTL() && !isAdmin) {
+       const userBranchId = user && user.branch ? user.branch.id : null;
+       if (userBranchId) {
+          const b = this.branchesList().find((br: Branch) => br.id === userBranchId);
+          if (b) {
+             if (b.is_trust) {
+                defaultTrust = b.id;
+             } else {
+                defaultBranch = b.id;
+             }
+          }
+       }
+    }
+    
     this.listFilters = {
-      trust_name: null,
-      branch_name: null,
+      trust_name: defaultTrust,
+      branch_name: defaultBranch,
       booking_status: '',
       booking_date: '',
       search: ''
@@ -259,7 +293,7 @@ export class FoodBookingCalendarComponent implements OnInit {
   fetchData() {
     const trustId = this.selectedBranchId();
 
-    this.foodService.getFoodMenus(trustId || undefined).subscribe((res: any) => {
+    this.foodService.getFoodMenus().subscribe((res: any) => {
       const data = res.results || res.data || res;
       this.foodMenus.set(Array.isArray(data) ? data : []);
       
@@ -375,9 +409,8 @@ export class FoodBookingCalendarComponent implements OnInit {
     
     if (menusForSlot.length === 0) return 'NONE';
     if (bookingsForSlot.length === 0) return 'OPEN';
-    if (bookingsForSlot.length < menusForSlot.length) return 'PARTIAL';
     
-    if (bookingsForSlot.every((b: any) => b.booking_status === 'BOOKED')) return 'BOOKED';
+    if (bookingsForSlot.some((b: any) => b.booking_status === 'BOOKED')) return 'BOOKED';
     return 'RESERVED';
   }
 

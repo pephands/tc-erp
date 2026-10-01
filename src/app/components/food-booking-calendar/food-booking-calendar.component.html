@@ -16,7 +16,7 @@
         <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'calendar' ? '1' : '0.6'" (click)="activeTab.set('calendar')">
           <span class="material-symbols-outlined" style="font-size: 18px;">event</span> Calendar View
         </button>
-        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
+        <button *ngIf="!isTL()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
           <span class="material-symbols-outlined" style="font-size: 18px;">restaurant_menu</span> Menu Setup
         </button>
       </div>
@@ -24,9 +24,8 @@
     
     <div *ngIf="activeTab() === 'calendar'" style="display: flex; align-items: center; gap: 16px; border-top: 1px solid #f1f2f6; padding-top: 16px;">
       <div class="form-group" style="margin: 0; min-width: 300px;">
-        <label style="font-size: 13px; color: #6b7280; margin-bottom: 6px; display: block; font-weight: 600;">Select Trust / Branch for Calendar</label>
+        <label style="font-size: 13px; color: #6b7280; margin-bottom: 6px; display: block; font-weight: 600;">Select Trust</label>
         <select class="custom-select" [ngModel]="selectedBranchId()" (ngModelChange)="selectedBranchId.set($event); onBranchChange()" style="width: 100%; border-color: var(--primary);">
-          <option [ngValue]="null">-- Choose a Trust --</option>
           <option *ngFor="let branch of trustBranchesList()" [value]="branch.id">{{ branch.name }}</option>
         </select>
       </div>
@@ -52,7 +51,7 @@
             </ng-container>
           </select>
         </div>
-        <div class="form-group" style="margin: 0; min-width: 180px;">
+        <div class="form-group" style="margin: 0; min-width: 180px;" *ngIf="!isTL()">
           <label>Branch Filter</label>
           <select class="custom-select" [(ngModel)]="listFilters.branch_name" (change)="applyListFilters()">
             <option [ngValue]="null">All Branches</option>
@@ -81,7 +80,7 @@
         <button class="btn btn-outline" style="margin-right: 10px;" (click)="resetListFilters()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">restart_alt</span> Reset
         </button>
-        <button class="btn btn-primary" (click)="exportXLSX()">
+        <button *ngIf="!isTL()" class="btn btn-primary" (click)="exportXLSX()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">download</span> Export XLSX
         </button>
       </div>
@@ -102,7 +101,7 @@
               <th>Attach.</th>
               <th>Created At</th>
               <th>Status</th>
-              <th>Action</th>
+              <th *ngIf="!isTL()">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -128,7 +127,7 @@
                   {{ bk.booking_status }}
                 </span>
               </td>
-              <td>
+              <td *ngIf="!isTL()">
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; display: flex; align-items: center; gap: 4px;" (click)="editBookingDirectly(bk)">
                   <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
                 </button>
@@ -197,7 +196,8 @@
                         class="micro-slot" 
                         [ngClass]="status.toLowerCase()"
                         [class.hidden-slot]="status === 'NONE'"
-                        (click)="status !== 'NONE' && onSlotGroupClick(day, slot)"
+                        [style.cursor]="(status !== 'NONE' && !isTL()) ? 'pointer' : 'default'"
+                        (click)="status !== 'NONE' && !isTL() && onSlotGroupClick(day, slot)"
                         title="{{slot}}: {{status}}">
                      <span class="slot-name" style="font-weight: 800; text-transform: uppercase;">{{ slot === 'CAKE CUTTING' ? 'CAKE' : slot }}</span>
                      <span class="slot-status-text" style="font-size: 9px; opacity: 0.9;">{{ status === 'OPEN' ? 'Available' : status }}</span>
@@ -511,7 +511,7 @@
               <div style="color: #666; font-size: 13px;">₹{{ menu.amount }}</div>
            </div>
            <div>
-              <button class="btn btn-primary" (click)="openBookingFormForMenu(menu, selectedSlotGroup()?.day)">{{ menu.bookings?.length > 0 ? '+ Book Another' : 'Book Now' }}</button>
+              <button *ngIf="!isTL()" class="btn btn-primary" (click)="openBookingFormForMenu(menu, selectedSlotGroup()?.day)">{{ menu.bookings?.length > 0 ? '+ Book Another' : 'Book Now' }}</button>
            </div>
         </div>
         
@@ -526,7 +526,7 @@
               </div>
               <div style="display: flex; gap: 4px;">
                  <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" (click)="viewBookingFromGroup(booking)">View</button>
-                 <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" (click)="editBookingFromGroup(booking, menu)">Edit/Pay</button>
+                 <button *ngIf="!isTL()" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" (click)="editBookingFromGroup(booking, menu)">Edit/Pay</button>
               </div>
            </div>
         </div>
