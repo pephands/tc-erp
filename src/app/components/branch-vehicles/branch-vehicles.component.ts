@@ -60,6 +60,8 @@ export class BranchVehiclesComponent implements OnInit {
       fitness_certificate_end_date: [''],
       pollution_certificate_start_date: [''],
       pollution_certificate_end_date: [''],
+      rc_start_date: [''],
+      rc_end_date: [''],
       is_active: [true]
     });
   }
@@ -117,6 +119,27 @@ export class BranchVehiclesComponent implements OnInit {
     });
   }
 
+  exportXLSX() {
+    const filters: any = {};
+    if (this.filterBranch()) filters.branch = this.filterBranch();
+    if (this.searchQuery()) filters.search = this.searchQuery();
+
+    this.service.exportVehicles(filters).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `branch_vehicles_${new Date().toISOString().split('T')[0]}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error exporting vehicles', err);
+        alert('Failed to export vehicles');
+      }
+    });
+  }
+
   onSearch(val: string) {
     this.searchQuery.set(val);
     this.currentPage.set(1);
@@ -151,7 +174,8 @@ export class BranchVehiclesComponent implements OnInit {
     this.selectedFiles = {
       insurance_document: null,
       fitness_certificate_document: null,
-      pollution_certificate_document: null
+      pollution_certificate_document: null,
+      rc_certificate_document: null
     };
     this.showModal.set(true);
   }
@@ -173,12 +197,15 @@ export class BranchVehiclesComponent implements OnInit {
       fitness_certificate_end_date: vehicle.fitness_certificate_end_date,
       pollution_certificate_start_date: vehicle.pollution_certificate_start_date,
       pollution_certificate_end_date: vehicle.pollution_certificate_end_date,
+      rc_start_date: vehicle.rc_start_date,
+      rc_end_date: vehicle.rc_end_date,
       is_active: vehicle.is_active
     });
     this.selectedFiles = {
       insurance_document: null,
       fitness_certificate_document: null,
-      pollution_certificate_document: null
+      pollution_certificate_document: null,
+      rc_certificate_document: null
     };
     this.showModal.set(true);
   }

@@ -5,7 +5,11 @@
       <h1 class="page-title">Branch Vehicles</h1>
       <p class="page-subtitle">Manage branch vehicle records, insurance, and certificates.</p>
     </div>
-    <div class="header-right">
+    <div class="header-right" style="display: flex; gap: 10px;">
+      <button *ngIf="isAdmin()" class="btn-primary" (click)="exportXLSX()">
+        <span class="material-symbols-outlined">download</span>
+        Export XLSX
+      </button>
       <button *ngIf="isAdmin()" class="btn-primary" (click)="openAddModal()">
         <span class="material-symbols-outlined">add</span>
         Add Vehicle
@@ -41,6 +45,7 @@
           <th>Insurance EXP</th>
           <th>FC EXP</th>
           <th>Pollution EXP</th>
+          <th>RC EXP</th>
           <th>Status</th>
           <th *ngIf="isAdmin()">Actions</th>
         </tr>
@@ -77,6 +82,14 @@
             </div>
           </td>
           <td>
+            <div class="date-doc-wrapper">
+              <span class="date-text">{{ item.rc_end_date ? (item.rc_end_date | date) : 'N/A' }}</span>
+              <a *ngIf="item.rc_certificate_document" [href]="getAbsoluteUrl(item.rc_certificate_document)" target="_blank" title="View Document" class="doc-link">
+                <span class="material-symbols-outlined">description</span>
+              </a>
+            </div>
+          </td>
+          <td>
             <span class="status-badge" [class.active]="item.is_active" [class.inactive]="!item.is_active">
               {{ item.is_active ? 'Active' : 'Inactive' }}
             </span>
@@ -93,21 +106,37 @@
           </td>
         </tr>
         <tr *ngIf="totalItems() === 0">
-          <td [attr.colspan]="isAdmin() ? 10 : 9" class="empty-state">No vehicles found.</td>
+          <td [attr.colspan]="isAdmin() ? 11 : 10" class="empty-state">No vehicles found.</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Pagination -->
-  <div class="pagination" *ngIf="totalPages() > 1">
-    <button class="btn-page" [disabled]="currentPage() === 1" (click)="changePage(currentPage() - 1)">
-      <span class="material-symbols-outlined">chevron_left</span>
-    </button>
-    <span class="page-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
-    <button class="btn-page" [disabled]="currentPage() === totalPages()" (click)="changePage(currentPage() + 1)">
-      <span class="material-symbols-outlined">chevron_right</span>
-    </button>
+  <!-- Modern Pagination -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Showing <span class="highlight">{{ (currentPage() - 1) * pageSize() + 1 }}</span> to 
+      <span class="highlight">{{ Math.min(currentPage() * pageSize(), totalItems()) }}</span> of 
+      <span class="highlight">{{ totalItems() }}</span> entries
+    </div>
+    
+    <div class="pagination-controls">
+      <button class="btn-pagination" [disabled]="currentPage() === 1" (click)="changePage(currentPage() - 1)">
+        <span class="material-symbols-outlined icon-small">chevron_left</span>
+        Previous
+      </button>
+      
+      <div class="page-indicator">
+        <span class="current-page">{{ currentPage() }}</span>
+        <span class="separator">/</span>
+        <span class="total-pages">{{ totalPages() }}</span>
+      </div>
+
+      <button class="btn-pagination" [disabled]="currentPage() === totalPages() || totalPages() === 0" (click)="changePage(currentPage() + 1)">
+        Next
+        <span class="material-symbols-outlined icon-small">chevron_right</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -227,6 +256,30 @@
               </div>
               <input type="file" (change)="onFileChange($event, 'pollution_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.pollution_certificate_document">
               <small *ngIf="isEditMode()">{{ currentVehicle()?.pollution_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+            </div>
+          </div>
+
+          <div class="form-section-title">RC Certificate</div>
+
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" formControlName="rc_start_date">
+          </div>
+
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" formControlName="rc_end_date">
+          </div>
+
+          <div class="form-group full-width">
+            <label>RC Document</label>
+            <div class="file-upload-container">
+              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.rc_certificate_document">
+                <span class="material-symbols-outlined">description</span>
+                <a [href]="getAbsoluteUrl(currentVehicle().rc_certificate_document)" target="_blank">View Current Document</a>
+              </div>
+              <input type="file" (change)="onFileChange($event, 'rc_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.rc_certificate_document">
+              <small *ngIf="isEditMode()">{{ currentVehicle()?.rc_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
             </div>
           </div>
 

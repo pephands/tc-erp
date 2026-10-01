@@ -44,6 +44,12 @@ export class BranchVehicleService extends BaseHttpService {
     );
   }
 
+  exportVehicles(filters: any = {}): Observable<Blob> {
+    const params = new URLSearchParams(filters).toString();
+    const url = `${this.endpoint}export/?${params}`;
+    return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
+  }
+
   getVehicleDetails(id: number): Observable<any> {
     const url = `${this.endpoint}${id}/`;
     return this.httpClient.get<any>(url, { headers: this.headers });
