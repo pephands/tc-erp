@@ -1,8 +1,7 @@
 .page-container {
-  max-width: 1440px;
+  max-width: 100%;
   width: 100%;
-  margin: 0 auto;
-  padding: 1.5rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -208,13 +207,13 @@
 .payment-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.825rem;
+  font-size: 0.75rem;
   text-align: left;
 }
 
 .payment-table th {
   background: #ffffff;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.5rem;
   border-bottom: 2px solid #e2e8f0;
   color: #334155;
   font-weight: 700;
@@ -222,7 +221,7 @@
 }
 
 .payment-table td {
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.5rem;
   border-bottom: 1px solid #f1f5f9;
   color: #1e293b;
   vertical-align: middle;
