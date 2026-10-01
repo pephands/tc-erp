@@ -57,6 +57,7 @@ import { deviceAuthGuard } from './guards/device-auth.guard';
 import { ReferenceLeadsComponent } from './components/reference-leads/reference-leads.component';
 import { AnnouncementManagementComponent } from './components/announcement-management/announcement-management.component';
 import { FoodBookingCalendarComponent } from './components/food-booking-calendar/food-booking-calendar.component';
+import { OccasionsComponent } from './components/occasions/occasions.component';
 
 export const routes: Routes = [
   {
@@ -313,6 +314,12 @@ export const routes: Routes = [
         component: FoodBookingCalendarComponent,
         canActivate: [deviceAuthGuard],
         title: 'Food Booking Calendar',
+      },
+      {
+        path: 'occasions',
+        component: OccasionsComponent,
+        canActivate: [deviceAuthGuard],
+        title: 'Occasions Setup',
       },
 
       {

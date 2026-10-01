@@ -24,6 +24,8 @@ export class FoodBookingCalendarComponent implements OnInit {
   currentYear = signal(this.currentDate.getFullYear());
   branchesList = signal<Branch[]>([]);
   trustBranchesList = computed(() => this.branchesList().filter(b => b.is_trust === true));
+  occasionsList = signal<any[]>([]);
+  paymentModesList = signal<any[]>([]);
   selectedBranchId = signal<number | null>(null);
   activeTab = signal<'list' | 'calendar' | 'menus'>('list');
 
@@ -37,6 +39,7 @@ export class FoodBookingCalendarComponent implements OnInit {
   allBookings = signal<FoodBooking[]>([]); // For the list view
 
   selectedDate = signal<any>(null);
+  selectedFile: File | null = null;
 
   getValidDays = computed(() => {
     return this.calendarDays().filter(d => d.date !== null);
@@ -109,6 +112,8 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   ngOnInit() {
     this.loadBranches();
+    this.loadOccasions();
+    this.loadPaymentModes();
     this.fetchAllBookings();
   }
 
@@ -149,6 +154,37 @@ export class FoodBookingCalendarComponent implements OnInit {
     this.listPagination.update(p => ({ ...p, page: 1 }));
     this.fetchAllBookings();
   }
+  loadOccasions() {
+    this.foodService.getOccasions(true).subscribe({
+      next: (res: any[]) => {
+        // DRF returns paginated results, so extract data from results if present
+        const occasions = res.length !== undefined ? res : (res as any).results || [];
+        this.occasionsList.set(occasions);
+      },
+      error: err => console.error("Error loading occasions", err)
+    });
+  }
+
+  loadPaymentModes() {
+    this.foodService.getPaymentModes().subscribe({
+      next: (res: any) => {
+        const modes = res.length !== undefined ? res : res.results || [];
+        this.paymentModesList.set(modes);
+      },
+      error: err => console.error("Error loading payment modes", err)
+    });
+  }
+
+  resetListFilters() {
+    this.listFilters = {
+      trust_name: null,
+      branch_name: null,
+      booking_status: '',
+      booking_date: '',
+      search: ''
+    };
+    this.applyListFilters();
+  }
 
   fetchAllBookings() {
     const filters = {
@@ -179,26 +215,28 @@ export class FoodBookingCalendarComponent implements OnInit {
   }
 
   exportXLSX() {
-    // Basic frontend CSV export as fallback since no backend export URL yet
-    const data = this.allBookings();
-    if (!data.length) return this.showToast("No data to export", true);
-    
-    let csv = "ID,Trust Name,Branch ID,Branch Name,Menu,Slot,Booking Date,Occasion,Donor,Mobile,Amount,Paid,Status,Payment Details\n";
-    data.forEach(b => {
-      let paymentsInfo = '';
-      if (b.payments && b.payments.length > 0) {
-         paymentsInfo = b.payments.map((p: any, index: number) => `[P${index+1}: ₹${p.amount_paid} on ${p.payment_date || ''} Ref:${p.reference_id || 'N/A'}]`).join(' | ');
-      }
-      csv += `${b.id},"${b.trust_name_display}","${b.branch || ''}","${b.branch_display || ''}","${b.menu_name_display}","${b.slot_display}","${b.booking_date}","${b.occasion_name || ''}","${b.donor_name}","${b.mobile_number}",${b.total_amount},${b.total_paid_amount},"${b.booking_status}","${paymentsInfo}"\n`;
+    this.foodService.getFoodBookings({ ...this.listFilters, page_size: 10000 }).subscribe((res: any) => {
+      const data = res.results || res.data || res;
+      if (!data || !data.length) return this.showToast("No data to export", true);
+      
+      let csv = "ID,Trust Name,Branch ID,Branch Name,Menu,Slot,Booking Date,Occasion,Donor,Mobile,Alternative Mobile,Amount,Paid,Status,Remarks,Payment Details,Attachment URL\n";
+      data.forEach((b: any) => {
+        let paymentsInfo = '';
+        if (b.payments && b.payments.length > 0) {
+           paymentsInfo = b.payments.map((p: any, index: number) => `[P${index+1}: ₹${p.amount_paid} via ${p.mode_of_payment || 'N/A'} on ${p.payment_date || ''} Ref:${p.reference_id || 'N/A'}]`).join(' | ');
+        }
+        let attachmentUrl = b.attachment ? String(b.attachment) : 'N/A';
+        csv += `${b.id},"${b.trust_name_display}","${b.branch || ''}","${b.branch_display || ''}","${b.menu_name_display}","${b.slot_display}","${b.booking_date}","${b.occasion_name || ''}","${b.donor_name}","${b.mobile_number}","${b.alternative_number || ''}",${b.total_amount},${b.total_paid_amount},"${b.booking_status}","${b.remarks || ''}","${paymentsInfo}","${attachmentUrl}"\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `food_bookings_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
     });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `food_bookings_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
   }
 
   changeMonth(delta: number) {
@@ -229,7 +267,8 @@ export class FoodBookingCalendarComponent implements OnInit {
         this.foodService.getFoodBookings({
           trust_name: trustId,
           month: this.currentMonth(),
-          year: this.currentYear()
+          year: this.currentYear(),
+          page_size: 10000
         }).subscribe((res: any) => {
           const bks = res.results || res.data || res;
           this.bookings.set(Array.isArray(bks) ? bks : []);
@@ -367,8 +406,11 @@ export class FoodBookingCalendarComponent implements OnInit {
     slot: '',
     donor_name: '',
     mobile_number: '',
+    alternative_number: '',
     occasion_name: '',
     total_amount: 0,
+    branch: null,
+    remarks: '',
     payments: []
   };
 
@@ -379,6 +421,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     this.bookingForm.payments.push({
        id: null,
        amount_paid: 0,
+       mode_of_payment: '',
        payment_date: new Date().toISOString().split('T')[0],
        reference_id: ''
     });
@@ -421,12 +464,16 @@ export class FoodBookingCalendarComponent implements OnInit {
       slot: menu.slot,
       donor_name: '',
       mobile_number: '',
+      alternative_number: '',
       occasion_name: '',
       total_amount: menu.amount || 0,
+      branch: null,
+      remarks: '',
       booking_status: 'RESERVED',
       payments: [{
          id: null,
          amount_paid: menu.amount || 0,
+         mode_of_payment: '',
          payment_date: day.fullDate,
          reference_id: ''
       }]
@@ -444,8 +491,11 @@ export class FoodBookingCalendarComponent implements OnInit {
       slot: menu.slot,
       donor_name: booking.donor_name,
       mobile_number: booking.mobile_number,
+      alternative_number: booking.alternative_number || '',
       occasion_name: booking.occasion_name,
       total_amount: booking.total_amount,
+      branch: booking.branch,
+      remarks: booking.remarks || '',
       booking_status: booking.booking_status,
       payments: booking.payments ? JSON.parse(JSON.stringify(booking.payments)) : []
     };
@@ -460,6 +510,7 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   closeBookingModal() {
     this.showBookingModal.set(false);
+    this.selectedFile = null;
   }
 
   closeViewBookingModal() {
@@ -478,8 +529,11 @@ export class FoodBookingCalendarComponent implements OnInit {
       slot: booking.slot_display || booking.slot,
       donor_name: booking.donor_name,
       mobile_number: booking.mobile_number,
+      alternative_number: booking.alternative_number || '',
       occasion_name: booking.occasion_name,
       total_amount: booking.total_amount,
+      branch: booking.branch,
+      remarks: booking.remarks || '',
       booking_status: booking.booking_status,
       payments: booking.payments ? JSON.parse(JSON.stringify(booking.payments)) : []
     };
@@ -505,34 +559,50 @@ export class FoodBookingCalendarComponent implements OnInit {
       slot: booking.slot_display || booking.slot,
       donor_name: booking.donor_name,
       mobile_number: booking.mobile_number,
+      alternative_number: booking.alternative_number || '',
       occasion_name: booking.occasion_name,
       total_amount: booking.total_amount,
+      branch: booking.branch,
+      remarks: booking.remarks || '',
       booking_status: booking.booking_status,
       payments: booking.payments ? JSON.parse(JSON.stringify(booking.payments)) : []
     };
     this.showBookingModal.set(true);
   }
 
+  onFileChange(event: any) {
+    if (event.target.files && event.target.files.length > 0) {
+      this.selectedFile = event.target.files[0];
+    }
+  }
+
   submitBooking() {
     const totalPaid = this.bookingForm.payments.reduce((sum: number, p: any) => sum + p.amount_paid, 0);
-    const payload: any = {
-      trust_name: this.bookingForm.trust_name,
-      menu: this.bookingForm.menu_id,
-      booking_date: this.bookingForm.date,
-      donor_name: this.bookingForm.donor_name,
-      mobile_number: this.bookingForm.mobile_number,
-      occasion_name: this.bookingForm.occasion_name,
-      total_amount: this.bookingForm.total_amount,
-      booking_status: this.bookingForm.booking_status === 'COMPLETED' ? 'COMPLETED' : (totalPaid >= this.bookingForm.total_amount ? 'BOOKED' : 'RESERVED')
-    };
+    const formData = new FormData();
+    formData.append('trust_name', this.bookingForm.trust_name);
+    formData.append('menu', this.bookingForm.menu_id);
+    formData.append('booking_date', this.bookingForm.date);
+    formData.append('donor_name', this.bookingForm.donor_name);
+    formData.append('mobile_number', this.bookingForm.mobile_number);
+    if (this.bookingForm.alternative_number) formData.append('alternative_number', this.bookingForm.alternative_number);
+    formData.append('occasion_name', this.bookingForm.occasion_name);
+    formData.append('total_amount', this.bookingForm.total_amount);
+    if (this.bookingForm.branch) formData.append('branch', this.bookingForm.branch);
+    if (this.bookingForm.remarks) formData.append('remarks', this.bookingForm.remarks);
+    formData.append('booking_status', this.bookingForm.booking_status === 'COMPLETED' ? 'COMPLETED' : (totalPaid >= this.bookingForm.total_amount ? 'BOOKED' : 'RESERVED'));
+    
+    if (this.selectedFile) {
+      formData.append('attachment', this.selectedFile);
+    }
 
     if (this.bookingForm.id) {
-      this.foodService.updateFoodBooking(this.bookingForm.id, payload).subscribe({
+      this.foodService.updateFoodBooking(this.bookingForm.id, formData).subscribe({
         next: (booking) => {
           const requests: any[] = [];
           this.bookingForm.payments.forEach((payment: any) => {
              const pPayload = {
                 booking: this.bookingForm.id,
+                mode_of_payment: payment.mode_of_payment,
                 amount_paid: payment.amount_paid,
                 payment_date: payment.payment_date || new Date().toISOString().split('T')[0],
                 reference_id: payment.reference_id || 'CASH'
@@ -571,13 +641,14 @@ export class FoodBookingCalendarComponent implements OnInit {
         }
       });
     } else {
-      this.foodService.createFoodBooking(payload).subscribe({
+      this.foodService.createFoodBooking(formData).subscribe({
         next: (booking) => {
           const requests: any[] = [];
           this.bookingForm.payments.forEach((payment: any) => {
              if (payment.amount_paid > 0) {
                 const pPayload = {
                    booking: booking.id,
+                   mode_of_payment: payment.mode_of_payment,
                    amount_paid: payment.amount_paid,
                    payment_date: payment.payment_date || new Date().toISOString().split('T')[0],
                    reference_id: payment.reference_id || 'CASH'

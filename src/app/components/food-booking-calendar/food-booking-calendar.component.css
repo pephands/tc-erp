@@ -47,6 +47,7 @@
 
 .tabs-container {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   background: #f1f2f6;
   padding: 6px;
@@ -251,6 +252,7 @@
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow-x: hidden;
 }
 
 .menus-list-card h3, .add-menu-card h3 {
@@ -289,12 +291,15 @@
   padding: 6px 12px;
   font-size: 13px;
   height: auto;
+  min-width: 120px;
+  flex: 1 1 120px;
 }
 
 .menus-filters .btn {
   padding: 6px 12px;
   font-size: 13px;
   height: auto;
+  flex: 1 1 100px;
 }
 
 .data-table {
@@ -303,23 +308,24 @@
 }
 
 .data-table th, .data-table td {
-  padding: 12px 16px;
+  padding: 8px 8px;
   text-align: left;
   border-bottom: 1px solid #f1f2f6;
+  font-size: 12px;
 }
 
 .data-table th {
   background: #f8f9fa;
   color: #747d8c;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
 .status-badge {
-  padding: 4px 10px;
+  padding: 2px 6px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   background: #ffebee;
   color: #c62828;
@@ -532,6 +538,7 @@
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  overflow-x: auto;
 }
 
 .premium-calendar-header {
@@ -574,6 +581,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
+  min-width: 700px;
 }
 
 .weekday-header {

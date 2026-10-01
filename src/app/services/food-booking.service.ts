@@ -36,10 +36,14 @@ export interface FoodBooking {
   total_amount: number;
   donor_name: string;
   mobile_number: string;
+  alternative_number?: string;
+  remarks?: string;
   booking_status: 'RESERVED' | 'BOOKED' | 'COMPLETED';
   is_active: boolean;
   total_paid_amount: number;
   payments: FoodBookingPayment[];
+  created_at?: string;
+  attachment?: string;
 }
 
 @Injectable({
@@ -49,8 +53,11 @@ export class FoodBookingService {
   private http = inject(HttpClient);
   private readonly baseUrl = environment.baseUrl;
 
-  private getHeaders(): HttpHeaders {
-    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+  private getHeaders(isFormData = false): HttpHeaders {
+    let headers = new HttpHeaders();
+    if (!isFormData) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
     try {
       if (typeof localStorage !== 'undefined') {
         const userStr = localStorage.getItem('tc_erp_auth_session');
@@ -107,11 +114,13 @@ export class FoodBookingService {
   }
 
   createFoodBooking(data: any): Observable<FoodBooking> {
-    return this.http.post<FoodBooking>(`${this.baseUrl}branches/food-bookings/`, data, { headers: this.getHeaders() });
+    const isForm = data instanceof FormData;
+    return this.http.post<FoodBooking>(`${this.baseUrl}branches/food-bookings/`, data, { headers: this.getHeaders(isForm) });
   }
   
   updateFoodBooking(id: number, data: any): Observable<FoodBooking> {
-    return this.http.patch<FoodBooking>(`${this.baseUrl}branches/food-bookings/${id}/`, data, { headers: this.getHeaders() });
+    const isForm = data instanceof FormData;
+    return this.http.patch<FoodBooking>(`${this.baseUrl}branches/food-bookings/${id}/`, data, { headers: this.getHeaders(isForm) });
   }
 
   deleteFoodBooking(id: number): Observable<any> {
@@ -129,5 +138,32 @@ export class FoodBookingService {
 
   deletePayment(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}branches/food-booking-payments/${id}/`, { headers: this.getHeaders() });
+  }
+
+  // Occasions
+  getOccasions(isActiveOnly: boolean = false): Observable<any[]> {
+    let params = new HttpParams();
+    if (isActiveOnly) {
+      params = params.set('is_active', 'true');
+    }
+    return this.http.get<any[]>(`${this.baseUrl}branches/occasions/`, { headers: this.getHeaders(), params });
+  }
+
+  createOccasion(data: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}branches/occasions/`, data, { headers: this.getHeaders() });
+  }
+
+  updateOccasion(id: number, data: any): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}branches/occasions/${id}/`, data, { headers: this.getHeaders() });
+  }
+
+  deleteOccasion(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}branches/occasions/${id}/`, { headers: this.getHeaders() });
+  }
+
+  // Payment Modes
+  getPaymentModes(): Observable<any[]> {
+    let params = new HttpParams().set('is_active', 'true');
+    return this.http.get<any[]>(`${this.baseUrl}payments/modes/`, { headers: this.getHeaders(), params });
   }
 }

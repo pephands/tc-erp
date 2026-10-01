@@ -1,0 +1,88 @@
+<main class="occasions-container">
+  <h2 class="page-title">Occasions Setup</h2>
+  
+  <div class="action-bar" style="justify-content: flex-end;">
+    <button (click)="openAddModal()" class="btn-primary">
+      <span class="material-symbols-outlined">add</span>
+      Add Occasion
+    </button>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Occasion Name</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading()">
+          <td colspan="3" style="text-align: center; padding: 2rem;">
+            Loading occasions...
+          </td>
+        </tr>
+        <ng-container *ngIf="!isLoading()">
+          <tr *ngFor="let occ of occasions(); let i = index">
+            <td>{{ i + 1 }}</td>
+            <td style="font-weight: 500;">{{ occ.name }}</td>
+            <td>
+              <button (click)="toggleActive(occ)" class="status-badge" [ngClass]="occ.is_active ? 'status-active' : 'status-inactive'" title="Click to toggle status">
+                {{ occ.is_active ? 'Active' : 'Inactive' }}
+              </button>
+            </td>
+            <td>
+              <button (click)="openEditModal(occ)" class="action-btn" title="Edit Occasion" style="color: var(--primary);">
+                <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="occasions().length === 0">
+            <td colspan="4">
+              <div class="empty-state">
+                <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: 10px; opacity: 0.5;">celebration</span>
+                <p>No occasions found. Create one above!</p>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Add Occasion Modal -->
+<div class="modal-overlay" *ngIf="showAddModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ editOccasionId() ? 'Edit Occasion' : 'Add Occasion' }}</h3>
+      <button class="action-btn" style="color: var(--text-muted);" (click)="closeAddModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Occasion Name *</label>
+        <input type="text" [(ngModel)]="newOccasionName" placeholder="Enter New Occasion Name" class="form-control" style="text-transform: uppercase;">
+      </div>
+      
+      <div class="form-group">
+        <label>Status</label>
+        <select class="custom-select" [(ngModel)]="newOccasionStatus">
+          <option [ngValue]="true">Active</option>
+          <option [ngValue]="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn" style="border: 1px solid var(--border-color); padding: 0.65rem 1.25rem; border-radius: 8px; background: white;" (click)="closeAddModal()" [disabled]="isSaving()">Cancel</button>
+      <button class="btn-primary" (click)="saveOccasion()" [disabled]="!newOccasionName || isSaving()">
+        {{ isSaving() ? 'Saving...' : (editOccasionId() ? 'Update Occasion' : 'Save Occasion') }}
+      </button>
+    </div>
+  </div>
+</div>

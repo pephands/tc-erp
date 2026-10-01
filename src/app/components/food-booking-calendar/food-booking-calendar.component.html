@@ -1,4 +1,4 @@
-<div class="content-body" style="padding: 12px; max-width: 1200px; margin: 0 auto; position: relative;">
+<div class="content-body" style="padding: 12px; max-width: 100%; margin: 0 auto; position: relative;">
 
   <!-- Global Toast Notification -->
   <div *ngIf="globalToast()" class="toast-notification fade-in" [ngClass]="{'toast-error': globalToast()?.isError, 'toast-success': !globalToast()?.isError}" style="position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 12px 20px; border-radius: 8px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); color: white;" [style.background]="globalToast()?.isError ? '#ef4444' : '#10b981'">
@@ -9,15 +9,15 @@
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
       <h1 class="page-title" style="margin: 0;">Food Booking Management</h1>
       
-      <div class="tabs-container">
-        <button class="tab-btn" [class.active]="activeTab() === 'list'" (click)="activeTab.set('list')">
-          <span class="material-symbols-outlined">list</span> Bookings List
+      <div class="actions" style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'list' ? '1' : '0.6'" (click)="activeTab.set('list')">
+          <span class="material-symbols-outlined" style="font-size: 18px;">list</span> Bookings List
         </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'calendar'" (click)="activeTab.set('calendar')">
-          <span class="material-symbols-outlined">event</span> Calendar View
+        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'calendar' ? '1' : '0.6'" (click)="activeTab.set('calendar')">
+          <span class="material-symbols-outlined" style="font-size: 18px;">event</span> Calendar View
         </button>
-        <button class="tab-btn" [class.active]="activeTab() === 'menus'" (click)="activeTab.set('menus')">
-          <span class="material-symbols-outlined">restaurant_menu</span> Menu Setup
+        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
+          <span class="material-symbols-outlined" style="font-size: 18px;">restaurant_menu</span> Menu Setup
         </button>
       </div>
     </div>
@@ -78,54 +78,68 @@
           <label>Search Donor/Occasion</label>
           <input type="text" class="custom-select" style="width: 100%;" placeholder="Search..." [(ngModel)]="listFilters.search" (keyup.enter)="applyListFilters()">
         </div>
+        <button class="btn btn-outline" style="margin-right: 10px;" (click)="resetListFilters()">
+          <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">restart_alt</span> Reset
+        </button>
         <button class="btn btn-primary" (click)="exportXLSX()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">download</span> Export XLSX
         </button>
       </div>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>S.No</th>
-            <th>Trust Name</th>
-            <th>Branch</th>
-            <th>Booking Date</th>
-            <th>Donor Name</th>
-            <th>Mobile</th>
-            <th>Slot</th>
-            <th>Menu</th>
-            <th>Amount (Paid / Total)</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let bk of allBookings(); let i = index">
-            <td>{{ (listPagination().page - 1) * listPagination().limit + i + 1 }}</td>
-            <td>{{ bk.trust_name_display }}</td>
-            <td>{{ bk.branch_display || 'N/A' }}</td>
-            <td><strong>{{ bk.booking_date }}</strong></td>
-            <td>{{ bk.donor_name }}</td>
-            <td>{{ bk.mobile_number }}</td>
-            <td>{{ bk.slot_display || bk.menu }}</td>
-            <td>{{ bk.menu_name_display || 'N/A' }}</td>
-            <td>₹{{ bk.total_paid_amount }} / ₹{{ bk.total_amount }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="bk.booking_status?.toLowerCase()">
-                {{ bk.booking_status }}
-              </span>
-            </td>
-            <td>
-              <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; display: flex; align-items: center; gap: 4px;" (click)="editBookingDirectly(bk)">
-                <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="allBookings().length === 0">
-            <td colspan="11" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div style="overflow-x: auto; width: 100%;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Trust Name</th>
+              <th>Branch</th>
+              <th>Booking Date</th>
+              <th>Donor Name</th>
+              <th>Mobile</th>
+              <th>Slot</th>
+              <th>Menu</th>
+              <th>Amount (Paid/Total)</th>
+              <th>Attach.</th>
+              <th>Created At</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bk of allBookings(); let i = index">
+              <td>{{ (listPagination().page - 1) * listPagination().limit + i + 1 }}</td>
+              <td>{{ bk.trust_name_display }}</td>
+              <td>{{ bk.branch_display || 'N/A' }}</td>
+              <td><strong>{{ bk.booking_date }}</strong></td>
+              <td>{{ bk.donor_name }}</td>
+              <td>{{ bk.mobile_number }}</td>
+              <td>{{ bk.slot_display || bk.menu }}</td>
+              <td>{{ bk.menu_name_display || 'N/A' }}</td>
+              <td>₹{{ bk.total_paid_amount }} / ₹{{ bk.total_amount }}</td>
+              <td style="text-align: center;">
+                <a *ngIf="bk.attachment" [href]="bk.attachment" target="_blank" style="color: #2563eb; text-decoration: none;" title="View Attachment">
+                  <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">attach_file</span>
+                </a>
+                <span *ngIf="!bk.attachment" style="color: #cbd5e1;">-</span>
+              </td>
+              <td style="font-size: 0.85em; color: #64748b; white-space: nowrap;">{{ bk.created_at | date:'dd/MM/yy HH:mm' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="bk.booking_status?.toLowerCase()">
+                  {{ bk.booking_status }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; display: flex; align-items: center; gap: 4px;" (click)="editBookingDirectly(bk)">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="allBookings().length === 0">
+              <td colspan="13" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Pagination Controls -->
@@ -208,9 +222,11 @@
           <div class="menus-filters">
             <select class="custom-select" [ngModel]="menuFilterTrust()" (ngModelChange)="menuFilterTrust.set($event)">
               <option [ngValue]="null">All Trusts</option>
-              <option *ngFor="let branch of branchesList()" [value]="branch.id">
-                {{ branch.name }}
-              </option>
+              <ng-container *ngFor="let branch of branchesList()">
+                <option *ngIf="branch.is_trust" [value]="branch.id">
+                  {{ branch.name }}
+                </option>
+              </ng-container>
             </select>
             <select class="custom-select" [ngModel]="menuFilterSlot()" (ngModelChange)="menuFilterSlot.set($event)">
               <option value="">All Slots</option>
@@ -227,39 +243,41 @@
             <button class="btn btn-secondary" (click)="resetMenuFilters()">Reset</button>
           </div>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Trust</th>
-              <th>Slot</th>
-              <th>Menu Name</th>
-              <th>Amount (₹)</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let menu of filteredFoodMenus()">
-              <td>{{ menu.trust_name_display || '-' }}</td>
-              <td><strong>{{ menu.slot }}</strong></td>
-              <td>{{ menu.menu_name }}</td>
-              <td>{{ menu.amount }}</td>
-              <td>
-                <span class="status-badge" [class.active]="menu.is_active">
-                  {{ menu.is_active ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td>
-                <button class="icon-btn" (click)="editMenu(menu)" title="Edit Menu" style="color: var(--primary);">
-                  <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="filteredFoodMenus().length === 0">
-              <td colspan="6" style="text-align: center; padding: 20px; color: #777;">No menus found.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="overflow-x: auto; width: 100%;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Trust</th>
+                <th>Slot</th>
+                <th>Menu Name</th>
+                <th>Amount (₹)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let menu of filteredFoodMenus()">
+                <td>{{ menu.trust_name_display || '-' }}</td>
+                <td><strong>{{ menu.slot }}</strong></td>
+                <td>{{ menu.menu_name }}</td>
+                <td>{{ menu.amount }}</td>
+                <td>
+                  <span class="status-badge" [class.active]="menu.is_active">
+                    {{ menu.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="icon-btn" (click)="editMenu(menu)" title="Edit Menu" style="color: var(--primary);">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredFoodMenus().length === 0">
+                <td colspan="6" style="text-align: center; padding: 20px; color: #777;">No menus found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Add/Edit Menu Form -->
@@ -270,9 +288,11 @@
             <label>Select Trust *</label>
             <select class="custom-select" name="trust_id" [(ngModel)]="newMenu.trust_name" required style="width: 100%;">
               <option [ngValue]="null">-- Select Trust --</option>
-              <option *ngFor="let branch of branchesList()" [value]="branch.id">
-                {{ branch.name }}
-              </option>
+              <ng-container *ngFor="let branch of branchesList()">
+                <option *ngIf="branch.is_trust" [value]="branch.id">
+                  {{ branch.name }}
+                </option>
+              </ng-container>
             </select>
           </div>
           <div class="form-group">
@@ -329,18 +349,47 @@
       <button class="close-btn" (click)="closeBookingModal()">&times;</button>
     </div>
     
-    <form (ngSubmit)="submitBooking()">
+    <form ngNativeValidate (ngSubmit)="submitBooking()">
+      <div class="form-group">
+        <label>Booked By Branch / Trust *</label>
+        <select class="custom-select" [(ngModel)]="bookingForm.branch" name="branch" style="width: 100%;" required>
+          <option [ngValue]="null">-- Select Branch --</option>
+          <option *ngFor="let branch of branchesList()" [value]="branch.id">
+            {{ branch.name }}
+          </option>
+        </select>
+      </div>
       <div class="form-group">
         <label>Donor Name *</label>
-        <input type="text" class="form-control" [(ngModel)]="bookingForm.donor_name" name="donor_name" required>
+        <input type="text" class="form-control" [(ngModel)]="bookingForm.donor_name" (ngModelChange)="bookingForm.donor_name = $event.toUpperCase()" name="donor_name" style="text-transform: uppercase;" required>
       </div>
       <div class="form-group">
         <label>Mobile Number *</label>
-        <input type="text" class="form-control" [(ngModel)]="bookingForm.mobile_number" name="mobile_number" required>
+        <input type="text" class="form-control" [(ngModel)]="bookingForm.mobile_number" name="mobile_number" pattern="[0-9]{10}" maxlength="10" minlength="10" placeholder="10 digit mobile number" required>
       </div>
       <div class="form-group">
-        <label>Occasion (e.g., Birthday, Anniversary)</label>
-        <input type="text" class="form-control" [(ngModel)]="bookingForm.occasion_name" name="occasion_name">
+        <label>Alternative Number (Optional)</label>
+        <input type="text" class="form-control" [(ngModel)]="bookingForm.alternative_number" name="alternative_number" placeholder="e.g., +41 123 456 789  ">
+      </div>
+      <div class="form-group">
+        <label>Occasion *</label>
+        <select class="custom-select" [(ngModel)]="bookingForm.occasion_name" name="occasion_name" style="width: 100%;" required>
+          <option value="">-- Select Occasion --</option>
+          <option *ngFor="let occ of occasionsList()" [value]="occ.name">
+            {{ occ.name }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Remarks (Optional)</label>
+        <textarea class="form-control" [(ngModel)]="bookingForm.remarks" name="remarks" rows="2" placeholder="e.g., Happy Weddings Anniversary Amma & Appa"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Attachment (Optional)</label>
+        <input type="file" class="form-control" (change)="onFileChange($event)" accept="image/*,.pdf,.doc,.docx" name="attachment">
+        <small *ngIf="bookingForm.attachment && !selectedFile" style="display: block; margin-top: 5px; color: #64748b;">
+          Current File: <a [href]="bookingForm.attachment" target="_blank" style="color: #2563eb; text-decoration: underline;">View File</a>
+        </small>
       </div>
       
       <div class="form-row" style="display: flex; gap: 10px;">
@@ -370,19 +419,26 @@
         <div *ngFor="let payment of bookingForm.payments; let i = index" style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e2e8f0; position: relative;">
           <button *ngIf="bookingForm.payments.length > 1" type="button" (click)="removePaymentRow(i)" style="position: absolute; right: -5px; top: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; line-height: 1;">&times;</button>
           
-          <div style="display: flex; gap: 8px; margin-bottom: 6px;">
-            <div class="form-group" style="flex: 1; margin: 0;">
+          <div style="display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+            <div class="form-group" style="flex: 1 1 100px; margin: 0;">
               <label style="font-size: 11px;">Amount (₹) *</label>
               <input type="number" class="form-control" style="padding: 6px 10px; height: 32px;" [(ngModel)]="payment.amount_paid" name="payment_amount_{{i}}" required>
             </div>
-            <div class="form-group" style="flex: 1; margin: 0;">
+            <div class="form-group" style="flex: 1 1 120px; margin: 0;">
+              <label style="font-size: 11px;">Mode of Payment *</label>
+              <select class="custom-select" style="padding: 4px 10px; height: 32px;" [(ngModel)]="payment.mode_of_payment" name="payment_mode_{{i}}" required>
+                <option value="">-- Select --</option>
+                <option *ngFor="let mode of paymentModesList()" [value]="mode.name">{{ mode.name }}</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1 1 120px; margin: 0;">
               <label style="font-size: 11px;">Date *</label>
               <input type="date" class="form-control" style="padding: 6px 10px; height: 32px;" [(ngModel)]="payment.payment_date" name="payment_date_{{i}}" required>
             </div>
           </div>
           <div class="form-group" style="margin: 0;">
-            <label style="font-size: 11px;">Reference ID</label>
-            <input type="text" class="form-control" style="padding: 6px 10px; height: 32px;" [(ngModel)]="payment.reference_id" name="payment_ref_{{i}}" placeholder="e.g., UPI / Cash">
+            <label style="font-size: 11px;">Reference ID *</label>
+            <input type="text" class="form-control" style="padding: 6px 10px; height: 32px;" [(ngModel)]="payment.reference_id" name="payment_ref_{{i}}" placeholder="e.g., UPI / Cash /130516044189 " required>
           </div>
         </div>
       </div>
@@ -395,7 +451,7 @@
         </div>
         <div style="display: flex; gap: 10px;">
           <button type="button" class="btn" style="padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; background: white;" (click)="closeBookingModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="!bookingForm.donor_name || !bookingForm.mobile_number">
+          <button type="submit" class="btn btn-primary">
             Confirm Booking
           </button>
         </div>
@@ -415,9 +471,12 @@
     <div *ngIf="viewBookingDetails()" style="padding: 10px 0;">
       <div style="margin-bottom: 12px; font-size: 15px;"><strong>Donor Name:</strong> {{ viewBookingDetails().donor_name }}</div>
       <div style="margin-bottom: 12px; font-size: 15px;"><strong>Mobile:</strong> {{ viewBookingDetails().mobile_number }}</div>
+      <div *ngIf="viewBookingDetails().alternative_number" style="margin-bottom: 12px; font-size: 15px;"><strong>Alternative Mobile:</strong> {{ viewBookingDetails().alternative_number }}</div>
       <div style="margin-bottom: 12px; font-size: 15px;"><strong>Occasion:</strong> {{ viewBookingDetails().occasion_name || '-' }}</div>
+      <div *ngIf="viewBookingDetails().remarks" style="margin-bottom: 12px; font-size: 15px;"><strong>Remarks:</strong> {{ viewBookingDetails().remarks }}</div>
       <div style="margin-bottom: 12px; font-size: 15px;"><strong>Total Amount:</strong> ₹{{ viewBookingDetails().total_amount }}</div>
       <div style="margin-bottom: 12px; font-size: 15px;"><strong>Total Amount Paid:</strong> ₹{{ viewBookingDetails().total_paid_amount }}</div>
+      <div style="margin-bottom: 12px; font-size: 15px; color: #ea580c;"><strong>Balance Payable:</strong> ₹{{ (viewBookingDetails().total_amount || 0) - (viewBookingDetails().total_paid_amount || 0) }}</div>
       <div *ngIf="viewBookingDetails().payments?.length > 0" style="margin-bottom: 12px; font-size: 13px; color: #64748b; padding-left: 10px; border-left: 2px solid #cbd5e1;">
         <div *ngFor="let payment of viewBookingDetails().payments; let i = index" style="margin-bottom: 4px;">
           Payment {{ i + 1 }}: ₹{{ payment.amount_paid }} <span *ngIf="payment.payment_date">on {{ payment.payment_date | date:'shortDate' }}</span>
