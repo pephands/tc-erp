@@ -260,6 +260,9 @@
                   <div class="form-group margin-top-sm">
                     <label>Child Name *</label>
                     <input type="text" formControlName="children_name" placeholder="Full Name" style="text-transform: uppercase;" />
+                    @if (childForm.get('children_name')?.invalid && childForm.get('children_name')?.touched) {
+                      <span class="validation-error">Child Name is required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm single-select-wrapper" style="position: relative;">
@@ -314,16 +317,25 @@
                         </div>
                       </div>
                     }
+                    @if (childForm.get('trust_name')?.invalid && childForm.get('trust_name')?.touched) {
+                      <span class="validation-error">Branch is required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm">
                     <label>License No *</label>
                     <input type="text" formControlName="license_no" placeholder="License Number" style="text-transform: uppercase;" />
+                    @if (childForm.get('license_no')?.invalid && childForm.get('license_no')?.touched) {
+                      <span class="validation-error">License No is required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm">
                     <label>Aadhar No *</label>
                     <input type="text" formControlName="aadhar_no" placeholder="Aadhar Number" maxlength="12" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                    @if (childForm.get('aadhar_no')?.invalid && childForm.get('aadhar_no')?.touched) {
+                      <span class="validation-error">Valid 12-digit Aadhar No is required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm">
@@ -337,11 +349,17 @@
                       </select>
                       <span class="material-symbols-outlined select-arrow">expand_more</span>
                     </div>
+                    @if (childForm.get('gender')?.invalid && childForm.get('gender')?.touched) {
+                      <span class="validation-error">Gender is required.</span>
+                    }
                   </div>
 
                   <div class="form-group margin-top-sm">
                     <label>Mobile Number *</label>
                     <input type="text" formControlName="mobile_number" placeholder="Mobile Number" maxlength="10" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                    @if (childForm.get('mobile_number')?.invalid && childForm.get('mobile_number')?.touched) {
+                      <span class="validation-error">Valid 10-digit Mobile Number is required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm">
@@ -355,6 +373,9 @@
                       </select>
                       <span class="material-symbols-outlined select-arrow">expand_more</span>
                     </div>
+                    @if (childForm.get('category')?.invalid && childForm.get('category')?.touched) {
+                      <span class="validation-error">Category is required.</span>
+                    }
                   </div>
 
                   <div class="form-group margin-top-sm">
@@ -390,6 +411,9 @@
                   <div class="form-group margin-top-sm">
                     <label>Date of Joining *</label>
                     <input type="date" formControlName="date_of_joining" />
+                    @if (childForm.get('date_of_joining')?.invalid && childForm.get('date_of_joining')?.touched) {
+                      <span class="validation-error">Date of Joining is required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm">
@@ -423,11 +447,17 @@
                   <div class="form-group margin-top-sm">
                     <label>Parent Details *</label>
                     <textarea formControlName="parent_details" rows="2" style="width: 100%; padding: 0.55rem 0.85rem; font-size: 0.875rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical; text-transform: uppercase;"></textarea>
+                    @if (childForm.get('parent_details')?.invalid && childForm.get('parent_details')?.touched) {
+                      <span class="validation-error">Parent Details are required.</span>
+                    }
                   </div>
   
                   <div class="form-group margin-top-sm">
                     <label>Address *</label>
                     <textarea formControlName="address" rows="2" style="width: 100%; padding: 0.55rem 0.85rem; font-size: 0.875rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical; text-transform: uppercase;"></textarea>
+                    @if (childForm.get('address')?.invalid && childForm.get('address')?.touched) {
+                      <span class="validation-error">Address is required.</span>
+                    }
                   </div>
                 </div>
   
@@ -436,7 +466,7 @@
                   <button 
                     type="submit" 
                     class="btn-modal-submit" 
-                    [disabled]="isSubmitting() || childForm.invalid"
+                    [disabled]="isSubmitting()"
                     style="display: flex; align-items: center; justify-content: center;"
                   >
                     @if (isSubmitting()) {

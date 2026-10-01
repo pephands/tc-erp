@@ -139,6 +139,25 @@
             </tbody>
           </table>
         </div>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-container" *ngIf="totalPages() > 1" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #e2e8f0; background: #ffffff;">
+          <div style="font-size: 0.875rem; color: #6b7280;">
+            Showing <span style="font-weight: 600; color: #1f2937;">{{ (currentPage() - 1) * pageSize() + 1 }}</span> to 
+            <span style="font-weight: 600; color: #1f2937;">{{ Math.min(currentPage() * pageSize(), totalItems()) }}</span> of 
+            <span style="font-weight: 600; color: #1f2937;">{{ totalItems() }}</span> entries
+          </div>
+          
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="button" class="btn-secondary" [disabled]="currentPage() === 1" (click)="changePage(currentPage() - 1)" style="padding: 0.4rem 0.8rem; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;">
+              Previous
+            </button>
+            <span style="font-size: 0.875rem; font-weight: 500; padding: 0 0.5rem;">Page {{ currentPage() }} of {{ totalPages() }}</span>
+            <button type="button" class="btn-secondary" [disabled]="currentPage() === totalPages()" (click)="changePage(currentPage() + 1)" style="padding: 0.4rem 0.8rem; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;">
+              Next
+            </button>
+          </div>
+        </div>
       }
     </div>
   </div>
@@ -163,6 +182,17 @@
             <label>Telecaller's Complaint Message:</label>
             <div class="content-box">{{ selectedFeedback()?.message }}</div>
           </div>
+
+          @if (selectedFeedback()?.attachment) {
+            <div class="form-group margin-top-sm">
+              <label>Attached File / Evidence:</label>
+              <div style="margin-top: 0.25rem;">
+                <a [href]="selectedFeedback()?.attachment" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #d97706; text-decoration: none; font-weight: 500; font-size: 0.875rem; background: #fffbeb; padding: 0.35rem 0.75rem; border-radius: 4px; border: 1px solid #fcd34d;">
+                  <span class="material-symbols-outlined icon-sm">attachment</span> View Attachment
+                </a>
+              </div>
+            </div>
+          }
 
           <div class="form-group margin-top-md">
             <label>Update Status *</label>

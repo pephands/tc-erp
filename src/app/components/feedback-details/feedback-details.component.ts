@@ -29,6 +29,12 @@ export class FeedbackDetailsComponent implements OnInit {
   startDate = signal<string>('');
   endDate = signal<string>('');
 
+  // Pagination
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+  totalItems = signal<number>(0);
+  Math = Math;
+
   // Resolve Modal State
   isResolveModalOpen = signal<boolean>(false);
   selectedFeedback = signal<FeedbackRecord | null>(null);
@@ -42,6 +48,17 @@ export class FeedbackDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.loadBranches();
     this.loadFeedbacks();
+  }
+
+  totalPages(): number {
+    return Math.ceil(this.totalItems() / this.pageSize()) || 1;
+  }
+
+  changePage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.loadFeedbacks();
+    }
   }
 
   triggerToast(msg: string): void {
@@ -60,33 +77,8 @@ export class FeedbackDetailsComponent implements OnInit {
     });
   }
 
-  loadFeedbacks(): void {
-    this.isLoading.set(true);
-    const params: any = {};
-    if (this.selectedBranchFilter()) params.branch = this.selectedBranchFilter();
-    if (this.selectedCategoryFilter()) params.category = this.selectedCategoryFilter();
-    if (this.selectedStatusFilter()) params.status = this.selectedStatusFilter();
-    if (this.searchQuery()) params.search = this.searchQuery();
-    if (this.startDate()) params.start_date = this.startDate();
-    if (this.endDate()) params.end_date = this.endDate();
-
-    this.feedbackService.fetchFeedbacks(params).subscribe({
-      next: (res: any) => {
-        if (res && res.data) {
-          this.feedbacksList.set(res.data);
-        } else if (res && res.results) {
-          this.feedbacksList.set(res.results);
-        }
-        this.isLoading.set(false);
-      },
-      error: (err: any) => {
-        console.error('Error fetching admin feedbacks:', err);
-        this.isLoading.set(false);
-      },
-    });
-  }
-
   onFilterChange(): void {
+    this.currentPage.set(1);
     this.loadFeedbacks();
   }
 
@@ -97,6 +89,7 @@ export class FeedbackDetailsComponent implements OnInit {
     this.searchQuery.set('');
     this.startDate.set('');
     this.endDate.set('');
+    this.currentPage.set(1);
     this.loadFeedbacks();
   }
 
@@ -111,6 +104,44 @@ export class FeedbackDetailsComponent implements OnInit {
     this.isResolveModalOpen.set(false);
     this.selectedFeedback.set(null);
   }
+
+  loadFeedbacks(): void {
+    this.isLoading.set(true);
+    const params: any = {
+      page: this.currentPage(),
+      page_size: this.pageSize()
+    };
+    if (this.selectedBranchFilter()) params.branch = this.selectedBranchFilter();
+    if (this.selectedCategoryFilter()) params.category = this.selectedCategoryFilter();
+    if (this.selectedStatusFilter()) params.status = this.selectedStatusFilter();
+    if (this.searchQuery()) params.search = this.searchQuery();
+    if (this.startDate()) params.start_date = this.startDate();
+    if (this.endDate()) params.end_date = this.endDate();
+
+    this.feedbackService.fetchFeedbacks(params).subscribe({
+      next: (res: any) => {
+        if (res && res.data) {
+          this.feedbacksList.set(res.data);
+          this.totalItems.set(res.data.length);
+        } else if (res && res.results) {
+          this.feedbacksList.set(res.results);
+          this.totalItems.set(res.count || 0);
+        } else if (Array.isArray(res)) {
+          this.feedbacksList.set(res);
+          this.totalItems.set(res.length);
+        } else {
+          this.feedbacksList.set([]);
+          this.totalItems.set(0);
+        }
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('Error fetching admin feedbacks:', err);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
 
   onSubmitResolution(): void {
     const item = this.selectedFeedback();

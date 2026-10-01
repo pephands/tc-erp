@@ -73,6 +73,13 @@ export class BranchVehiclesComponent implements OnInit {
     this.loadVehicles();
   }
 
+  handlePhoneInput(event: any, fieldName: string): void {
+    const input = event.target;
+    const value = input.value.replace(/[^0-9]/g, '').slice(0, 10);
+    input.value = value;
+    this.vehicleForm.get(fieldName)?.setValue(value);
+  }
+
   loadBranches(): void {
     this.branchListService.getData(1, 1000).subscribe({
       next: (res: any) => {
