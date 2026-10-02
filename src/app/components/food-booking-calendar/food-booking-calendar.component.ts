@@ -41,9 +41,13 @@ export class FoodBookingCalendarComponent implements OnInit {
     return this.authService.userRoles().includes('PUBLIC_RELATIONS');
   });
 
+  isManager = computed(() => {
+    return this.authService.userRoles().includes('MANAGER');
+  });
+
   roleFilterLocked = computed(() => {
-    // If TL or PR, they are locked to their own mapped branch
-    return this.isTL() || this.isPR();
+    // If TL or PR, they are locked to their own mapped branch (unless they are also a manager)
+    return (this.isTL() || this.isPR()) && !this.isManager();
   });
   
   foodMenus = signal<FoodMenu[]>([]);
@@ -60,6 +64,17 @@ export class FoodBookingCalendarComponent implements OnInit {
   menuFilterTrust = signal<number | null>(null);
   menuFilterSlot = signal<string>('');
   menuFilterStatus = signal<string>('');
+
+  branchFilterList = computed(() => {
+    if (this.isAdmin()) {
+      return this.branchesList();
+    }
+    if (this.isManager()) {
+      const user: any = this.authService.currentUser();
+      return user && user.managed_branches ? user.managed_branches : [];
+    }
+    return this.branchesList();
+  });
 
   filteredFoodMenus = computed(() => {
     let menus = this.foodMenus();
@@ -88,9 +103,10 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   uniqueSlots = computed(() => {
     const menus = this.foodMenus();
+    const currentTrustId = this.selectedBranchId();
     const slots = new Set<string>();
     menus.forEach(m => {
-      if (m.is_active) slots.add(m.slot);
+      if (m.is_active && m.trust_name == currentTrustId) slots.add(m.slot);
     });
     const ordered = ['BREAKFAST', 'LUNCH', 'DINNER', 'CAKE CUTTING'];
     return ordered.filter(s => slots.has(s));
@@ -101,6 +117,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     trust_name: null as number | null,
     branch_name: null as number | null,
     booking_status: '',
+    slot: '',
     booking_date: '',
     search: ''
   };
@@ -137,7 +154,7 @@ export class FoodBookingCalendarComponent implements OnInit {
       const isAdmin = this.authService.userRoles().includes('ADMIN');
       const userBranchId = user && user.branch ? user.branch.id : null;
       
-      if (userBranchId && !isAdmin) {
+      if (this.roleFilterLocked() && userBranchId && !isAdmin) {
         const b = data.find((br: Branch) => br.id === userBranchId);
         if (b) {
           if (b.is_trust) {
@@ -198,6 +215,10 @@ export class FoodBookingCalendarComponent implements OnInit {
     });
   }
 
+  onSearchChange(value: string) {
+    this.applyListFilters();
+  }
+
   resetListFilters() {
     const user: any = this.authService.currentUser();
     const isAdmin = this.authService.userRoles().includes('ADMIN');
@@ -223,6 +244,7 @@ export class FoodBookingCalendarComponent implements OnInit {
       trust_name: defaultTrust,
       branch_name: defaultBranch,
       booking_status: '',
+      slot: '',
       booking_date: '',
       search: ''
     };
@@ -262,14 +284,15 @@ export class FoodBookingCalendarComponent implements OnInit {
       const data = res.results || res.data || res;
       if (!data || !data.length) return this.showToast("No data to export", true);
       
-      let csv = "ID,Trust Name,Branch ID,Branch Name,Menu,Slot,Booking Date,Occasion,Donor,Mobile,Alternative Mobile,Amount,Paid,Status,Remarks,Payment Details,Attachment URL\n";
+      let csv = "ID,Trust Name,Branch ID,Branch Name,Menu,Slot,Booking Date,Occasion,Donor,Mobile,Alternative Mobile,Amount,Paid,Status,Remarks,Payment Details,Attachment URL,Created At\n";
       data.forEach((b: any) => {
         let paymentsInfo = '';
         if (b.payments && b.payments.length > 0) {
            paymentsInfo = b.payments.map((p: any, index: number) => `[P${index+1}: ₹${p.amount_paid} via ${p.mode_of_payment || 'N/A'} on ${p.payment_date || ''} Ref:${p.reference_id || 'N/A'}]`).join(' | ');
         }
         let attachmentUrl = b.attachment ? String(b.attachment) : 'N/A';
-        csv += `${b.id},"${b.trust_name_display}","${b.branch || ''}","${b.branch_display || ''}","${b.menu_name_display}","${b.slot_display}","${b.booking_date}","${b.occasion_name || ''}","${b.donor_name}","${b.mobile_number}","${b.alternative_number || ''}",${b.total_amount},${b.total_paid_amount},"${b.booking_status}","${b.remarks || ''}","${paymentsInfo}","${attachmentUrl}"\n`;
+        let createdAtStr = b.created_at ? new Date(b.created_at).toLocaleString() : '';
+        csv += `${b.id},"${b.trust_name_display}","${b.branch || ''}","${b.branch_display || ''}","${b.menu_name_display}","${b.slot_display}","${b.booking_date}","${b.occasion_name || ''}","${b.donor_name}","${b.mobile_number}","${b.alternative_number || ''}",${b.total_amount},${b.total_paid_amount},"${b.booking_status}","${b.remarks || ''}","${paymentsInfo}","${attachmentUrl}","${createdAtStr}"\n`;
       });
       
       const blob = new Blob([csv], { type: 'text/csv' });
@@ -413,7 +436,8 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   getSlotAggregateStatus(day: any, slot: string) {
     if (!day.date) return null;
-    const menusForSlot = this.foodMenus().filter(m => m.slot === slot && m.is_active);
+    const currentTrustId = this.selectedBranchId();
+    const menusForSlot = this.foodMenus().filter(m => m.slot === slot && m.is_active && m.trust_name == currentTrustId);
     const bookingsForSlot = day.bookings.filter((b: any) => menusForSlot.some(m => m.id === b.menu));
     
     if (menusForSlot.length === 0) return 'NONE';
@@ -427,7 +451,8 @@ export class FoodBookingCalendarComponent implements OnInit {
     const day = this.selectedDate();
     if (!day || !day.date) return [];
     
-    return this.foodMenus().filter(m => m.slot === slot && m.is_active).map(m => {
+    const currentTrustId = this.selectedBranchId();
+    return this.foodMenus().filter(m => m.slot === slot && m.is_active && m.trust_name == currentTrustId).map(m => {
        const booking = day.bookings.find((b: any) => b.menu === m.id);
        return {
          ...m,
@@ -475,7 +500,8 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   onSlotGroupClick(day: any, slot: string) {
     if (!day.date) return;
-    const menusForSlot = this.foodMenus().filter(m => m.slot === slot && m.is_active).map(m => {
+    const currentTrustId = this.selectedBranchId();
+    const menusForSlot = this.foodMenus().filter(m => m.slot === slot && m.is_active && m.trust_name == currentTrustId).map(m => {
        const bookings = day.bookings.filter((b: any) => b.menu === m.id);
        return {
          ...m,

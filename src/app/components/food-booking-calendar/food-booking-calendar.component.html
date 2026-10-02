@@ -16,7 +16,7 @@
         <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'calendar' ? '1' : '0.6'" (click)="activeTab.set('calendar')">
           <span class="material-symbols-outlined" style="font-size: 18px;">event</span> Calendar View
         </button>
-        <button *ngIf="!isTL() && !isPR()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
+        <button *ngIf="!isTL() && !isPR() && !isManager()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
           <span class="material-symbols-outlined" style="font-size: 18px;">restaurant_menu</span> Menu Setup
         </button>
       </div>
@@ -51,11 +51,11 @@
             </ng-container>
           </select>
         </div>
-        <div class="form-group" style="margin: 0; min-width: 180px;" *ngIf="!isTL()">
+        <div class="form-group" style="margin: 0; min-width: 180px;" *ngIf="isManager() || !isTL()">
           <label>Branch Filter</label>
           <select class="custom-select" [(ngModel)]="listFilters.branch_name" (change)="applyListFilters()">
             <option [ngValue]="null">All Branches</option>
-            <ng-container *ngFor="let branch of branchesList()">
+            <ng-container *ngFor="let branch of branchFilterList()">
               <option *ngIf="branch.status === 'Active' || branch.is_active !== false" [value]="branch.id">{{ branch.name }}</option>
             </ng-container>
           </select>
@@ -69,18 +69,28 @@
             <option value="COMPLETED">Completed</option>
           </select>
         </div>
+        <div class="form-group" style="margin: 0; min-width: 150px;">
+          <label>Slot Filter</label>
+          <select class="custom-select" [(ngModel)]="listFilters.slot" (change)="applyListFilters()">
+            <option value="">All Slots</option>
+            <option value="BREAKFAST">BREAKFAST</option>
+            <option value="LUNCH">LUNCH</option>
+            <option value="DINNER">DINNER</option>
+            <option value="CAKE CUTTING">CAKE CUTTING</option>
+          </select>
+        </div>
         <div class="form-group" style="margin: 0; min-width: 200px;">
           <label>Booking Date</label>
           <input type="date" class="custom-select" [(ngModel)]="listFilters.booking_date" (change)="applyListFilters()">
         </div>
         <div class="form-group" style="margin: 0; flex-grow: 1;">
           <label>Search Donor/Occasion</label>
-          <input type="text" class="custom-select" style="width: 100%;" placeholder="Search..." [(ngModel)]="listFilters.search" (keyup.enter)="applyListFilters()">
+          <input type="text" class="custom-select" style="width: 100%;" placeholder="Search..." [(ngModel)]="listFilters.search" (ngModelChange)="onSearchChange($event)">
         </div>
         <button class="btn btn-outline" style="margin-right: 10px;" (click)="resetListFilters()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">restart_alt</span> Reset
         </button>
-        <button *ngIf="!isTL() && !isPR()" class="btn btn-primary" (click)="exportXLSX()">
+        <button *ngIf="!isTL() && !isManager()" class="btn btn-primary" (click)="exportXLSX()">
           <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px;">download</span> Export XLSX
         </button>
       </div>
@@ -101,7 +111,7 @@
               <th>Attach.</th>
               <th>Created At</th>
               <th>Status</th>
-              <th *ngIf="!isTL() && !isPR()">Action</th>
+              <th *ngIf="!isTL() && !isPR() && !isManager()">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -127,14 +137,14 @@
                   {{ bk.booking_status }}
                 </span>
               </td>
-              <td *ngIf="!isTL() && !isPR()">
+              <td *ngIf="!isTL() && !isPR() && !isManager()">
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px; display: flex; align-items: center; gap: 4px;" (click)="editBookingDirectly(bk)">
                   <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit
                 </button>
               </td>
             </tr>
             <tr *ngIf="allBookings().length === 0">
-              <td [colSpan]="isPR() ? (isTL() ? 12 : 11) : (isTL() ? 12 : 13)" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
+              <td [colSpan]="isPR() ? ((isTL() || isManager()) ? 12 : 11) : ((isTL() || isManager()) ? 12 : 13)" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
             </tr>
           </tbody>
         </table>
@@ -196,8 +206,8 @@
                         class="micro-slot" 
                         [ngClass]="status.toLowerCase()"
                         [class.hidden-slot]="status === 'NONE'"
-                        [style.cursor]="(status !== 'NONE' && !isTL() && !isPR()) ? 'pointer' : 'default'"
-                        (click)="status !== 'NONE' && !isTL() && !isPR() && onSlotGroupClick(day, slot)"
+                        [style.cursor]="(status !== 'NONE' && !isTL() && !isPR() && !isManager()) ? 'pointer' : 'default'"
+                        (click)="status !== 'NONE' && !isTL() && !isPR() && !isManager() && onSlotGroupClick(day, slot)"
                         title="{{slot}}: {{status}}">
                      <span class="slot-name" style="font-weight: 800; text-transform: uppercase;">{{ slot === 'CAKE CUTTING' ? 'CAKE' : slot }}</span>
                      <span class="slot-status-text" style="font-size: 9px; opacity: 0.9;">{{ status === 'OPEN' ? 'Available' : status }}</span>
@@ -511,7 +521,7 @@
               <div style="color: #666; font-size: 13px;">₹{{ menu.amount }}</div>
            </div>
            <div>
-              <button *ngIf="!isTL()" class="btn btn-primary" (click)="openBookingFormForMenu(menu, selectedSlotGroup()?.day)">{{ menu.bookings?.length > 0 ? '+ Book Another' : 'Book Now' }}</button>
+              <button *ngIf="!isTL() && !isManager()" class="btn btn-primary" (click)="openBookingFormForMenu(menu, selectedSlotGroup()?.day)">{{ menu.bookings?.length > 0 ? '+ Book Another' : 'Book Now' }}</button>
            </div>
         </div>
         
@@ -526,7 +536,7 @@
               </div>
               <div style="display: flex; gap: 4px;">
                  <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" (click)="viewBookingFromGroup(booking)">View</button>
-                 <button *ngIf="!isTL()" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" (click)="editBookingFromGroup(booking, menu)">Edit/Pay</button>
+                 <button *ngIf="!isTL() && !isManager()" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" (click)="editBookingFromGroup(booking, menu)">Edit/Pay</button>
               </div>
            </div>
         </div>
