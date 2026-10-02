@@ -24,7 +24,18 @@
         <option value="false">Inactive</option>
       </select>
 
-      @if (searchQuery() || statusFilter()) {
+      <select 
+        class="status-filter"
+        [ngModel]="trustFilter()"
+        (ngModelChange)="trustFilter.set($event); onFilterChange()"
+        style="padding: 0.65rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-main); outline: none; cursor: pointer; min-width: 120px;"
+      >
+        <option value="">All Branches</option>
+        <option value="true">Trust Only</option>
+        <option value="false">Regular Only</option>
+      </select>
+
+      @if (searchQuery() || statusFilter() || trustFilter()) {
         <button 
           type="button" 
           (click)="resetFilters()" 

@@ -29,6 +29,7 @@ export class BranchesComponent implements OnInit {
   totalItems = signal<number>(0);
   searchQuery = signal<string>('');
   statusFilter = signal<string>(''); // '' for all, 'true' for active, 'false' for inactive
+  trustFilter = signal<string>(''); // '' for all, 'true' for trust, 'false' for regular
 
   // Modals state
   isModalOpen = signal<boolean>(false);
@@ -74,7 +75,8 @@ export class BranchesComponent implements OnInit {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
     const isActive = this.statusFilter();
-    this.branchService.getData(this.currentPage(), this.pageSize(), search, isActive).subscribe({
+    const isTrust = this.trustFilter();
+    this.branchService.getData(this.currentPage(), this.pageSize(), search, isActive, isTrust).subscribe({
       next: (res: any) => {
         let data: Branch[] = [];
         if (res && res.status === 'success' && res.data) {
@@ -136,6 +138,7 @@ export class BranchesComponent implements OnInit {
   resetFilters(): void {
     this.searchQuery.set('');
     this.statusFilter.set('');
+    this.trustFilter.set('');
     this.currentPage.set(1);
     this.loadBranches();
   }
@@ -275,8 +278,8 @@ export class BranchesComponent implements OnInit {
   }
 
   downloadSampleFormat(): void {
-    const headers = "Branch ID,Branch Name,Branch Code,Branch Address,Phone number,Mail,Latitude,Longitude,Geofence Radius Meters,IP Validation,Location Validation,Branch Active\n";
-    const sampleRow = "1,SAMPLE BRANCH,SMP,123 Main St,9876543210,sample@example.com,13.0827,80.2707,200,TRUE,TRUE,TRUE\n";
+    const headers = "Branch ID,Branch Name,Branch Code,Branch Address,Phone number,Mail,Latitude,Longitude,Geofence Radius Meters,IP Validation,Location Validation,Branch Active,Is Trust?,Registration Number,PAN Number,NGO Darpan ID\n";
+    const sampleRow = "1,SAMPLE BRANCH,SMP,123 Main St,9876543210,sample@example.com,13.0827,80.2707,200,TRUE,TRUE,TRUE,FALSE,REG123,ABCDE1234F,NGO12345\n";
     const csvContent = headers + sampleRow;
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
