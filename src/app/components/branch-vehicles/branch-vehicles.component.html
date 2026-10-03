@@ -114,30 +114,56 @@
 
   <!-- Modern Pagination -->
   <div class="pagination-container">
-    <div class="pagination-info">
-      Showing <span class="highlight">{{ (currentPage() - 1) * pageSize() + 1 }}</span> to 
-      <span class="highlight">{{ Math.min(currentPage() * pageSize(), totalItems()) }}</span> of 
-      <span class="highlight">{{ totalItems() }}</span> entries
-    </div>
-    
-    <div class="pagination-controls">
-      <button class="btn-pagination" [disabled]="currentPage() === 1" (click)="changePage(currentPage() - 1)">
-        <span class="material-symbols-outlined icon-small">chevron_left</span>
-        Previous
-      </button>
-      
-      <div class="page-indicator">
-        <span class="current-page">{{ currentPage() }}</span>
-        <span class="separator">/</span>
-        <span class="total-pages">{{ totalPages() }}</span>
+        <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalItems() }} total records)
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
       </div>
 
-      <button class="btn-pagination" [disabled]="currentPage() === totalPages() || totalPages() === 0" (click)="changePage(currentPage() + 1)">
-        Next
-        <span class="material-symbols-outlined icon-small">chevron_right</span>
-      </button>
+          <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalItems() }} total records)
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
+      </div>
+
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+          Prev
+        </button>
+        
+        @for (p of pageNumbers(); track p) {
+          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+            {{ p }}
+          </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+        
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+          Last
+        </button>
+      </div>
     </div>
-  </div>
+    </div>
+        </div>
 </div>
 
 <!-- Modal -->

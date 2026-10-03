@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit , computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FeedbackService } from '../../services/feedback.service';
@@ -31,6 +31,16 @@ export class FeedbackDetailsComponent implements OnInit {
 
   // Pagination
   currentPage = signal<number>(1);
+  pageNumbers = computed(() => {
+    const pages = [];
+    const maxPages = 5;
+    let start = Math.max(1, this.currentPage() - 2);
+    let end = Math.min(this.totalPages(), start + maxPages - 1);
+    if (end - start < maxPages - 1) start = Math.max(1, end - maxPages + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  });
+
   pageSize = signal<number>(10);
   totalItems = signal<number>(0);
   Math = Math;

@@ -234,11 +234,7 @@
   box-shadow: 0 -4px 6px -4px rgba(0, 0, 0, 0.05);
 }
 
-.pagination-info {
-  font-size: 0.875rem;
-  color: #64748b;
-  font-weight: 500;
-}
+
 
 .pagination-info .highlight {
   color: #0f172a;
@@ -246,15 +242,7 @@
   padding: 0 0.125rem;
 }
 
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #f8fafc;
-  padding: 0.375rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
+
 
 .page-indicator {
   display: flex;

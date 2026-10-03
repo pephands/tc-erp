@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal , computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
@@ -29,6 +29,17 @@ export class VerifiedDonorsComponent implements OnInit {
 
   // Pagination
   currentPage = signal<number>(1);
+  pageNumbers = computed(() => {
+    const pages = [];
+    const maxPages = 5;
+    let start = Math.max(1, this.currentPage() - 2);
+    let end = Math.min(this.totalPages(), start + maxPages - 1);
+    if (end - start < maxPages - 1) start = Math.max(1, end - maxPages + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  });
+
+  pageSize = signal<number>(10);
   totalPages = signal<number>(1);
   totalRecords = signal<number>(0);
 
@@ -78,6 +89,14 @@ export class VerifiedDonorsComponent implements OnInit {
       }
     });
   }
+  setPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.fetchRecords();
+    }
+  }
+
+
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {

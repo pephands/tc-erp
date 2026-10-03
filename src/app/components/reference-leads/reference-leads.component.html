@@ -101,14 +101,38 @@
     </table>
 
     <!-- Pagination Controls -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-      <div style="font-size: 0.875rem; color: #6b7280;">
-        Total Records: <strong>{{ totalRecords() }}</strong>
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalRecords() }} total records)
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
       </div>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <button class="btn-secondary" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1); fetchLeads()" style="padding: 0.4rem 0.8rem;">Previous</button>
-        <span style="font-size: 0.875rem; font-weight: 500;">Page {{ currentPage() }}</span>
-        <button class="btn-secondary" [disabled]="leads().length < pageSize()" (click)="currentPage.set(currentPage() + 1); fetchLeads()" style="padding: 0.4rem 0.8rem;">Next</button>
+
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+          Prev
+        </button>
+        
+        @for (p of pageNumbers(); track p) {
+          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+            {{ p }}
+          </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+        
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+          Last
+        </button>
       </div>
     </div>
   </div>

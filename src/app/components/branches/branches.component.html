@@ -170,36 +170,25 @@
       </div>
 
       <div class="pagination-controls">
-        <button 
-          type="button" 
-          class="page-btn nav-btn" 
-          [disabled]="currentPage() === 1"
-          (click)="prevPage()"
-        >
-          Prev
-        </button>
-
-        @for (p of pageNumbers(); track p) {
-          <button 
-            type="button" 
-            class="page-btn" 
-            [class.active]="currentPage() === p"
-            (click)="setPage(p)"
-          >
-            {{ p }}
+          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+            Prev
           </button>
-        }
+          
+          @for (p of pageNumbers(); track p) {
+            <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+              {{ p }}
+            </button>
+          }
 
-        <button 
-          type="button" 
-          class="page-btn nav-btn" 
-          [disabled]="currentPage() === totalPages()"
-          (click)="nextPage()"
-        >
-          Next
-        </button>
-      </div>
-    </div>
+          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+            Next
+          </button>
+          
+          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+            Last
+          </button>
+        </div>
+        </div>
 
   </div>
 

@@ -136,38 +136,40 @@
 
       <!-- Pagination Footer Bar -->
       @if (filteredDocuments().length > 0) {
-        <div class="pagination-footer">
-          <div class="pagination-btn-group">
-            @for (page of pagesArray(); track page) {
-              <button 
-                type="button" 
-                class="page-btn" 
-                [class.active]="currentPage() === page"
-                (click)="setPage(page)"
-              >
-                {{ page }}
-              </button>
-            }
-            @if (totalPages() > 1) {
-              <button 
-                type="button" 
-                class="page-btn" 
-                [disabled]="currentPage() === totalPages()"
-                (click)="nextPage()"
-              >
-                Next
-              </button>
-              <button 
-                type="button" 
-                class="page-btn" 
-                [disabled]="currentPage() === totalPages()"
-                (click)="lastPage()"
-              >
-                Last
-              </button>
-            }
-          </div>
-        </div>
+            <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ filteredDocuments().length }} total records)
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
+      </div>
+
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+          Prev
+        </button>
+        
+        @for (p of pageNumbers(); track p) {
+          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+            {{ p }}
+          </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+        
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+          Last
+        </button>
+      </div>
+    </div>
       }
 
     </div>

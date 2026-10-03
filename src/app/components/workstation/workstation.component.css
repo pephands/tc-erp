@@ -250,39 +250,17 @@
 .empty-subtitle { font-size: 0.8rem; color: #78716c; }
 
 /* Pagination */
-.pagination-bar {
-  padding: 0.85rem 1.25rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
 
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  overflow: hidden;
-}
 
-.page-btn {
-  background: #ffffff;
-  border: none;
-  border-right: 1px solid var(--border-color);
-  padding: 0.4rem 0.85rem;
-  font-size: 0.8rem;
-  color: #44403c;
-  cursor: pointer;
-}
+
+
+
 
 .page-btn:last-child { border-right: none; }
-.page-btn.active { background: #ea580c; color: #ffffff; font-weight: 700; }
-.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.pagination-info { font-size: 0.8rem; color: var(--text-muted); }
+
+
+
 
 /* Modal */
 .modal-backdrop {

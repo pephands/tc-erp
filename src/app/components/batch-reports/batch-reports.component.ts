@@ -54,6 +54,16 @@ export class BatchReportsComponent implements OnInit {
 
   // Pagination (For Records)
   currentPage = signal<number>(1);
+  pageNumbers = computed(() => {
+    const pages = [];
+    const maxPages = 5;
+    let start = Math.max(1, this.currentPage() - 2);
+    let end = Math.min(this.totalPages(), start + maxPages - 1);
+    if (end - start < maxPages - 1) start = Math.max(1, end - maxPages + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  });
+
   pageSize = signal<number>(10);
   totalCount = signal<number>(0);
 
@@ -309,6 +319,14 @@ export class BatchReportsComponent implements OnInit {
       this.fetchDataForActiveTab();
     }
   }
+  setPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.fetchDataForActiveTab();
+    }
+  }
+
+
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {

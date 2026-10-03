@@ -479,39 +479,15 @@ th {
   }
 }
 
-.pagination-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem 1.25rem;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-}
 
-.pagination-info {
-  font-size: 0.8rem;
-  color: #64748b;
-}
 
-.pagination-controls {
-  display: flex;
-  gap: 0.5rem;
-}
 
-.page-btn {
-  padding: 0.35rem 0.85rem;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
 
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+
+
+
+
+
 
 
 .tl-modal-content {

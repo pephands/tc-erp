@@ -20,6 +20,17 @@ export class WhatsappHistoryComponent implements OnInit {
   currentPage: number = 1;
   totalItems: number = 0;
   totalPages: number = 1;
+  get pageNumbers() {
+    const pages = [];
+    const maxPages = 5;
+    let start = Math.max(1, this.currentPage - 2);
+    let end = Math.min(this.totalPages, start + maxPages - 1);
+    if (end - start < maxPages - 1) start = Math.max(1, end - maxPages + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }
+
+  pageSize: number = 10;
   successCount: number = 0;
   failureCount: number = 0;
   
@@ -168,6 +179,13 @@ export class WhatsappHistoryComponent implements OnInit {
       error: (err) => console.error('Export failed', err)
     });
   }
+  setPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+
 
   nextPage(): void {
     if (this.currentPage < this.totalPages) {

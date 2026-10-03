@@ -121,29 +121,37 @@
     </div>
 
     <!-- Pagination Section -->
-    <div class="pagination-section">
-      <div class="page-info">
+    <div class="pagination-bar">
+      <div class="pagination-info">
         Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalRecords() }} total records)
+        <span style="margin-left: 15px;">
+          Per page: 
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
       </div>
-      <div class="page-controls">
-        <button 
-          class="btn-icon" 
-          (click)="prevPage()" 
-          [disabled]="currentPage() === 1 || isLoading()"
-          title="Previous Page"
-        >
-          <span class="material-symbols-outlined">chevron_left</span>
+
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+          Prev
         </button>
-        <div class="page-indicator">
-          {{ currentPage() }}
-        </div>
-        <button 
-          class="btn-icon" 
-          (click)="nextPage()" 
-          [disabled]="currentPage() === totalPages() || isLoading() || totalPages() === 0"
-          title="Next Page"
-        >
-          <span class="material-symbols-outlined">chevron_right</span>
+        
+        @for (p of pageNumbers(); track p) {
+          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+            {{ p }}
+          </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+        
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+          Last
         </button>
       </div>
     </div>

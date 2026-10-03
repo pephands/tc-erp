@@ -45,6 +45,16 @@ export class TrustChildrenComponent implements OnInit {
   filterDischarge = signal<string>('');
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
+  pageNumbers = computed(() => {
+    const pages = [];
+    const maxPages = 5;
+    let start = Math.max(1, this.currentPage() - 2);
+    let end = Math.min(this.totalPages(), start + maxPages - 1);
+    if (end - start < maxPages - 1) start = Math.max(1, end - maxPages + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  });
+
   pageSize = signal<number>(10);
   totalCount = signal<number>(0);
   isLoading = signal<boolean>(false);

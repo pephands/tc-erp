@@ -334,19 +334,11 @@
   overflow: hidden;
 }
 
-.page-btn {
-  background: #ffffff;
-  border: none;
-  border-right: 1px solid var(--border-color);
-  padding: 0.4rem 0.85rem;
-  font-size: 0.8rem;
-  color: #44403c;
-  cursor: pointer;
-}
+
 
 .page-btn:last-child { border-right: none; }
-.page-btn.active { background: #ea580c; color: #ffffff; font-weight: 700; }
-.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
 
 /* Modal */
 .modal-backdrop {

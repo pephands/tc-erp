@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject , computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -96,12 +96,33 @@ export class ReferenceLeadsComponent implements OnInit {
   showToast = signal<boolean>(false);
 
   currentPage = signal<number>(1);
+  pageNumbers = computed(() => {
+    const pages = [];
+    const maxPages = 5;
+    let start = Math.max(1, this.currentPage() - 2);
+    let end = Math.min(this.totalPages(), start + maxPages - 1);
+    if (end - start < maxPages - 1) start = Math.max(1, end - maxPages + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  });
+
+  totalPages = computed(() => {
+    return Math.ceil(this.totalRecords() / this.pageSize()) || 1;
+  });
+
   pageSize = signal<number>(10);
   totalRecords = signal<number>(0);
   searchQuery = signal<string>('');
   filterStatus = signal<string>('');
   filterBranch = signal<string>('');
   branches = signal<any[]>([]);
+
+  setPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.fetchLeads();
+    }
+  }
 
   ngOnInit() {
     const roles = this.authService.userRoles();

@@ -319,36 +319,17 @@
   overflow: hidden;
 }
 
-.page-btn {
-  background: var(--bg-card);
-  border: none;
-  border-right: 1px solid var(--border-color);
-  padding: 0.4rem 0.85rem;
-  font-size: 0.8rem;
-  color: #44403c;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
+
 
 .page-btn:last-child {
   border-right: none;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: #f5f5f4;
-  color: var(--text-main);
-}
 
-.page-btn.active {
-  background: var(--primary);
-  color: var(--bg-card);
-  font-weight: 700;
-}
 
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+
+
+
 
 /* ==========================================================================
    MODAL POPUP DIALOG (Upload Branch Documents details)
