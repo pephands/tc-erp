@@ -17,6 +17,7 @@ export interface User {
   email: string;
   full_name: string;
   avatar?: string;
+  designation?: string;
   branch?: Branch;
   roles: Role[];
   shift_start_time?: string;

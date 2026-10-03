@@ -189,9 +189,7 @@ export class UserListComponent implements OnInit {
       this.loadBranches();
     }
     
-    if (this.isAdminUser) {
-      this.loadRoles();
-    }
+    this.loadRoles();
     
     if (this.roleCode === 'TRUST_USERS') {
       this.loadTrustDesignations();
@@ -646,7 +644,7 @@ export class UserListComponent implements OnInit {
     if (this.formDesignation.trim()) formData.append('designation', this.formDesignation.trim());
     formData.append('status', this.formStatus);
     
-    if (this.isAdminUser && this.formRoleCode) {
+    if (this.formRoleCode) {
       formData.append('target_role', this.formRoleCode);
     } else if (this.roleCode !== 'TRUST_USERS') {
       formData.append('target_role', this.roleCode);
@@ -714,7 +712,7 @@ export class UserListComponent implements OnInit {
     if (this.formDesignation.trim()) formData.append('designation', this.formDesignation.trim());
     formData.append('status', this.formStatus);
 
-    if (this.isAdminUser && this.formRoleCode) {
+    if (this.formRoleCode) {
       formData.append('target_role', this.formRoleCode);
     }
 
