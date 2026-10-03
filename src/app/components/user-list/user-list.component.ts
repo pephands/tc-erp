@@ -40,6 +40,7 @@ export interface UserRecord {
   aadharImage?: string;
   managedBranches?: any[];
   managedBranchIds?: number[];
+  id_card_number?: string;
 }
 
 @Component({
@@ -134,6 +135,7 @@ export class UserListComponent implements OnInit {
   // Form Fields - Add & Edit
   formEmployeeId = '';
   formFullName = '';
+  formOriginalName = '';
   formMobile = '';
   formOfficialPhone = '';
   formEmail = '';
@@ -295,9 +297,10 @@ export class UserListComponent implements OnInit {
   private mapApiUserToRecord(u: any): UserRecord {
     const primaryRole = u.roles?.[0];
     return {
-      id: u.employee_Id || `EMP_${u.id}`,
+      id: u.id_card_number || u.employee_Id || `EMP_${u.id}`,
       dbId: u.id,
       employee_Id: u.employee_Id || '',
+      id_card_number: u.id_card_number || '',
       fullName: u.full_name || u.employee_Id || '',
       originalName: u.full_name || '',
       personalNo: u.phone || '',
@@ -415,8 +418,9 @@ export class UserListComponent implements OnInit {
   // Edit User Modal Handlers
   openEditModal(user: UserRecord): void {
     this.editingUser.set(user);
-    this.formEmployeeId = user.id;
+    this.formEmployeeId = user.id_card_number || user.id;
     this.formFullName = user.fullName;
+    this.formOriginalName = user.originalName || '';
     this.formMobile = user.personalNo;
     this.formOfficialPhone = user.officialNo;
     this.formEmail = user.email;
@@ -471,6 +475,7 @@ export class UserListComponent implements OnInit {
   resetForm(): void {
     this.formEmployeeId = '';
     this.formFullName = '';
+    this.formOriginalName = '';
     this.formMobile = '';
     this.formOfficialPhone = '';
     this.formEmail = '';
@@ -632,8 +637,9 @@ export class UserListComponent implements OnInit {
     this.isSubmittingForm.set(true);
     const formData = new FormData();
     const employee_IdVal = this.formEmployeeId.trim() || this.formMobile.trim();
-    formData.append('employee_Id', employee_IdVal);
+    formData.append('id_card_number', employee_IdVal);
     formData.append('full_name', this.formFullName.trim());
+    if (this.formOriginalName.trim()) formData.append('original_name', this.formOriginalName.trim());
     formData.append('phone', this.formMobile.trim());
     formData.append('password', 'Welcome@123');
     formData.append('gender', this.formGender);
@@ -700,8 +706,9 @@ export class UserListComponent implements OnInit {
 
     this.isSubmittingForm.set(true);
     const formData = new FormData();
-    if (this.formEmployeeId.trim()) formData.append('employee_Id', this.formEmployeeId.trim());
+    if (this.formEmployeeId.trim()) formData.append('id_card_number', this.formEmployeeId.trim());
     formData.append('full_name', this.formFullName.trim());
+    if (this.formOriginalName.trim()) formData.append('original_name', this.formOriginalName.trim());
     formData.append('phone', this.formMobile.trim());
     formData.append('gender', this.formGender);
     if (this.formDesignation.trim()) formData.append('designation', this.formDesignation.trim());

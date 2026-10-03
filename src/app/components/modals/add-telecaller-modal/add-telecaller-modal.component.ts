@@ -133,9 +133,10 @@ export class AddTelecallerModalComponent implements OnInit, OnChanges {
     const branchId = branchObj ? branchObj.id : null;
 
     const payload = new FormData();
-    payload.append('employee_Id', this.formMobile.trim());
+    payload.append('id_card_number', this.formMobile.trim());
     payload.append('phone', this.formMobile.trim());
     payload.append('full_name', this.formFullName.trim());
+    if (this.formOriginalName.trim()) payload.append('original_name', this.formOriginalName.trim());
     payload.append('gender', this.formGender);
     if (branchId) payload.append('branch_id', branchId.toString());
     payload.append('status', 'Active');

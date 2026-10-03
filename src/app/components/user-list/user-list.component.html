@@ -261,13 +261,18 @@
         <div class="modal-body grid-2-col">
           <div class="form-section-title">Enter {{ roleTitle }} Details</div>
           <div class="form-group">
-            <label>Employee ID (Manual)</label>
-            <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" placeholder="e.g. DAR_2709" style="text-transform: uppercase;" />
+            <label>ID Card Number</label>
+            <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" placeholder="e.g. 1234" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
             <label>Full Name <span class="req">*</span></label>
             <input type="text" [ngModel]="formFullName" (ngModelChange)="formFullName = $event.toUpperCase()" placeholder="Enter full name" style="text-transform: uppercase;" />
+          </div>
+
+          <div class="form-group">
+            <label>Original Name</label>
+            <input type="text" [ngModel]="formOriginalName" (ngModelChange)="formOriginalName = $event.toUpperCase()" placeholder="Enter original name" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
@@ -535,13 +540,18 @@
         <div class="modal-body grid-2-col">
           <div class="form-section-title">Edit {{ roleTitle }} Details</div>
           <div class="form-group">
-            <label>Employee ID</label>
+            <label>ID Card Number</label>
             <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
             <label>Full Name</label>
             <input type="text" [ngModel]="formFullName" (ngModelChange)="formFullName = $event.toUpperCase()" style="text-transform: uppercase;" />
+          </div>
+
+          <div class="form-group">
+            <label>Original Name</label>
+            <input type="text" [ngModel]="formOriginalName" (ngModelChange)="formOriginalName = $event.toUpperCase()" style="text-transform: uppercase;" />
           </div>
 
           <div class="form-group">
