@@ -424,7 +424,15 @@ export class UserListComponent implements OnInit {
     this.formEmail = user.email;
     this.formBranchId = user.branchId ? user.branchId.toString() : '';
     this.formGender = user.gender;
-    this.formDesignation = user.designation;
+    
+    const userDesig = user.designation || '';
+    if (userDesig) {
+      const matchedDesig = this.formDesignationOptions().find(d => d.name && d.name.toUpperCase() === userDesig.toUpperCase());
+      this.formDesignation = matchedDesig ? matchedDesig.name : userDesig;
+    } else {
+      this.formDesignation = '';
+    }
+    
     this.formRoleCode = user.roleCode;
     
     let slabVal = user.slab ? user.slab.trim() : '';
