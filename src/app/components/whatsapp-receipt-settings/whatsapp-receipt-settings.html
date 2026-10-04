@@ -91,7 +91,7 @@
           <select [(ngModel)]="formAccount" name="account" required class="form-control">
             <option value="">Select Account</option>
             @for (acc of accounts(); track acc.id) {
-              <option [value]="acc.id">{{ acc.whatsapp_number }} ({{ acc.platform_name }})</option>
+              <option [value]="acc.id">{{ acc.branch_name }} ({{ acc.whatsapp_number }})</option>
             }
           </select>
         </div>
