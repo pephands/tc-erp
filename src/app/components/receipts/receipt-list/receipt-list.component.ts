@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../../services/payment.service';
 import { BranchListService } from '../../../services/branch-list.service';
 import { AuthService } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
 import { OnlinePaymentRecord } from '../../../models/payment.model';
 import { AddOnlinePaymentModalComponent } from '../../../modals/add-online-payment-modal/add-online-payment-modal.component';
 
@@ -24,6 +25,7 @@ export class ReceiptListComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private branchService = inject(BranchListService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
   private router = inject(Router);
   private datePipe = inject(DatePipe);
   private http = inject(HttpClient);
@@ -494,9 +496,14 @@ export class ReceiptListComponent implements OnInit {
   }
 
   onSendWhatsApp(record: OnlinePaymentRecord) {
-    const url = record.generated_receipt_url || record.payment_proof_url || '';
-    const msg = `Dear ${record.donor_name}, Thank you for your payment of Rs. ${record.amount}. Your receipt: ${url}`;
-    window.open(`https://wa.me/91${record.mobile_number}?text=${encodeURIComponent(msg)}`, '_blank');
+    this.paymentService.sendWhatsappReceipt(record.id).subscribe({
+      next: (res) => {
+        this.toastService.success('WhatsApp Receipt', 'WhatsApp receipt sent successfully!');
+      },
+      error: (err) => {
+        this.toastService.error('Send Failed', err.error?.error || 'Failed to send WhatsApp receipt.');
+      }
+    });
   }
 
   onSendMail(record: OnlinePaymentRecord) {

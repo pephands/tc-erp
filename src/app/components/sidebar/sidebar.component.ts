@@ -315,6 +315,7 @@ export class SidebarComponent implements OnInit {
         //   icon: 'verified',
         //   allowedRoles: ['ADMIN', 'TL', 'TC'],
         // },
+        
         {
           id: 'whatsapp_accounts',
           label: 'WhatsApp Accounts',
@@ -335,6 +336,13 @@ export class SidebarComponent implements OnInit {
           icon: 'send',
           allowedRoles: ['TL', 'TC'],
           route: '/whatsapp-send',
+        },
+        {
+          id: 'whatsapp_receipt_settings',
+          label: 'WhatsApp Receipt',
+          icon: 'receipt',
+          allowedRoles: ['ADMIN'],
+          route: '/whatsapp-receipt-settings',
         },
         {
           id: 'whatsapp_send_history',
@@ -652,6 +660,7 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/online-history')) return this.primaryRole === 'TC' ? 'online_history_tc' : 'online_history';
 
     // Whatsapp
+    if (url.includes('/whatsapp-receipt-settings')) return 'whatsapp_receipt_settings';
     if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
     if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
     if (url.includes('/whatsapp-send')) return 'send_whatsapp_message';

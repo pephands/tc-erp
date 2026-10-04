@@ -1,0 +1,126 @@
+<main class="branches-container">
+  <!-- Header Action Bar -->
+  <div class="action-header-bar">
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        type="text" 
+        placeholder="Search settings..." 
+      />
+    </div>
+
+    <button type="button" class="btn-add-branch" (click)="openModal()" style="background-color: var(--secondary-color, #10b981);">
+      <span class="material-symbols-outlined">add_circle</span>
+      <span>Add Receipt Setting</span>
+    </button>
+  </div>
+
+  <!-- Data Table Card Container -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Branch Name</th>
+            <th>WhatsApp Account</th>
+            <th>Receipt Template</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="6" class="no-data">
+                <div class="btn-spinner" style="display:inline-block; border-color:var(--text-color); border-top-color:transparent;"></div>
+                <p>Loading settings...</p>
+              </td>
+            </tr>
+          } @else {
+            @for (setting of settingsList(); track setting.id; let i = $index) {
+              <tr>
+                <td class="col-id">{{ i + 1 }}</td>
+                <td class="col-name">{{ setting.branch_name }}</td>
+                <td class="col-short">{{ setting.whatsapp_account_number }} ({{ setting.whatsapp_account_name }})</td>
+                <td class="col-phone">{{ setting.receipt_template }}</td>
+                <td class="col-hide">
+                  <span class="hide-badge" [class.is-true]="!setting.is_active">
+                    {{ setting.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="col-actions">
+                  <div class="action-btn-group">
+                    <button type="button" class="btn-edit" (click)="openModal(setting)" title="Edit Setting">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="no-data">
+                  <span class="material-symbols-outlined">receipt_long</span>
+                  <p>No receipt settings found.</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- ADD / EDIT MODAL -->
+@if (isModalOpen()) {
+<div class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Edit Receipt Setting' : 'Add Receipt Setting' }}</h2>
+      <button type="button" class="btn-close" (click)="closeModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="onSubmit()" #settingForm="ngForm">
+        
+        <div class="form-group">
+          <label>WhatsApp Account <span class="required">*</span></label>
+          <select [(ngModel)]="formAccount" name="account" required class="form-control">
+            <option value="">Select Account</option>
+            @for (acc of accounts(); track acc.id) {
+              <option [value]="acc.id">{{ acc.whatsapp_number }} ({{ acc.platform_name }})</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Receipt Template <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="formTemplate" name="template" required class="form-control" placeholder="Enter Meta approved template name">
+        </div>
+
+        <div class="form-group toggle-group" style="display:flex; align-items:center; gap: 10px;">
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="isActive" name="isActive" style="transform: scale(1.5)" />
+          </label>
+          <span class="toggle-label" style="font-weight: 500;">Active Status</span>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn-save" [disabled]="!settingForm.form.valid || isSubmitting()">
+            @if (isSubmitting()) {
+              <span>Saving...</span>
+            } @else {
+              <span>{{ isEditMode ? 'Update Setting' : 'Add Setting' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+}
+

@@ -6,7 +6,7 @@ import { Endpoint } from '../http/endpoint';
 @Injectable({
   providedIn: 'root'
 })
-export class WhatsappAccountCreateService extends BaseHttpService {
+export class WhatsappReceiptSettingsService extends BaseHttpService {
   constructor(
     public endPoint: Endpoint,
     public injector: Injector,
@@ -19,7 +19,7 @@ export class WhatsappAccountCreateService extends BaseHttpService {
   }
 
   get endpoint(): string {
-    return this.endPoint.whatsappAccounts;
+    return this.endPoint.whatsappReceiptSettings;
   }
 
   getData(): Observable<any> {

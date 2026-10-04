@@ -79,6 +79,12 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  sendWhatsappReceipt(id: number | string): Observable<any> {
+    return this.httpClient.post<any>(this.endPoint.paymentRecordSendWhatsappReceipt(id), {}, {
+      headers: this.headers,
+    });
+  }
+
   getBatchReports(startDate: string, endDate: string, status: string, page: number = 1): Observable<any> {
     let params = new HttpParams();
     if (startDate) params = params.set('start_date', startDate);

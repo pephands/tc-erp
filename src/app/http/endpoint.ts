@@ -219,6 +219,10 @@ export class Endpoint {
     return this.baseUrl + `payments/records/${id}/receipt/`;
   }
 
+  paymentRecordSendWhatsappReceipt(id: number | string): string {
+    return this.baseUrl + `payments/records/${id}/send-receipt/`;
+  }
+
   get verifiedDonorsUpload(): string {
     return this.baseUrl + 'payments/verified-donors/upload/';
   }
@@ -238,6 +242,10 @@ export class Endpoint {
   // Whatsapp
   get whatsappAccounts(): string {
     return this.baseUrl + 'whatsapp/accounts/';
+  }
+
+  get whatsappReceiptSettings(): string {
+    return this.baseUrl + 'whatsapp/receipt-settings/';
   }
 
   get whatsappCampaigns(): string {
