@@ -5,8 +5,9 @@ import { environment } from '../../environments/environment.development';
   providedIn: 'root',
 })
 export class Endpoint {
-  baseUrl: string = 'http://127.0.0.1:8000/';
-  // baseUrl: string = 'https://f428-183-82-242-159.ngrok-free.app/';
+  baseUrl: string = 'https://theoperationhub.el.r.appspot.com/';
+  // baseUrl: string = 'http://127.0.0.1:8000/';
+
 
   // user authentication
 
@@ -186,11 +187,11 @@ export class Endpoint {
   paymentReceiptEdit(id: number | string): string {
     return this.baseUrl + `payments/receipts/${id}/edit/`;
   }
-  
+
   get paymentModes(): string {
     return this.baseUrl + 'payments/modes/';
   }
-  
+
   get paymentBatchConfigs(): string {
     return this.baseUrl + 'payments/batch-configs/';
   }
@@ -206,11 +207,11 @@ export class Endpoint {
   get paymentBatchUpload(): string {
     return this.baseUrl + 'payments/batch/upload/';
   }
-  
+
   paymentBatchBranchStats(runId: number): string {
     return this.baseUrl + `payments/batch/${runId}/branch-stats/`;
   }
-  
+
   paymentBatchRecords(runId: number): string {
     return this.baseUrl + `payments/batch/${runId}/records/`;
   }
