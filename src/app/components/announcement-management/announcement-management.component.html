@@ -16,8 +16,8 @@
               <th>Title</th>
               @if (isAdmin()) {
                 <th>Created At</th>
+                <th>Status</th>
               }
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -28,12 +28,12 @@
               <td>{{ ann.title }}</td>
               @if (isAdmin()) {
                 <td>{{ ann.created_at | date:'medium' }}</td>
+                <td>
+                  <span class="status-badge" [class.active]="ann.is_active" [class.inactive]="!ann.is_active">
+                    {{ ann.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
               }
-              <td>
-                <span class="status-badge" [class.active]="ann.is_active" [class.inactive]="!ann.is_active">
-                  {{ ann.is_active ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
               <td>
                 <div class="action-buttons-group">
                   @if (isAdmin()) {

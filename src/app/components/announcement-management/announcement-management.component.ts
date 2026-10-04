@@ -219,9 +219,18 @@ export class AnnouncementManagementComponent implements OnInit {
     
     const mType = this.formMediaType();
     
-    if (mType === 'youtube' && this.formYoutubeLink()) fd.append('youtube_link', this.formYoutubeLink());
-    if (mType === 'instagram' && this.formInstagramLink()) fd.append('instagram_link', this.formInstagramLink());
-    if (this.formCtaLink()) fd.append('cta_link', this.formCtaLink());
+    if (mType === 'youtube') {
+      fd.append('youtube_link', this.formYoutubeLink() || '');
+      fd.append('instagram_link', '');
+    } else if (mType === 'instagram') {
+      fd.append('instagram_link', this.formInstagramLink() || '');
+      fd.append('youtube_link', '');
+    } else {
+      fd.append('youtube_link', '');
+      fd.append('instagram_link', '');
+    }
+    
+    fd.append('cta_link', this.formCtaLink() || '');
     
     if (mType === 'image' && this.selectedImage()) fd.append('image', this.selectedImage()!);
     if (mType === 'video' && this.selectedVideo()) fd.append('video', this.selectedVideo()!);
