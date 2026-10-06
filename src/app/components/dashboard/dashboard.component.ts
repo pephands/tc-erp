@@ -75,10 +75,57 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // TL / Admin WFH Passcode Management State
   staffUsers = signal<any[]>([]);
   selectedStaffId = signal<number | null>(null);
+  staffSearchText = signal<string>('');
+  selectedStaffName = signal<string | null>(null);
   todayPasscodes = signal<WFHPasscodeRecord[]>([]);
   isGeneratingPasscode = signal<boolean>(false);
   lastGeneratedPasscode = signal<WFHPasscodeRecord | null>(null);
   copiedCode = signal<string | null>(null);
+  isStaffDropdownOpen = signal<boolean>(false);
+  
+  selectStaff(staff: any): void {
+    this.selectedStaffId.set(staff.id);
+    this.selectedStaffName.set(staff.label);
+    this.isStaffDropdownOpen.set(false);
+  }
+
+  private searchTimeout: any;
+
+  onStaffSearchChange(val: string): void {
+    this.staffSearchText.set(val);
+
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+
+    if (!val || val.length < 2) {
+      this.staffUsers.set([]);
+      this.selectedStaffId.set(null);
+      this.selectedStaffName.set(null);
+      return;
+    }
+
+    this.searchTimeout = setTimeout(() => {
+      this.userListService.searchDropdownUsers(val).subscribe({
+        next: (res: any) => {
+          const list = Array.isArray(res) ? res : (res?.data || []);
+          this.staffUsers.set(list); // now contains objects with id and label
+          
+          const matched = list.find((s: any) => 
+            s.employee_Id && s.employee_Id.toLowerCase() === val.toLowerCase()
+          );
+          if (matched) {
+            this.selectedStaffId.set(matched.id);
+            this.selectedStaffName.set(matched.label);
+          } else {
+            this.selectedStaffId.set(null);
+            this.selectedStaffName.set(null);
+          }
+        },
+        error: (err: any) => console.error('Error fetching staff search', err)
+      });
+    }, 400);
+  }
 
   // Filters State
   branches = signal<any[]>([]);
@@ -120,7 +167,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadBranches(): void {
-    this.branchListService.getData().subscribe({
+    this.branchListService.getData(1, 1000, undefined, 'true').subscribe({
       next: (res: any) => {
         if (res.status === 'success' && res.data) {
           this.branches.set(res.data);
@@ -143,19 +190,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadStaffUsers(): void {
-    const branchId = this.selectedBranch();
-    const roleCode = this.selectedRole();
-    
-    this.userListService.getUsers(branchId, roleCode, 1, 500).subscribe({
-      next: (res: any) => {
-        const list = Array.isArray(res) ? res : (res?.results || res?.data || []);
-        this.staffUsers.set(list.filter((u: any) => u.is_active));
-        this.selectedStaffId.set(null); // Reset selection when list updates
-      },
-      error: (err: any) => {
-        console.error('Error loading staff users:', err);
-      }
-    });
+    this.staffUsers.set([]);
+    this.selectedStaffId.set(null);
+    this.staffSearchText.set('');
+    this.selectedStaffName.set(null);
   }
 
   onFilterChange(): void {
@@ -188,6 +226,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.lastGeneratedPasscode.set(res.data);
           this.toastService.success('Passcode Generated', res.message || 'WFH Passcode ready to share.');
           this.loadTodayPasscodes();
+          this.staffSearchText.set('');
+          this.selectedStaffName.set(null);
+          this.selectedStaffId.set(null);
         } else {
           this.toastService.error('Error', 'Failed to generate passcode.');
         }

@@ -5,8 +5,8 @@ import { environment } from '../../environments/environment.development';
   providedIn: 'root',
 })
 export class Endpoint {
-  baseUrl: string = 'https://theoperationhub.el.r.appspot.com/';
-  // baseUrl: string = 'http://127.0.0.1:8000/';
+  // baseUrl: string = 'https://theoperationhub.el.r.appspot.com/';
+  baseUrl: string = 'http://127.0.0.1:8000/';
 
 
   // user authentication

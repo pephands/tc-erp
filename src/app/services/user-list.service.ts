@@ -35,6 +35,11 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.get(url, { headers: this.headers });
   }
 
+  searchDropdownUsers(searchTerm: string): Observable<any> {
+    const url = `${this.endpoint}search-dropdown/?search=${encodeURIComponent(searchTerm)}`;
+    return this.httpClient.get(url, { headers: this.headers });
+  }
+
   getRoleUsers(
     roleCode: string,
     branch?: string | number | null,
