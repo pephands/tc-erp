@@ -360,7 +360,7 @@ export class ReceiptListComponent implements OnInit {
     const status = 'OK';
 
     this.isZipping.set(true);
-    this.zipProgress.set('Fetching records...');
+    this.zipProgress.set('Initializing...');
     this.zipElapsedTime.set(0);
     
     if (this.zipTimer) clearInterval(this.zipTimer);
@@ -368,101 +368,95 @@ export class ReceiptListComponent implements OnInit {
       this.zipElapsedTime.update(v => v + 1);
     }, 1000);
 
-    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true, panStatus, donationType).subscribe({
-      next: async (res: any) => {
-        let items: any[] = [];
-        if (res && res.data) {
-          items = Array.isArray(res.data) ? res.data : [res.data];
-        } else if (Array.isArray(res)) {
-          items = res;
-        }
+    const zip = new JSZip();
+    let downloadedCount = 0;
+    let page = 1;
+    let totalExpected = 0;
+    
+    const startTime = Date.now();
 
-        // Apply strict filter: only Amount donation_type and OK status
-        const pdfItems = items.filter(r => 
-          ((r.donation_type === 'Amount') || (!r.donation_type)) && 
-          r.status === 'OK'
-        );
-
-        if (pdfItems.length === 0) {
-          this.zipProgress.set('No Amount receipts found for this filter.');
-          if (this.zipTimer) clearInterval(this.zipTimer);
-          setTimeout(() => {
-            this.isZipping.set(false);
-            this.zipProgress.set('');
-          }, 3000);
-          return;
-        }
-
-        const zip = new JSZip();
-        let downloadedCount = 0;
-        const total = pdfItems.length;
+    while (true) {
+        this.zipProgress.set(`Fetching page ${page}...`);
         
-        // Batch configuration for faster yet safe processing
-        const BATCH_SIZE = 5;
-        const DELAY_BETWEEN_BATCHES_MS = 300;
-        
-        const startTime = Date.now();
-
-        for (let i = 0; i < total; i += BATCH_SIZE) {
-          const batch = pdfItems.slice(i, i + BATCH_SIZE);
-          
-          let progressStr = `Downloading ${downloadedCount}/${total}...`;
-          if (downloadedCount > 0) {
-            const elapsed = Date.now() - startTime;
-            const avgTimePerItem = elapsed / downloadedCount;
-            const remainingItems = total - downloadedCount;
-            const etaSeconds = Math.ceil((avgTimePerItem * remainingItems) / 1000);
-            progressStr += ` (Est. ${this.formatETA(etaSeconds)} remaining)`;
-          }
-          this.zipProgress.set(progressStr);
-          
-          const promises = batch.map(async (rec) => {
-            try {
-              // Use paymentService.downloadReceipt to trigger backend generation if missing
-              const blob = await this.paymentService.downloadReceipt(rec.id).toPromise();
-              if (blob) {
-                const fileName = rec.receipt_id ? `${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
-                zip.file(fileName, blob);
-                downloadedCount++;
-              }
-            } catch (e) {
-              console.error('Failed to download PDF for:', rec.receipt_id, e);
+        try {
+            // isExport = false to get paginated data from backend
+            const res: any = await this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType).toPromise();
+            
+            let items: any[] = [];
+            if (res && res.results) { 
+                items = res.results;
+                if (page === 1) totalExpected = res.count || 0;
+            } else if (res && res.data) {
+                items = Array.isArray(res.data) ? res.data : [res.data];
+            } else if (Array.isArray(res)) {
+                items = res;
             }
-          });
-
-          await Promise.all(promises);
-
-          // Give the server a small breather
-          if (i + BATCH_SIZE < total) {
-            await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS));
-          }
+            
+            if (!items || items.length === 0) {
+                break;
+            }
+            
+            // Apply strict filter: only Amount donation_type and OK status
+            const pdfItems = items.filter(r => ((r.donation_type === 'Amount') || (!r.donation_type)) && r.status === 'OK');
+            
+            for (const rec of pdfItems) {
+                let progressStr = `Generating ${downloadedCount + 1}...`;
+                if (totalExpected > 0) {
+                    const elapsed = Date.now() - startTime;
+                    const avgTimePerItem = elapsed / (downloadedCount || 1);
+                    const remainingItems = totalExpected - downloadedCount;
+                    const etaSeconds = Math.ceil((avgTimePerItem * remainingItems) / 1000);
+                    progressStr = `Generating ${downloadedCount + 1}/${totalExpected}... (Est. ${this.formatETA(etaSeconds)} remaining)`;
+                }
+                this.zipProgress.set(progressStr);
+                
+                try {
+                    // Update the hidden component's input
+                    this.selectedRecordForReceipt = rec;
+                    // Allow Angular to update the DOM before html2canvas reads it
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    
+                    const blob = await this.receiptGenerate.generatePdfBlob(true);
+                    if (blob) {
+                        const fileName = rec.receipt_id ? `${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
+                        zip.file(fileName, blob);
+                        downloadedCount++;
+                    }
+                } catch (e) {
+                    console.error('Failed to download PDF from backend for:', rec.receipt_id, e);
+                }
+            }
+            
+            // Check if we reached the end
+            if (res && res.next) {
+                page++;
+            } else if (items.length < 10) { 
+                break;
+            } else {
+                if (!res || !res.next) break;
+                page++;
+            }
+        } catch (err: any) {
+            console.error('Error fetching receipts for zip:', err);
+            this.zipProgress.set('Failed to fetch receipts for export.');
+            break;
         }
+    }
+    
+    if (downloadedCount > 0) {
+        this.zipProgress.set('Zipping files...');
+        const content = await zip.generateAsync({ type: 'blob' });
+        saveAs(content, `Receipts_PDFs_${new Date().toISOString().slice(0, 10)}.zip`);
+        this.zipProgress.set(`Success! Downloaded ${downloadedCount} receipts.`);
+    } else {
+        this.zipProgress.set('Failed to download any PDFs or no Amount receipts found.');
+    }
 
-        if (downloadedCount > 0) {
-          this.zipProgress.set('Zipping files...');
-          const content = await zip.generateAsync({ type: 'blob' });
-          saveAs(content, `Receipts_PDFs_${new Date().toISOString().slice(0, 10)}.zip`);
-          this.zipProgress.set(`Success! Downloaded ${downloadedCount} receipts.`);
-        } else {
-          this.zipProgress.set('Failed to download any PDFs.');
-        }
-
-        if (this.zipTimer) clearInterval(this.zipTimer);
-        setTimeout(() => {
-          this.isZipping.set(false);
-          this.zipProgress.set('');
-        }, 3000);
-      },
-      error: (err: any) => {
-        console.error('Error fetching receipts for zip:', err);
-        this.zipProgress.set('Failed to fetch receipts for export.');
-        if (this.zipTimer) clearInterval(this.zipTimer);
-        setTimeout(() => {
-          this.isZipping.set(false);
-          this.zipProgress.set('');
-        }, 3000);
-      }
-    });
+    if (this.zipTimer) clearInterval(this.zipTimer);
+    setTimeout(() => {
+        this.isZipping.set(false);
+        this.zipProgress.set('');
+    }, 3000);
   }
   onCreateReceipt(): void {
     this.router.navigate(['/receipts/create']);

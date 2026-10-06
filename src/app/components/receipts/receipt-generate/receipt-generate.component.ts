@@ -18,10 +18,12 @@ export class ReceiptGenerateComponent {
 
   constructor() {}
 
-  async generatePdfBlob(): Promise<Blob> {
+  async generatePdfBlob(isBatch: boolean = false): Promise<Blob> {
     const element = this.receiptPage.nativeElement;
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    const scale = isBatch ? 1.5 : 2;
+    const quality = isBatch ? 0.7 : 0.98;
+    const canvas = await html2canvas(element, { scale: scale });
+    const imgData = canvas.toDataURL('image/jpeg', quality);
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
