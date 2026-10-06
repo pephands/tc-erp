@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
@@ -12,11 +12,12 @@ import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toast.service';
 import { OnlinePaymentRecord } from '../../../models/payment.model';
 import { AddOnlinePaymentModalComponent } from '../../../modals/add-online-payment-modal/add-online-payment-modal.component';
+import { ReceiptGenerateComponent } from '../receipt-generate/receipt-generate.component';
 
 @Component({
   selector: 'app-receipt-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddOnlinePaymentModalComponent],
+  imports: [CommonModule, FormsModule, AddOnlinePaymentModalComponent, ReceiptGenerateComponent],
   providers: [DatePipe],
   templateUrl: './receipt-list.component.html',
   styleUrl: './receipt-list.component.css'
@@ -39,6 +40,9 @@ export class ReceiptListComponent implements OnInit {
   private zipTimer: any = null;
   showEditModal = signal<boolean>(false);
   editRecord = signal<OnlinePaymentRecord | null>(null);
+
+  selectedRecordForReceipt: OnlinePaymentRecord | null = null;
+  @ViewChild('receiptGenerate') receiptGenerate!: ReceiptGenerateComponent;
 
   // Tabs
   activeTab = signal<string>('All'); // 'All', 'Amount', or 'Goodies'
@@ -466,20 +470,23 @@ export class ReceiptListComponent implements OnInit {
 
   // Actions
   onView(record: OnlinePaymentRecord) {
-    this.paymentService.downloadReceipt(record.id).subscribe({
-      next: (blob) => {
+    this.selectedRecordForReceipt = record;
+    setTimeout(async () => {
+      try {
+        const blob = await this.receiptGenerate.generatePdfBlob();
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
-      },
-      error: () => {
-        alert('Failed to view receipt. It might not be available.');
+      } catch (err) {
+        this.toastService.error('View Failed', 'Failed to generate and view receipt.');
       }
-    });
+    }, 100);
   }
 
   onDownload(record: OnlinePaymentRecord) {
-    this.paymentService.downloadReceipt(record.id).subscribe({
-      next: (blob) => {
+    this.selectedRecordForReceipt = record;
+    setTimeout(async () => {
+      try {
+        const blob = await this.receiptGenerate.generatePdfBlob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -488,22 +495,40 @@ export class ReceiptListComponent implements OnInit {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      },
-      error: () => {
-        alert('Failed to download receipt. It might not be available.');
+      } catch (err) {
+        this.toastService.error('Download Failed', 'Failed to generate and download receipt.');
       }
-    });
+    }, 100);
   }
 
   onSendWhatsApp(record: OnlinePaymentRecord) {
-    this.paymentService.sendWhatsappReceipt(record.id).subscribe({
-      next: (res) => {
-        this.toastService.success('WhatsApp Receipt', 'WhatsApp receipt sent successfully!');
-      },
-      error: (err) => {
-        this.toastService.error('Send Failed', err.error?.error || 'Failed to send WhatsApp receipt.');
+    this.selectedRecordForReceipt = record;
+    setTimeout(async () => {
+      try {
+        const blob = await this.receiptGenerate.generatePdfBlob();
+        const file = new File([blob], `Receipt_${record.receipt_id || record.id}.pdf`, { type: 'application/pdf' });
+        const formData = new FormData();
+        formData.append('generated_receipt', file);
+
+        this.paymentService.updateReceipt(record.id, formData).subscribe({
+          next: () => {
+            this.paymentService.sendWhatsappReceipt(record.id).subscribe({
+              next: (res) => {
+                this.toastService.success('WhatsApp Receipt', 'WhatsApp receipt sent successfully!');
+              },
+              error: (err) => {
+                this.toastService.error('Send Failed', err.error?.error || 'Failed to send WhatsApp receipt.');
+              }
+            });
+          },
+          error: () => {
+            this.toastService.error('Upload Failed', 'Failed to upload generated receipt to server.');
+          }
+        });
+      } catch (err) {
+        this.toastService.error('Generation Failed', 'Failed to generate receipt for WhatsApp.');
       }
-    });
+    }, 100);
   }
 
   onSendMail(record: OnlinePaymentRecord) {

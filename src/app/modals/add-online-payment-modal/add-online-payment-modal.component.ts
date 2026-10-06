@@ -234,9 +234,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     const formData = new FormData();
     formData.append('payment_date', this.paymentDate());
     formData.append('mobile_number', this.mobileNumber().trim());
-    if (this.altMobileNumber().trim()) {
-      formData.append('alt_mobile_number', this.altMobileNumber().trim());
-    }
+    formData.append('alt_mobile_number', this.altMobileNumber().trim());
     formData.append('donor_name', this.donorName().trim().toUpperCase());
     
     if (this.editRecord?.donation_type === 'Goodies') {
@@ -252,21 +250,13 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     formData.append('slab', this.slab().trim() || '1');
     formData.append('donor_type', this.donorType());
 
-    if (this.panNumber().trim()) {
-      formData.append('pan_number', this.panNumber().trim().toUpperCase());
-    }
-    if (this.correctionName().trim()) {
-      formData.append('correction_name', this.correctionName().trim().toUpperCase());
-    }
-    if (this.address().trim()) {
-      formData.append('address', this.address().trim().toUpperCase());
-    }
+    formData.append('pan_number', this.panNumber().trim().toUpperCase());
+    formData.append('correction_name', this.correctionName().trim().toUpperCase());
+    formData.append('address', this.address().trim().toUpperCase());
     if (this.dob()) {
       formData.append('dob', this.dob());
     }
-    if (this.remarks().trim()) {
-      formData.append('remarks', this.remarks().trim().toUpperCase());
-    }
+    formData.append('remarks', this.remarks().trim().toUpperCase());
     if (this.selectedFile()) {
       formData.append('payment_proof', this.selectedFile()!, this.selectedFile()!.name);
     }
