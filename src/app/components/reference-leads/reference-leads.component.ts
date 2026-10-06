@@ -138,7 +138,7 @@ export class ReferenceLeadsComponent implements OnInit {
   }
   
   fetchBranches() {
-    this.http.get(`${environment.baseUrl}branches/?is_active=1&page_size=1000`, { headers: this.telecallingService.headers }).subscribe({
+    this.http.get(`${environment.baseUrl}branches/?is_active=1&is_trust=false&page_size=1000`, { headers: this.telecallingService.headers }).subscribe({
       next: (res: any) => {
         if (res && res.status === 'success') {
           this.branches.set(res.data);

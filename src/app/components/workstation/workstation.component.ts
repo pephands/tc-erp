@@ -513,7 +513,7 @@ export class WorkstationComponent implements OnInit {
   // TL & ADMIN METHODS
   // ----------------------------------------------------
   fetchBranches(): void {
-    this.service.fetchBranches().subscribe({
+    this.service.fetchBranches({ is_active: 'true', is_trust: 'false', page_size: 1000 }).subscribe({
       next: (res) => this.branches.set(res || []),
       error: (err) => console.error('Error fetching branches', err)
     });

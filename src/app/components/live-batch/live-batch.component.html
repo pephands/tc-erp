@@ -128,63 +128,63 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-      <!-- Total Amount Card -->
-      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-        <div class="icon-box" style="background: #dcfce7; color: #10b981; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <span class="material-symbols-outlined" style="font-size: 1.75rem;">account_balance_wallet</span>
+    @if (isLoading2()) {
+      <div class="loading-state" style="margin: 3rem 0;">
+        <span class="material-symbols-outlined spin-icon" style="font-size: 2rem;">refresh</span>
+        <p>Loading overall batch data...</p>
+      </div>
+    } @else {
+      <!-- Summary Cards -->
+      <div class="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <!-- Total Amount Card -->
+        <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div class="icon-box" style="background: #dcfce7; color: #10b981; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 1.75rem;">account_balance_wallet</span>
+          </div>
+          <div>
+            <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Overall Amount</h4>
+            <h2 style="margin: 0.25rem 0 0 0; color: #059669; font-size: 1.5rem; font-weight: 800;">₹{{ overallAmount() | number:'1.2-2' }}</h2>
+          </div>
         </div>
-        <div>
-          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Overall Amount</h4>
-          <h2 style="margin: 0.25rem 0 0 0; color: #059669; font-size: 1.5rem; font-weight: 800;">₹{{ overallAmount() | number:'1.2-2' }}</h2>
+
+        <!-- OLD Donor Amount Card -->
+        <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div class="icon-box" style="background: #e0f2fe; color: #0284c7; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 1.75rem;">history</span>
+          </div>
+          <div>
+            <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">OLD Donor Amount</h4>
+            <h2 style="margin: 0.25rem 0 0 0; color: #0284c7; font-size: 1.5rem; font-weight: 800;">₹{{ overallOldAmount() | number:'1.2-2' }}</h2>
+            <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Records: {{ overallOldCount() }}</p>
+          </div>
+        </div>
+
+        <!-- NEW Donor Amount Card -->
+        <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div class="icon-box" style="background: #fef3c7; color: #d97706; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 1.75rem;">person_add</span>
+          </div>
+          <div>
+            <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">NEW Donor Amount</h4>
+            <h2 style="margin: 0.25rem 0 0 0; color: #d97706; font-size: 1.5rem; font-weight: 800;">₹{{ overallNewAmount() | number:'1.2-2' }}</h2>
+            <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Records: {{ overallNewCount() }}</p>
+          </div>
+        </div>
+
+        <!-- Total Records Card -->
+        <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div class="icon-box" style="background: #e0e7ff; color: #4338ca; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 1.75rem;">receipt_long</span>
+          </div>
+          <div>
+            <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Total OK Records</h4>
+            <h2 style="margin: 0.25rem 0 0 0; color: #4338ca; font-size: 1.5rem; font-weight: 800;">{{ overallRecords() | number }}</h2>
+          </div>
         </div>
       </div>
 
-      <!-- OLD Donor Amount Card -->
-      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-        <div class="icon-box" style="background: #e0f2fe; color: #0284c7; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <span class="material-symbols-outlined" style="font-size: 1.75rem;">history</span>
-        </div>
-        <div>
-          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">OLD Donor Amount</h4>
-          <h2 style="margin: 0.25rem 0 0 0; color: #0284c7; font-size: 1.5rem; font-weight: 800;">₹{{ overallOldAmount() | number:'1.2-2' }}</h2>
-          <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Records: {{ overallOldCount() }}</p>
-        </div>
-      </div>
-
-      <!-- NEW Donor Amount Card -->
-      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-        <div class="icon-box" style="background: #fef3c7; color: #d97706; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <span class="material-symbols-outlined" style="font-size: 1.75rem;">person_add</span>
-        </div>
-        <div>
-          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">NEW Donor Amount</h4>
-          <h2 style="margin: 0.25rem 0 0 0; color: #d97706; font-size: 1.5rem; font-weight: 800;">₹{{ overallNewAmount() | number:'1.2-2' }}</h2>
-          <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Records: {{ overallNewCount() }}</p>
-        </div>
-      </div>
-
-      <!-- Total Records Card -->
-      <div class="card" style="padding: 1.25rem; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-        <div class="icon-box" style="background: #e0e7ff; color: #4338ca; padding: 0.75rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <span class="material-symbols-outlined" style="font-size: 1.75rem;">receipt_long</span>
-        </div>
-        <div>
-          <h4 style="margin: 0; color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Total OK Records</h4>
-          <h2 style="margin: 0.25rem 0 0 0; color: #4338ca; font-size: 1.5rem; font-weight: 800;">{{ overallRecords() | number }}</h2>
-        </div>
-      </div>
-    </div>
-
-    <!-- Table Card for Tab 2 -->
-    <div class="table-card shadow-card">
-      @if (isLoading2()) {
-        <div class="loading-state">
-          <span class="material-symbols-outlined spin-icon">refresh</span>
-          <p>Loading overall batch data...</p>
-        </div>
-      } @else {
+      <!-- Table Card for Tab 2 -->
+      <div class="table-card shadow-card">
         <div class="table-responsive">
           <table class="payment-table">
             <thead>
@@ -235,7 +235,7 @@
             </tbody>
           </table>
         </div>
-      }
-    </div>
+      </div>
+    }
   }
 </main>

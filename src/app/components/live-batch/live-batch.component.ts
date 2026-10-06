@@ -78,7 +78,7 @@ export class LiveBatchComponent implements OnInit {
   }
 
   fetchBranches() {
-    this.branchListService.getData(1, 100).subscribe({
+    this.branchListService.getData(1, 1000, undefined, 'true', 'false').subscribe({
       next: (res) => {
         if (res && res.data) {
           this.branches.set(res.data);

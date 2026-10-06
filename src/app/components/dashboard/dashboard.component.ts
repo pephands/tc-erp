@@ -167,7 +167,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadBranches(): void {
-    this.branchListService.getData(1, 1000, undefined, 'true').subscribe({
+    this.branchListService.getData(1, 1000, undefined, 'true', 'false').subscribe({
       next: (res: any) => {
         if (res.status === 'success' && res.data) {
           this.branches.set(res.data);
