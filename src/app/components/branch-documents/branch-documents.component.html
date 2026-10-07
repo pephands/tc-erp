@@ -5,10 +5,10 @@
 
     <!-- Top Toolbar Header Bar -->
     <div class="top-toolbar">
-      <!-- Left Filter Controls (Select Branch + Submit) -->
+      <!-- Left Filter Controls (Select Branch) -->
       <div class="left-filter-group">
         <div class="branch-select-wrapper">
-          <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event)">
+          <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event); onFilterSubmit()">
             <option value="" selected>Select Branch (All)</option>
             @for (b of branchesList(); track b.id) {
               <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
@@ -16,10 +16,6 @@
           </select>
           <span class="material-symbols-outlined select-arrow">expand_more</span>
         </div>
-
-        <button type="button" class="btn-filter-submit" (click)="onFilterSubmit()">
-          Submit
-        </button>
       </div>
 
       <!-- Right Action Button (Create) -->
@@ -135,42 +131,40 @@
       </div>
 
       <!-- Pagination Footer Bar -->
-      @if (filteredDocuments().length > 0) {
-            <div class="pagination-bar">
-      <div class="pagination-info">
-        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ filteredDocuments().length }} total records)
-        <span style="margin-left: 15px;">
-          Per page: 
-          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="20">20</option>
-            <option [value]="50">50</option>
-          </select>
-        </span>
-      </div>
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalItems() }} total records)
+          <span style="margin-left: 15px;">
+            Per page: 
+            <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="50">50</option>
+            </select>
+          </span>
+        </div>
 
-      <div class="pagination-controls">
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
-          Prev
-        </button>
-        
-        @for (p of pageNumbers(); track p) {
-          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
-            {{ p }}
+        <div class="pagination-controls">
+          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+            Prev
           </button>
-        }
+          
+          @for (p of pageNumbers(); track p) {
+            <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+              {{ p }}
+            </button>
+          }
 
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
-          Next
-        </button>
-        
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
-          Last
-        </button>
+          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+            Next
+          </button>
+          
+          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+            Last
+          </button>
+        </div>
       </div>
-    </div>
-      }
 
     </div>
 

@@ -26,7 +26,9 @@ export class BranchVehiclesComponent implements OnInit {
 
   // Search, Filter & Pagination
   filterBranch = signal<string>('');
+  filterVehicleType = signal<string>('');
   searchQuery = signal<string>('');
+  vehicleTypes = ['SCOOTER', 'BIKE', 'CAR', 'VAN', 'BUS', 'DOST', 'TATA ACE'];
   currentPage = signal<number>(1);
   pageNumbers = computed(() => {
     const pages = [];
@@ -111,6 +113,7 @@ export class BranchVehiclesComponent implements OnInit {
       page_size: this.pageSize()
     };
     if (this.filterBranch()) params.branch = this.filterBranch();
+    if (this.filterVehicleType()) params.vehicle_type = this.filterVehicleType();
     if (this.searchQuery()) params.search = this.searchQuery();
 
     this.service.getVehicles(params).subscribe({
@@ -139,6 +142,7 @@ export class BranchVehiclesComponent implements OnInit {
   exportXLSX() {
     const filters: any = {};
     if (this.filterBranch()) filters.branch = this.filterBranch();
+    if (this.filterVehicleType()) filters.vehicle_type = this.filterVehicleType();
     if (this.searchQuery()) filters.search = this.searchQuery();
 
     this.service.exportVehicles(filters).subscribe({
@@ -165,6 +169,12 @@ export class BranchVehiclesComponent implements OnInit {
 
   onFilterBranch(val: string) {
     this.filterBranch.set(val);
+    this.currentPage.set(1);
+    this.loadVehicles();
+  }
+
+  onFilterVehicleType(val: string) {
+    this.filterVehicleType.set(val);
     this.currentPage.set(1);
     this.loadVehicles();
   }

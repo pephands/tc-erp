@@ -33,6 +33,7 @@ export class BranchDocumentsComponent implements OnInit {
   }
 
   documents = this.service.getDocuments();
+  totalItems = this.service.getTotalItems();
 
   // Search, Filter & Pagination State
   selectedBranchFilter = signal<string>('');
@@ -76,10 +77,23 @@ export class BranchDocumentsComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.branchListService.getData().subscribe({
+    const isActiveStr = this.authService.userRoles().includes('ADMIN') ? 'true' : undefined;
+    this.branchListService.getData(1, 1000, undefined, isActiveStr).subscribe({
       next: (res: any) => {
-        const data = Array.isArray(res) ? res : (res?.data || []);
-        this.branchesList.set(data);
+        let items: any[] = [];
+        if (res?.results) {
+          items = res.results;
+        } else if (res?.data && Array.isArray(res.data)) {
+          items = res.data;
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+        
+        if (this.authService.userRoles().includes('ADMIN')) {
+          items = items.filter((b: any) => b.is_active === true || b.isActive === true || String(b.status).toLowerCase() === 'active');
+        }
+        
+        this.branchesList.set(items);
       },
       error: (err: any) => {
         console.error('Error loading branches:', err);
@@ -92,7 +106,14 @@ export class BranchDocumentsComponent implements OnInit {
     const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.selectedBranchFilter()) : this.selectedBranchFilter();
     const search = this.searchQuery().trim();
 
-    this.service.fetchDocuments(branchFilter, search).subscribe({
+    const params: any = {
+      page: this.currentPage(),
+      page_size: this.pageSize()
+    };
+    if (branchFilter) params.branch = branchFilter;
+    if (search) params.search = search;
+
+    this.service.fetchDocuments(params).subscribe({
       next: () => {
         this.isLoading.set(false);
       },
@@ -103,42 +124,18 @@ export class BranchDocumentsComponent implements OnInit {
     });
   }
 
-  // Filtered records (Client-side secondary refinement)
+  // Filtered records
   filteredDocuments = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const branchFilter = this.selectedBranchFilter();
-    let list = this.documents();
-
-    if (branchFilter) {
-      list = list.filter(d => 
-        String(d.branchId) === String(branchFilter) || 
-        d.branchName.toLowerCase().includes(branchFilter.toLowerCase())
-      );
-    }
-
-    if (!query) return list;
-
-    return list.filter(d => 
-      String(d.id).toLowerCase().includes(query) ||
-      d.documentName.toLowerCase().includes(query) ||
-      d.fileName.toLowerCase().includes(query) ||
-      d.branchName.toLowerCase().includes(query) ||
-      d.createdDate.toLowerCase().includes(query) ||
-      d.expiryDate.toLowerCase().includes(query)
-    );
+    return this.documents();
   });
 
   // Paginated records
   paginatedDocuments = computed(() => {
-    const list = this.filteredDocuments();
-    const page = this.currentPage();
-    const size = this.pageSize();
-    const startIndex = (page - 1) * size;
-    return list.slice(startIndex, startIndex + size);
+    return this.documents();
   });
 
   totalPages = computed(() => {
-    return Math.ceil(this.filteredDocuments().length / this.pageSize()) || 1;
+    return Math.ceil(this.totalItems() / this.pageSize()) || 1;
   });
 
   pagesArray = computed(() => {
@@ -153,17 +150,20 @@ export class BranchDocumentsComponent implements OnInit {
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
+      this.fetchDocumentsFromApi();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
       this.currentPage.update(p => p + 1);
+      this.fetchDocumentsFromApi();
     }
   }
 
   lastPage(): void {
     this.currentPage.set(this.totalPages());
+    this.fetchDocumentsFromApi();
   }
 
   onFilterSubmit(): void {
