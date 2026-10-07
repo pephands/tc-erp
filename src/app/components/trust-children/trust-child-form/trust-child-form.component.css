@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+
+.page {
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  color: #1c1c1c;
+  width: 210mm; height: 297mm;
+  margin: 10mm auto;
+  position: relative; overflow: hidden;
+  background: #fff;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+/* keeps content clear of the letterhead header and footer */
+.content { position: absolute; top: 58mm; left: 18mm; right: 18mm; bottom: 30mm; }
+
+.fields { display: grid; grid-template-columns: 62mm 6mm 1fr; row-gap: 4.2mm; column-gap: 0; font-size: 9.5pt; line-height: 1.45; }
+.colon { text-align: center; font-weight: 600; }
+.label { font-weight: 600; }
+.value { font-weight: 400; word-break: break-word; }
+
+.header-info {
+  position: absolute; top: 15mm; right: 9mm; text-align: right;
+  font-size: 8.5pt; line-height: 1.9; color: #2a2a2a;
+}
+.footer {
+  position: absolute; left: 18mm; right: 18mm; bottom: 28mm; text-align: center;
+  font-size: 8pt; line-height: 1.6; color: #2a2a2a;
+}
+.footer .row2 { display: flex; justify-content: center; gap: 8mm; flex-wrap: wrap; }
+
+@media print {
+  html, body { background: none; }
+  .page { margin: 0; }
+}
