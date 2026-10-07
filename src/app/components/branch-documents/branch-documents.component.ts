@@ -24,6 +24,11 @@ export class BranchDocumentsComponent implements OnInit {
     return this.authService.userRoles().includes('ADMIN');
   }
 
+  canViewAllBranches = computed(() => {
+    const roles = this.authService.userRoles();
+    return roles.includes('ADMIN') || roles.includes('MANAGER');
+  });
+
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
   }
@@ -91,6 +96,14 @@ export class BranchDocumentsComponent implements OnInit {
         
         if (this.authService.userRoles().includes('ADMIN')) {
           items = items.filter((b: any) => b.is_active === true || b.isActive === true || String(b.status).toLowerCase() === 'active');
+        }
+        
+        if (!this.canViewAllBranches()) {
+          const userBranchId = this.userBranchId;
+          if (userBranchId) {
+            items = items.filter((b: any) => b.id === userBranchId);
+            this.selectedBranchFilter.set(String(userBranchId));
+          }
         }
         
         this.branchesList.set(items);
@@ -189,7 +202,7 @@ export class BranchDocumentsComponent implements OnInit {
       this.uploadFileName.set(file.name);
       if (!this.inputDocumentName()) {
         const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
-        this.inputDocumentName.set(nameWithoutExt);
+        this.inputDocumentName.set(nameWithoutExt.toUpperCase());
       }
     } else {
       this.selectedFile.set(null);
@@ -211,7 +224,7 @@ export class BranchDocumentsComponent implements OnInit {
 
   onSubmitDocument(): void {
     const file = this.selectedFile();
-    const docName = this.inputDocumentName().trim();
+    const docName = this.inputDocumentName().trim().toUpperCase();
     const expiry = this.inputExpiryDate().trim();
     const branch = this.inputBranchId();
 

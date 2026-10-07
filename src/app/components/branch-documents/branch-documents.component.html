@@ -8,8 +8,10 @@
       <!-- Left Filter Controls (Select Branch) -->
       <div class="left-filter-group">
         <div class="branch-select-wrapper">
-          <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event); onFilterSubmit()">
-            <option value="" selected>Select Branch (All)</option>
+          <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event); onFilterSubmit()" [disabled]="!canViewAllBranches()">
+            @if (canViewAllBranches()) {
+              <option value="" selected>Select Branch (All)</option>
+            }
             @for (b of branchesList(); track b.id) {
               <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
             }
@@ -74,7 +76,7 @@
                 <tr>
                   <td class="font-medium cell-id">{{ item.id }}</td>
                   <td class="text-muted">{{ item.createdDate }}</td>
-                  <td class="font-semibold doc-name">{{ item.documentName }}</td>
+                  <td class="font-semibold doc-name">{{ item.documentName | uppercase }}</td>
                   <td class="branch-name">{{ item.branchName }}</td>
                   <td class="text-muted expiry-date">{{ item.expiryDate || '-' }}</td>
                   <td>

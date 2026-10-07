@@ -382,6 +382,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  max-height: 90vh;
 }
 
 .modal-title-header {
@@ -405,7 +406,7 @@
   border-top: 3px solid var(--primary);
   border-radius: 6px;
   background: var(--bg-card);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .box-header-bar {
@@ -525,7 +526,10 @@
     width: 95%;
     max-width: 100%;
     margin: 10px;
-    max-height: 90vh;
+  }
+  
+  .modal-card {
+    max-height: 95vh;
   }
   
   .file-upload-row {

@@ -180,7 +180,7 @@
         Showing page {{ currentPage() }} of {{ totalPages() }} ({{ filteredRecords().length }} total records)
         <span style="margin-left: 15px;">
           Per page: 
-          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+          <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
             <option [value]="5">5</option>
             <option [value]="10">10</option>
             <option [value]="20">20</option>
@@ -299,10 +299,10 @@
       @if (allocationHistory().length > 0) {
             <div class="pagination-bar">
       <div class="pagination-info">
-        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ filteredRecords().length }} total records)
+        Showing page {{ historyCurrentPage() }} of {{ historyTotalPages() }}
         <span style="margin-left: 15px;">
           Per page: 
-          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+          <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
             <option [value]="5">5</option>
             <option [value]="10">10</option>
             <option [value]="20">20</option>
@@ -312,21 +312,21 @@
       </div>
 
       <div class="pagination-controls">
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+        <button type="button" class="page-btn nav-btn" [disabled]="historyCurrentPage() === 1" (click)="setHistoryPage(historyCurrentPage() - 1)">
           Prev
         </button>
         
-        @for (p of pageNumbers(); track p) {
-          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+        @for (p of historyPagesArray(); track p) {
+          <button type="button" class="page-btn" [class.active]="historyCurrentPage() === p" (click)="setHistoryPage(p)">
             {{ p }}
           </button>
         }
 
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+        <button type="button" class="page-btn nav-btn" [disabled]="historyCurrentPage() === historyTotalPages()" (click)="setHistoryPage(historyCurrentPage() + 1)">
           Next
         </button>
         
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+        <button type="button" class="page-btn nav-btn" [disabled]="historyCurrentPage() === historyTotalPages()" (click)="setHistoryPage(historyTotalPages())">
           Last
         </button>
       </div>
@@ -385,10 +385,10 @@
       @if (allocationSummary().length > 0) {
             <div class="pagination-bar">
       <div class="pagination-info">
-        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ filteredRecords().length }} total records)
+        Showing page {{ summaryCurrentPage() }} of {{ summaryTotalPages() }}
         <span style="margin-left: 15px;">
           Per page: 
-          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+          <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
             <option [value]="5">5</option>
             <option [value]="10">10</option>
             <option [value]="20">20</option>
@@ -398,21 +398,21 @@
       </div>
 
       <div class="pagination-controls">
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+        <button type="button" class="page-btn nav-btn" [disabled]="summaryCurrentPage() === 1" (click)="setSummaryPage(summaryCurrentPage() - 1)">
           Prev
         </button>
         
-        @for (p of pageNumbers(); track p) {
-          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+        @for (p of summaryPagesArray(); track p) {
+          <button type="button" class="page-btn" [class.active]="summaryCurrentPage() === p" (click)="setSummaryPage(p)">
             {{ p }}
           </button>
         }
 
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+        <button type="button" class="page-btn nav-btn" [disabled]="summaryCurrentPage() === summaryTotalPages()" (click)="setSummaryPage(summaryCurrentPage() + 1)">
           Next
         </button>
         
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+        <button type="button" class="page-btn nav-btn" [disabled]="summaryCurrentPage() === summaryTotalPages()" (click)="setSummaryPage(summaryTotalPages())">
           Last
         </button>
       </div>
@@ -490,10 +490,10 @@
       @if (tlUploadsList().length > 0) {
             <div class="pagination-bar">
       <div class="pagination-info">
-        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ filteredRecords().length }} total records)
+        Showing page {{ tlUploadsCurrentPage() }} of {{ tlUploadsTotalPages() }}
         <span style="margin-left: 15px;">
           Per page: 
-          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+          <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
             <option [value]="5">5</option>
             <option [value]="10">10</option>
             <option [value]="20">20</option>
@@ -503,21 +503,21 @@
       </div>
 
       <div class="pagination-controls">
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+        <button type="button" class="page-btn nav-btn" [disabled]="tlUploadsCurrentPage() === 1" (click)="setTlUploadsPage(tlUploadsCurrentPage() - 1)">
           Prev
         </button>
         
-        @for (p of pageNumbers(); track p) {
-          <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+        @for (p of tlUploadsPagesArray(); track p) {
+          <button type="button" class="page-btn" [class.active]="tlUploadsCurrentPage() === p" (click)="setTlUploadsPage(p)">
             {{ p }}
           </button>
         }
 
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+        <button type="button" class="page-btn nav-btn" [disabled]="tlUploadsCurrentPage() === tlUploadsTotalPages()" (click)="setTlUploadsPage(tlUploadsCurrentPage() + 1)">
           Next
         </button>
         
-        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+        <button type="button" class="page-btn nav-btn" [disabled]="tlUploadsCurrentPage() === tlUploadsTotalPages()" (click)="setTlUploadsPage(tlUploadsTotalPages())">
           Last
         </button>
       </div>

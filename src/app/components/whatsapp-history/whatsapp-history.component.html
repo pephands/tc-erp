@@ -35,8 +35,11 @@
         class="form-control" 
         style="padding: 0.65rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); outline: none; background: var(--bg-card); color: var(--text-main);"
         [(ngModel)]="filters.branch" 
-        (change)="onFilterChange()">
-        <option value="">All Branches</option>
+        (change)="onFilterChange()"
+        [disabled]="!canViewAllBranches">
+        @if (canViewAllBranches) {
+          <option value="">All Branches</option>
+        }
         @for (b of branches; track b.id) {
           <option [value]="b.id">{{ b.name }}</option>
         }

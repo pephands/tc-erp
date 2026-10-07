@@ -127,10 +127,28 @@ export class ExpenseDetailsComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.branchListService.getData().subscribe({
+    const isActiveStr = this.isAdmin ? 'true' : undefined;
+    this.branchListService.getData(1, 1000, undefined, isActiveStr).subscribe({
       next: (res: any) => {
-        const data = Array.isArray(res) ? res : (res?.data || []);
-        this.branchesList.set(data);
+        let items: any[] = [];
+        if (res?.results) {
+          items = res.results;
+        } else if (res?.data && Array.isArray(res.data)) {
+          items = res.data;
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+        
+        if (this.isAdmin) {
+          items = items.filter((b: any) => b.is_active === true || b.isActive === true || String(b.status).toLowerCase() === 'active');
+        } else {
+          const userBranchId = this.userBranchId;
+          if (userBranchId) {
+            items = items.filter((b: any) => b.id === userBranchId);
+          }
+        }
+        
+        this.branchesList.set(items);
       },
       error: (err: any) => {
         console.error('Error loading branches:', err);

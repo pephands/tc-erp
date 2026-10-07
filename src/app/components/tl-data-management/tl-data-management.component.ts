@@ -222,7 +222,18 @@ export class TlDataManagementComponent implements OnInit {
     const params: any = {};
     if (this.startDate()) params.start_date = this.startDate();
     if (this.endDate()) params.end_date = this.endDate();
+    params.page_size = this.pageSize();
+    params.per_page = this.pageSize();
     return params;
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.historyCurrentPage.set(1);
+    this.summaryCurrentPage.set(1);
+    this.tlUploadsCurrentPage.set(1);
+    this.loadData();
   }
 
   loadAllocationHistory(): void {
@@ -236,7 +247,7 @@ export class TlDataManagementComponent implements OnInit {
       next: (res: any) => {
         if (res && res.results) {
           this.allocationHistory.set(res.results);
-          this.historyTotalPages.set(Math.ceil(res.count / 10));
+          this.historyTotalPages.set(Math.ceil(res.count / this.pageSize()));
         } else if (res && res.status === 'success') {
           this.allocationHistory.set(res.data);
           this.historyTotalPages.set(1);
@@ -258,7 +269,7 @@ export class TlDataManagementComponent implements OnInit {
       next: (res: any) => {
         if (res && res.results) {
           this.tlUploadsList.set(res.results);
-          this.tlUploadsTotalPages.set(Math.ceil(res.count / 10));
+          this.tlUploadsTotalPages.set(Math.ceil(res.count / this.pageSize()));
         } else if (res && res.status === 'success') {
           this.tlUploadsList.set(res.data);
           this.tlUploadsTotalPages.set(1);
@@ -275,7 +286,7 @@ export class TlDataManagementComponent implements OnInit {
       next: (res: any) => {
         if (res && res.results) {
           this.allocationSummary.set(res.results);
-          this.summaryTotalPages.set(Math.ceil(res.count / 10));
+          this.summaryTotalPages.set(Math.ceil(res.count / this.pageSize()));
         } else if (res && res.status === 'success') {
           this.allocationSummary.set(res.data);
           this.summaryTotalPages.set(1);

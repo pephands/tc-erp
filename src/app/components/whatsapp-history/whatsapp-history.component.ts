@@ -46,6 +46,7 @@ export class WhatsappHistoryComponent implements OnInit {
   searchSubject = new Subject<string>();
   isTC: boolean = false;
   isAdmin: boolean = false;
+  canViewAllBranches: boolean = false;
 
   constructor(
     private historyService: WhatsappHistoryService,
@@ -57,6 +58,7 @@ export class WhatsappHistoryComponent implements OnInit {
   ngOnInit(): void {
     const roles = this.authService.userRoles();
     this.isAdmin = roles.includes('ADMIN');
+    this.canViewAllBranches = roles.includes('ADMIN') || roles.includes('MANAGER');
     if (!roles.includes('ADMIN') && !roles.includes('MANAGER') && roles.includes('TC')) {
       this.isTC = true;
     }
@@ -82,13 +84,24 @@ export class WhatsappHistoryComponent implements OnInit {
   loadBranches(): void {
     this.branchService.getData(1, 1000, '', 'true').subscribe({
       next: (res: any) => {
+        let branchList = [];
         if (res && res.status === 'success' && res.data) {
-           this.branches = res.data;
+           branchList = res.data;
         } else if (res && res.results) {
-           this.branches = res.results;
+           branchList = res.results;
         } else if (Array.isArray(res)) {
-           this.branches = res;
+           branchList = res;
         }
+        
+        if (!this.canViewAllBranches) {
+          const userBranchId = this.authService.currentUser()?.branch?.id;
+          if (userBranchId) {
+            branchList = branchList.filter((b: any) => b.id === userBranchId);
+            this.filters.branch = userBranchId.toString();
+          }
+        }
+        
+        this.branches = branchList;
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Failed to load branches', err)
@@ -161,6 +174,14 @@ export class WhatsappHistoryComponent implements OnInit {
       start_date: '',
       end_date: ''
     };
+    
+    if (!this.canViewAllBranches) {
+      const userBranchId = this.authService.currentUser()?.branch?.id;
+      if (userBranchId) {
+        this.filters.branch = userBranchId.toString();
+      }
+    }
+    
     this.setDefaultDates();
     this.loadHistory(1);
   }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -66,6 +66,7 @@ export class HeaderComponent {
     this.isUserDropdownOpen.update(v => !v);
   }
 
+  @HostListener('document:click')
   closeDropdowns(): void {
     this.isUserDropdownOpen.set(false);
     this.isThemePickerOpen.set(false);
