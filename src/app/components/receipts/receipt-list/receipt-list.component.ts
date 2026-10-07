@@ -411,16 +411,18 @@ export class ReceiptListComponent implements OnInit {
                 this.zipProgress.set(progressStr);
                 
                 try {
-                    // Update the hidden component's input
-                    this.selectedRecordForReceipt = rec;
-                    // Allow Angular to update the DOM before html2canvas reads it
-                    await new Promise(resolve => setTimeout(resolve, 10));
-                    
-                    const blob = await this.receiptGenerate.generatePdfBlob(true);
-                    if (blob) {
-                        const fileName = rec.receipt_id ? `${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
-                        zip.file(fileName, blob);
-                        downloadedCount++;
+                    if (rec.generated_receipt) {
+                        try {
+                            const res = await fetch(rec.generated_receipt);
+                            if (res.ok) {
+                                const blob = await res.blob();
+                                const fileName = rec.receipt_id ? `${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
+                                zip.file(fileName, blob);
+                                downloadedCount++;
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch generated_receipt for ZIP', e);
+                        }
                     }
                 } catch (e) {
                     console.error('Failed to download PDF from backend for:', rec.receipt_id, e);
@@ -464,35 +466,51 @@ export class ReceiptListComponent implements OnInit {
 
   // Actions
   onView(record: OnlinePaymentRecord) {
-    this.selectedRecordForReceipt = record;
-    setTimeout(async () => {
-      try {
-        const blob = await this.receiptGenerate.generatePdfBlob();
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-      } catch (err) {
-        this.toastService.error('View Failed', 'Failed to generate and view receipt.');
-      }
-    }, 100);
+    if (record.generated_receipt) {
+      window.open(record.generated_receipt, '_blank');
+    } else {
+      this.toastService.info('Generating', 'Receipt is generating, please wait...');
+      this.paymentService.downloadReceipt(record.id).subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          this.fetchReceiptRecords(); 
+        },
+        error: (err) => {
+          this.toastService.error('View Failed', 'Failed to generate receipt on backend.');
+        }
+      });
+    }
   }
 
   onDownload(record: OnlinePaymentRecord) {
-    this.selectedRecordForReceipt = record;
-    setTimeout(async () => {
-      try {
-        const blob = await this.receiptGenerate.generatePdfBlob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Receipt_${record.receipt_id || record.id}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        this.toastService.error('Download Failed', 'Failed to generate and download receipt.');
-      }
-    }, 100);
+    if (record.generated_receipt) {
+      const a = document.createElement('a');
+      a.href = record.generated_receipt;
+      a.target = '_blank';
+      a.download = `Receipt_${record.receipt_id || record.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      this.toastService.info('Generating', 'Receipt is generating, please wait...');
+      this.paymentService.downloadReceipt(record.id).subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Receipt_${record.receipt_id || record.id}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.fetchReceiptRecords(); 
+        },
+        error: (err) => {
+          this.toastService.error('Download Failed', 'Failed to generate receipt on backend.');
+        }
+      });
+    }
   }
 
   onSendWhatsApp(record: OnlinePaymentRecord) {
