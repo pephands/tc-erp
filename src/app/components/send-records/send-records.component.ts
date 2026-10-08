@@ -57,7 +57,7 @@ export class SendRecordsComponent implements OnInit {
     const end = this.endDate();
     const page = this.currentPage();
 
-    this.paymentService.getRecords('EMPTY', search, start, end, page, '', true).subscribe({
+    this.paymentService.getRecords('EMPTY', search, start, end, page, '', true, '', false, '', '', this.pageSize()).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;

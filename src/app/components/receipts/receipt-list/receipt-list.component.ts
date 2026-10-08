@@ -160,7 +160,7 @@ export class ReceiptListComponent implements OnInit {
     // For Receipts: list only status 'OK'.
     const status = 'OK';
 
-    this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType).subscribe({
+    this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType, this.pageSize()).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
@@ -295,7 +295,7 @@ export class ReceiptListComponent implements OnInit {
     const donationType = this.activeTab();
     const status = 'OK';
 
-    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true, panStatus, donationType).subscribe({
+    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true, panStatus, donationType, this.pageSize()).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         if (res && res.data) {
@@ -380,7 +380,7 @@ export class ReceiptListComponent implements OnInit {
         
         try {
             // isExport = false to get paginated data from backend
-            const res: any = await this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType).toPromise();
+            const res: any = await this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType, this.pageSize()).toPromise();
             
             let items: any[] = [];
             if (res && res.results) { 

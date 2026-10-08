@@ -61,9 +61,9 @@
             id="branchSelectInput"
             [ngModel]="selectedBranch()"
             (ngModelChange)="onBranchChange($event)"
-            [disabled]="!isAdminUser"
+            [disabled]="!isAdminUser && !isManagerUser"
           >
-            <option value="">All Branches</option>
+            <option value="">All Managed Branches</option>
             @for (b of branches(); track b.id || b.name) {
               <option [value]="b.name">{{ b.name }}</option>
             }

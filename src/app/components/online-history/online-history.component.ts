@@ -114,7 +114,7 @@ export class OnlineHistoryComponent implements OnInit {
     const status = this.statusFilter();
     const branch = this.branchFilter();
 
-    this.paymentService.getRecords(status, search, start, end, page, '', false, branch).subscribe({
+    this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, '', '', this.pageSize()).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;

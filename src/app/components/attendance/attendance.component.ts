@@ -148,7 +148,7 @@ export class AttendanceComponent implements OnInit {
       next: (res: any) => {
         if (res.status === 'success' || (Array.isArray(res) || res.data)) {
           const data = Array.isArray(res) ? res : (res.data || []);
-          this.branches.set(data);
+          this.branches.set(data.filter((b: any) => !b.is_trust));
         }
       }
     });

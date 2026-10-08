@@ -95,6 +95,10 @@ export class UserListComponent implements OnInit {
     return true;
   }
 
+  get isManagerUser(): boolean {
+    return this.authService.userRoles().includes('MANAGER');
+  }
+
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
   }
@@ -192,7 +196,7 @@ export class UserListComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    if (!this.isAdminUser && this.userBranchName) {
+    if (!this.isAdminUser && !this.isManagerUser && this.userBranchName) {
       this.selectedBranch.set(this.userBranchName);
       this.branches.set([{ id: 'self', name: this.userBranchName }]);
     } else {
@@ -263,7 +267,7 @@ export class UserListComponent implements OnInit {
   fetchUsers(): void {
     this.isLoading.set(true);
     let branch = this.selectedBranch();
-    if (!this.isAdminUser && !branch) {
+    if (!this.isAdminUser && !this.isManagerUser && !branch) {
       branch = this.userBranchName;
     }
 
@@ -379,7 +383,7 @@ export class UserListComponent implements OnInit {
   }
 
   onResetFilters(): void {
-    if (this.isAdminUser) {
+    if (this.isAdminUser || this.isManagerUser) {
       this.selectedBranch.set('');
     }
     this.selectedStatus.set('');

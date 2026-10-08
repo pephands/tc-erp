@@ -33,7 +33,8 @@ export class PaymentService extends BaseHttpService {
     branch: string = '',
     isExport: boolean = false,
     panStatus: string = '',
-    donationType: string = ''
+    donationType: string = '',
+    pageSize: number = 10
   ): Observable<any> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
@@ -47,6 +48,7 @@ export class PaymentService extends BaseHttpService {
     if (isExport) params = params.set('export', 'true');
     if (panStatus) params = params.set('pan_status', panStatus);
     if (donationType) params = params.set('donation_type', donationType);
+    if (pageSize) params = params.set('page_size', pageSize.toString());
 
     return this.httpClient.get<any>(this.endPoint.paymentRecords, {
       headers: this.headers,
