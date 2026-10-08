@@ -118,7 +118,10 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
         next: (res: any[]) => {
           if (res && res.length > 0) {
             this.matchedDonors.set(res);
-            this.selectMatchedDonor(res[0]);
+            // If there's exactly one match, auto-select it
+            if (res.length === 1) {
+              this.selectMatchedDonor(res[0]);
+            }
           }
         },
         error: (err: any) => {
@@ -129,7 +132,6 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   }
 
   onAltMobileNumberChange(val: string): void {
-    val = val.replace(/[^0-9]/g, '');
     this.altMobileNumber.set(val);
   }
 
@@ -139,6 +141,9 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.correctionName.set('');
       this.panNumber.set('');
       this.donorType.set('OLD');
+      setTimeout(() => {
+        document.getElementById('donorName')?.focus();
+      }, 0);
     } else if (donorOrValue) {
       this.donorName.set(donorOrValue.name);
       this.correctionName.set(donorOrValue.name);

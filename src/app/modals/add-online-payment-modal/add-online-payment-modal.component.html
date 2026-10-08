@@ -53,6 +53,7 @@
           <div *ngIf="matchedDonors().length > 0" style="margin-top: 8px;">
             <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
             <select class="form-control" style="padding: 6px; font-size: 13px;" (change)="$any($event.target).value === 'new' ? selectMatchedDonor('new') : selectMatchedDonor(matchedDonors()[$any($event.target).value])">
+              <option value="default" disabled selected>Select a Profile...</option>
               <option *ngFor="let d of matchedDonors(); let idx = index" [value]="idx">
                 {{ d.name }} {{ d.pan_number ? '(PAN: ' + d.pan_number + ')' : '' }}
               </option>
@@ -84,7 +85,6 @@
             placeholder="Enter alternate mobile number"
             [ngModel]="altMobileNumber()"
             (ngModelChange)="onAltMobileNumberChange($event)"
-            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
           />
         </div>
 
