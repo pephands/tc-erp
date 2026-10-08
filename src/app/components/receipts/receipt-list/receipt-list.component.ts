@@ -261,6 +261,21 @@ export class ReceiptListComponent implements OnInit {
     this.isFilterApplied.set(!!(this.searchQuery() || (this.startDate() && !this.isTC()) || (this.endDate() && !this.isTC()) || this.branchFilter() || this.activeTab() !== 'All' || this.panStatusFilter()));
   }
 
+  canEdit(rec: OnlinePaymentRecord): boolean {
+    if (this.isAdmin() || this.isSuperintendent()) return true;
+    if (this.isPR()) {
+      if (!rec.created_at) return false;
+      const today = new Date();
+      const recDate = new Date(rec.created_at);
+      return today.toDateString() === recDate.toDateString();
+    }
+    return false;
+  }
+
+  canDelete(rec: OnlinePaymentRecord): boolean {
+    return this.isAdmin() || this.isSuperintendent();
+  }
+
   // Pagination Handlers
   totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
 

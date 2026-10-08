@@ -100,6 +100,11 @@ export class ReceiptCreateComponent implements OnInit {
         }
         
         this.branches.set(branchData);
+
+        // Auto-select if there is only one branch available
+        if (branchData.length === 1) {
+          this.selectBranch(branchData[0]);
+        }
       },
       error: (err: any) => console.error('Error fetching branches:', err)
     });

@@ -10,22 +10,24 @@
     </div>
     <div class="header-actions">
       @if (isAdmin() || isSuperintendent() || isPR()) {
-        <button type="button" class="btn-action btn-add-orange" (click)="onCreateReceipt()">
-          <span class="material-symbols-outlined">add_circle</span>
-          <span>Create Receipt</span>
-        </button>
+      <button type="button" class="btn-action btn-add-orange" (click)="onCreateReceipt()">
+        <span class="material-symbols-outlined">add_circle</span>
+        <span>Create Receipt</span>
+      </button>
       }
       @if (!isTC()) {
-        <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
-          <span class="material-symbols-outlined">download</span>
-          <span>Export to Excel</span>
-        </button>
+      <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Export to Excel</span>
+      </button>
       }
       @if (isAdmin()) {
-        <button type="button" class="btn-action" style="background-color: #f43f5e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 0.2s;" (click)="onExportPDFZip()" [disabled]="isZipping()">
-          <span class="material-symbols-outlined">{{ isZipping() ? 'hourglass_empty' : 'folder_zip' }}</span>
-          <span>{{ isZipping() ? (zipProgress() || 'Zipping...') : 'Download PDF Zip' }}</span>
-        </button>
+      <button type="button" class="btn-action"
+        style="background-color: #f43f5e; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 0.2s;"
+        (click)="onExportPDFZip()" [disabled]="isZipping()">
+        <span class="material-symbols-outlined">{{ isZipping() ? 'hourglass_empty' : 'folder_zip' }}</span>
+        <span>{{ isZipping() ? (zipProgress() || 'Zipping...') : 'Download PDF Zip' }}</span>
+      </button>
       }
     </div>
   </div>
@@ -40,32 +42,25 @@
         <label>Search Records</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">search</span>
-          <input
-            type="text"
-            placeholder="Search by Donor, Mobile, Ref ID..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearchChange($event)"
-          />
+          <input type="text" placeholder="Search by Donor, Mobile, Ref ID..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)" />
         </div>
       </div>
 
       <!-- Branch Filter (Admin/Manager view) -->
       @if (isAdmin() || isManager() || isPR()) {
-        <div class="filter-field">
-          <label>Branch</label>
-          <div class="input-wrapper">
-            <span class="material-symbols-outlined input-icon">domain</span>
-            <select
-              [ngModel]="branchFilter()"
-              (ngModelChange)="onBranchChange($event)"
-            >
-              <option value="">All Branches</option>
-              @for (b of branches(); track b.id || b.name) {
-                <option [value]="b.id">{{ b.name }}</option>
-              }
-            </select>
-          </div>
+      <div class="filter-field">
+        <label>Branch</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">domain</span>
+          <select [ngModel]="branchFilter()" (ngModelChange)="onBranchChange($event)">
+            <option value="">All Branches</option>
+            @for (b of branches(); track b.id || b.name) {
+            <option [value]="b.id">{{ b.name }}</option>
+            }
+          </select>
         </div>
+      </div>
       }
 
       <!-- Donation Type Filter -->
@@ -86,10 +81,7 @@
         <label>PAN Status</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">badge</span>
-          <select
-            [ngModel]="panStatusFilter()"
-            (ngModelChange)="onPanStatusChange($event)"
-          >
+          <select [ngModel]="panStatusFilter()" (ngModelChange)="onPanStatusChange($event)">
             <option value="">All</option>
             <option value="with_pan">With PAN</option>
             <option value="without_pan">Without PAN</option>
@@ -102,24 +94,14 @@
         <label>Start Date</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">calendar_today</span>
-          <input
-            type="date"
-            [ngModel]="startDate()"
-            (ngModelChange)="onStartDateChange($event)"
-            [disabled]="isTC()"
-          />
+          <input type="date" [ngModel]="startDate()" (ngModelChange)="onStartDateChange($event)" [disabled]="isTC()" />
         </div>
       </div>
       <div class="filter-field">
         <label>End Date</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">event</span>
-          <input
-            type="date"
-            [ngModel]="endDate()"
-            (ngModelChange)="onEndDateChange($event)"
-            [disabled]="isTC()"
-          />
+          <input type="date" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)" [disabled]="isTC()" />
         </div>
       </div>
 
@@ -143,7 +125,7 @@
             <th>Date</th>
             <th>Receipt ID</th>
             <th>Branch</th>
-            <th>TC Name & EMP ID</th>
+            <th>EMP Name & EMP ID</th>
             <th>Donor Number</th>
             <th>Donor Name</th>
             <th>Donation Type</th>
@@ -156,71 +138,77 @@
         </thead>
         <tbody>
           @if (isLoading()) {
-            <tr>
-              <td colspan="12" class="loading-state">
-                <span class="material-symbols-outlined spin-icon">progress_activity</span>
-                <p>Loading receipts...</p>
-              </td>
-            </tr>
+          <tr>
+            <td colspan="12" class="loading-state">
+              <span class="material-symbols-outlined spin-icon">progress_activity</span>
+              <p>Loading receipts...</p>
+            </td>
+          </tr>
           } @else {
-            @for (rec of filteredRecords(); track rec.id) {
-              <tr>
-                <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
-                <td class="col-ref"><code>{{ rec.receipt_id || '-' }}</code></td>
-                <td><strong>{{ rec.branch_name || '-' }}</strong></td>
-                <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id || 'N/A' }})</small></td>
-                <td class="col-mobile">{{ rec.mobile_number }}</td>
-                <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
-                <td class="col-type">
-                  <span class="status-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #38bdf8;">
-                    {{ rec.donation_type || 'Amount' }}
-                  </span>
-                </td>
-                <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
-                <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
-                <td class="col-remarks">{{ rec.remarks || '-' }}</td>
-                <td class="col-status">
-                  <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">
-                    {{ rec.status || 'OK' }}
-                  </span>
-                </td>
-                <td class="col-actions" style="white-space: nowrap; display: flex; gap: 8px; justify-content: center; align-items: center; border-bottom: none; height: 100%;">
-                  
-                  @if ((rec.donation_type || 'Amount') === 'Amount') {
-                    <button type="button" class="btn-action-aesthetic btn-view" title="View Receipt" (click)="onView(rec)">
-                      <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                    <button type="button" class="btn-action-aesthetic btn-download" title="Download Receipt" (click)="onDownload(rec)">
-                      <span class="material-symbols-outlined">download</span>
-                    </button>
-                    <button type="button" class="btn-action-aesthetic btn-whatsapp" title="Send WhatsApp" (click)="onSendWhatsApp(rec)">
-                      <span class="material-symbols-outlined">chat</span>
-                    </button>
+          @for (rec of filteredRecords(); track rec.id) {
+          <tr>
+            <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
+            <td class="col-ref"><code>{{ rec.receipt_id || '-' }}</code></td>
+            <td><strong>{{ rec.branch_name || '-' }}</strong></td>
+            <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id ||
+                'N/A' }})</small></td>
+            <td class="col-mobile">{{ rec.mobile_number }}</td>
+            <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+            <td class="col-type">
+              <span class="status-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #38bdf8;">
+                {{ rec.donation_type || 'Amount' }}
+              </span>
+            </td>
+            <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
+            <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
+            <td class="col-remarks">{{ rec.remarks || '-' }}</td>
+            <td class="col-status">
+              <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">
+                {{ rec.status || 'OK' }}
+              </span>
+            </td>
+            <td class="col-actions"
+              style="white-space: nowrap; display: flex; gap: 8px; justify-content: center; align-items: center; border-bottom: none; height: 100%;">
 
-                  } @else {
-                    <!-- For Goodies, just a placeholder or alternative view if needed. No receipt generation. -->
-                    <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No Receipt</span>
-                  }
-                  
-                  @if (isAdmin() || isSuperintendent()) {
-                    <button type="button" class="btn-action-aesthetic btn-edit" title="Edit" (click)="onEdit(rec)">
-                      <span class="material-symbols-outlined">edit</span>
-                    </button>
-                    <button type="button" class="btn-action-aesthetic btn-delete" title="Delete" (click)="onDelete(rec)">
-                      <span class="material-symbols-outlined">delete</span>
-                    </button>
-                  }
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="9" class="empty-state">
-                  <span class="material-symbols-outlined empty-icon">receipt_long</span>
-                  <p class="empty-title">No Receipts Found</p>
-                  <p class="empty-sub">No receipt records match your filters.</p>
-                </td>
-              </tr>
-            }
+              @if ((rec.donation_type || 'Amount') === 'Amount') {
+              <button type="button" class="btn-action-aesthetic btn-view" title="View Receipt" (click)="onView(rec)">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+              <button type="button" class="btn-action-aesthetic btn-download" title="Download Receipt"
+                (click)="onDownload(rec)">
+                <span class="material-symbols-outlined">download</span>
+              </button>
+              <button type="button" class="btn-action-aesthetic btn-whatsapp" title="Send WhatsApp"
+                (click)="onSendWhatsApp(rec)">
+                <span class="material-symbols-outlined">chat</span>
+              </button>
+
+              } @else {
+              <!-- For Goodies, just a placeholder or alternative view if needed. No receipt generation. -->
+              <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No Receipt</span>
+              }
+
+              @if (canEdit(rec)) {
+              <button type="button" class="btn-action-aesthetic btn-edit" title="Edit" (click)="onEdit(rec)">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              }
+              @if (canDelete(rec)) {
+              <button type="button" class="btn-action-aesthetic btn-delete" title="Delete" (click)="onDelete(rec)">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+              }
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="9" class="empty-state">
+              <span class="material-symbols-outlined empty-icon">receipt_long</span>
+              <p class="empty-title">No Receipts Found</p>
+              <p class="empty-sub">No receipt records match your filters.</p>
+            </td>
+          </tr>
+          }
           }
         </tbody>
       </table>
@@ -228,52 +216,53 @@
 
     <!-- Pagination Bar -->
     @if (records().length > 0) {
-      <div class="pagination-bar">
-        <div class="pagination-info">
-          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total receipts)
-        </div>
-        <div class="pagination-controls">
-          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
-            Prev
-          </button>
-          
-          @for (p of pageNumbers(); track p) {
-            <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
-              {{ p }}
-            </button>
-          }
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total receipts)
+      </div>
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1"
+          (click)="setPage(currentPage() - 1)">
+          Prev
+        </button>
 
-          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
-            Next
-          </button>
-          
-          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
-            Last
-          </button>
-        </div>
-        </div>
+        @for (p of pageNumbers(); track p) {
+        <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+          {{ p }}
+        </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()"
+          (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()"
+          (click)="setPage(totalPages())">
+          Last
+        </button>
+      </div>
+    </div>
     }
   </div>
 </main>
 
 @if (showEditModal()) {
-  <app-add-online-payment-modal
-    [editRecord]="editRecord()"
-    (close)="onModalClose()"
-    (submitted)="onModalSubmit()"
-  ></app-add-online-payment-modal>
+<app-add-online-payment-modal [editRecord]="editRecord()" (close)="onModalClose()"
+  (submitted)="onModalSubmit()"></app-add-online-payment-modal>
 }
 
 @if (isZipping()) {
-  <div class="loader-overlay">
-    <span class="material-symbols-outlined spin-icon" style="font-size: 3.5rem; color: #f43f5e;">progress_activity</span>
-    <h3 style="margin-top: 1.5rem; color: #1e293b; font-size: 1.5rem; margin-bottom: 0.5rem;">Packaging Receipts</h3>
-    <p style="color: #64748b; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">{{ zipProgress() }}</p>
-    <div style="background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 0.5rem;">
-      <span class="material-symbols-outlined" style="font-size: 1.1rem;">timer</span>
-      {{ formatZipTime(zipElapsedTime()) }} Elapsed
-    </div>
+<div class="loader-overlay">
+  <span class="material-symbols-outlined spin-icon" style="font-size: 3.5rem; color: #f43f5e;">progress_activity</span>
+  <h3 style="margin-top: 1.5rem; color: #1e293b; font-size: 1.5rem; margin-bottom: 0.5rem;">Packaging Receipts</h3>
+  <p style="color: #64748b; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">{{ zipProgress() }}</p>
+  <div
+    style="background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 0.5rem;">
+    <span class="material-symbols-outlined" style="font-size: 1.1rem;">timer</span>
+    {{ formatZipTime(zipElapsedTime()) }} Elapsed
   </div>
+</div>
 }
 
 <div style="position: absolute; left: -9999px; top: -9999px; width: 210mm; background: white; z-index: -1;">

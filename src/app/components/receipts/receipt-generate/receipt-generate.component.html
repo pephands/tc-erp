@@ -140,8 +140,8 @@
         <div class="pill"><span class="dot"></span>BILLED TO</div>
         <div class="bl"><span class="k">NAME</span><span class="c">:</span><span class="v">{{ record?.donor_name }}</span></div>
         <div class="bl"><span class="k">MOBILE NUMBER</span><span class="c">:</span><span class="v">{{ record?.mobile_number }}</span></div>
-        <div class="bl"><span class="k">PAN NUMBER</span><span class="c">:</span><span class="v">{{ record?.pan_number }}</span></div>
-        <div class="bl"><span class="k">ADDRESS.</span><span class="c">:</span><span class="v">{{ record?.address }}</span></div>
+        <div class="bl"><span class="k">PAN NUMBER</span><span class="c">:</span><span class="v">{{ record?.pan_number === 'None' ? '' : record?.pan_number }}</span></div>
+        <div class="bl"><span class="k">ADDRESS</span><span class="c">:</span><span class="v">{{ record?.address === 'None' || record?.address === 'null' ? '' : record?.address }}</span></div>
       </div>
 
       <div class="box from">

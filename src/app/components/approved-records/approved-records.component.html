@@ -18,13 +18,8 @@
         <label for="searchApprovedInput">Search Approved Records</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">search</span>
-          <input
-            type="text"
-            id="searchApprovedInput"
-            placeholder="Search donor name, mobile, ref ID..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearchChange($event)"
-          />
+          <input type="text" id="searchApprovedInput" placeholder="Search donor name, mobile, ref ID..."
+            [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
         </div>
       </div>
 
@@ -33,13 +28,8 @@
         <label for="startDateApprovedInput">Start Date</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">calendar_today</span>
-          <input
-            type="date"
-            id="startDateApprovedInput"
-            [ngModel]="startDate()"
-            (ngModelChange)="onStartDateChange($event)"
-            [disabled]="userRole() === 'TC'"
-          />
+          <input type="date" id="startDateApprovedInput" [ngModel]="startDate()"
+            (ngModelChange)="onStartDateChange($event)" [disabled]="userRole() === 'TC'" />
         </div>
       </div>
 
@@ -48,13 +38,8 @@
         <label for="endDateApprovedInput">End Date</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">event</span>
-          <input
-            type="date"
-            id="endDateApprovedInput"
-            [ngModel]="endDate()"
-            (ngModelChange)="onEndDateChange($event)"
-            [disabled]="userRole() === 'TC'"
-          />
+          <input type="date" id="endDateApprovedInput" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)"
+            [disabled]="userRole() === 'TC'" />
         </div>
       </div>
 
@@ -78,7 +63,7 @@
             <th>Approved Date</th>
             <th>Donation Date</th>
             <th>Branch</th>
-            <th>TC Name & EMP ID</th>
+            <th>EMP Name & EMP ID</th>
             <th>Donor Number</th>
             <th>Donor Name</th>
             <th>Amount</th>
@@ -93,57 +78,61 @@
         </thead>
         <tbody>
           @if (isLoading()) {
-            <tr>
-              <td colspan="14" class="loading-state">
-                <span class="material-symbols-outlined spin-icon">progress_activity</span>
-                <p>Loading approved records...</p>
-              </td>
-            </tr>
+          <tr>
+            <td colspan="14" class="loading-state">
+              <span class="material-symbols-outlined spin-icon">progress_activity</span>
+              <p>Loading approved records...</p>
+            </td>
+          </tr>
           } @else {
-            @for (rec of records(); track rec.id) {
-              <tr>
-                <td class="col-date">{{ rec.approved_at ? (rec.approved_at | date:'yyyy-MM-dd HH:mm') : (rec.created_at | date:'yyyy-MM-dd') }}</td>
-                <td class="col-date">{{ rec.payment_date }}</td>
-                <td><strong>{{ rec.branch_name || '-' }}</strong></td>
-                <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id || 'N/A' }})</small></td>
-                <td class="col-mobile">{{ rec.mobile_number }}</td>
-                <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
-                <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
-                <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
-                <td><span class="tag-pill">{{ rec.mode_of_payment }}</span></td>
-                <td><span class="donor-type-tag">{{ rec.donor_type }}</span></td>
-                <td class="col-remarks" [title]="rec.remarks || ''">{{ rec.remarks || '-' }}</td>
-                <td class="col-status">
-                  <span class="status-badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
-                    {{ rec.status }}
-                  </span>
-                </td>
-                <td class="col-file">
-                  @if (rec.payment_proof_url) {
-                    <a [href]="rec.payment_proof_url" target="_blank" class="btn-file-link" title="View payment proof">
-                      <span class="material-symbols-outlined">image</span>
-                      <span>Proof</span>
-                    </a>
-                  } @else {
-                    <span class="no-file-text">No File</span>
-                  }
-                </td>
-                <td class="col-file">
-                  <button type="button" class="btn-file-link" style="background: var(--primary-light, #fff7ed); color: var(--primary, #ea580c); border: 1px solid var(--border-focus, #ea580c); cursor: pointer;" (click)="downloadReceipt(rec)" title="Download Official Receipt PDF">
-                    <span class="material-symbols-outlined">picture_as_pdf</span>
-                    <span>Receipt</span>
-                  </button>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="12" class="empty-state">
-                  <span class="material-symbols-outlined empty-icon">verified_user</span>
-                  <p class="empty-title">No Approved Records Found</p>
-                  <p class="empty-sub">Once TL verifies your submitted records, they will appear here.</p>
-                </td>
-              </tr>
-            }
+          @for (rec of records(); track rec.id) {
+          <tr>
+            <td class="col-date">{{ rec.approved_at ? (rec.approved_at | date:'yyyy-MM-dd HH:mm') : (rec.created_at |
+              date:'yyyy-MM-dd') }}</td>
+            <td class="col-date">{{ rec.payment_date }}</td>
+            <td><strong>{{ rec.branch_name || '-' }}</strong></td>
+            <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id ||
+                'N/A' }})</small></td>
+            <td class="col-mobile">{{ rec.mobile_number }}</td>
+            <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+            <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
+            <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
+            <td><span class="tag-pill">{{ rec.mode_of_payment }}</span></td>
+            <td><span class="donor-type-tag">{{ rec.donor_type }}</span></td>
+            <td class="col-remarks" [title]="rec.remarks || ''">{{ rec.remarks || '-' }}</td>
+            <td class="col-status">
+              <span class="status-badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
+                {{ rec.status }}
+              </span>
+            </td>
+            <td class="col-file">
+              @if (rec.payment_proof_url) {
+              <a [href]="rec.payment_proof_url" target="_blank" class="btn-file-link" title="View payment proof">
+                <span class="material-symbols-outlined">image</span>
+                <span>Proof</span>
+              </a>
+              } @else {
+              <span class="no-file-text">No File</span>
+              }
+            </td>
+            <td class="col-file">
+              <button type="button" class="btn-file-link"
+                style="background: var(--primary-light, #fff7ed); color: var(--primary, #ea580c); border: 1px solid var(--border-focus, #ea580c); cursor: pointer;"
+                (click)="downloadReceipt(rec)" title="Download Official Receipt PDF">
+                <span class="material-symbols-outlined">picture_as_pdf</span>
+                <span>Receipt</span>
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="12" class="empty-state">
+              <span class="material-symbols-outlined empty-icon">verified_user</span>
+              <p class="empty-title">No Approved Records Found</p>
+              <p class="empty-sub">Once TL verifies your submitted records, they will appear here.</p>
+            </td>
+          </tr>
+          }
           }
         </tbody>
       </table>
@@ -151,40 +140,44 @@
 
     <!-- Pagination Footer -->
     @if (records().length > 0) {
-      <div class="pagination-bar">
-        <div class="pagination-info">
-          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total approved records)
-          <span style="margin-left: 15px;">
-            Per page: 
-            <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
-              <option [value]="5">5</option>
-              <option [value]="10">10</option>
-              <option [value]="20">20</option>
-              <option [value]="50">50</option>
-            </select>
-          </span>
-        </div>
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total approved records)
+        <span style="margin-left: 15px;">
+          Per page:
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)"
+            style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </span>
+      </div>
 
-        <div class="pagination-controls">
-          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
-            Prev
-          </button>
-          
-          @for (p of pageNumbers(); track p) {
-            <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
-              {{ p }}
-            </button>
-          }
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1"
+          (click)="setPage(currentPage() - 1)">
+          Prev
+        </button>
 
-          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
-            Next
-          </button>
-          
-          <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
-            Last
-          </button>
-        </div>
-        </div>
+        @for (p of pageNumbers(); track p) {
+        <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+          {{ p }}
+        </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()"
+          (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()"
+          (click)="setPage(totalPages())">
+          Last
+        </button>
+      </div>
+    </div>
     }
   </div>
 </main>
