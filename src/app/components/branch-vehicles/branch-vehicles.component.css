@@ -25,21 +25,31 @@
 }
 
 .btn-primary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  background-color: var(--primary, #3182ce);
+  background: var(--primary-gradient, linear-gradient(135deg, #ea580c 0%, #d97706 100%));
   color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: 500;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-sm, 8px);
+  font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-glow, 0 4px 14px 0 rgba(234, 88, 12, 0.2));
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
+  background: var(--primary-hover, #c2410c);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(234, 88, 12, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -77,12 +87,37 @@
   width: 100%;
 }
 
+.filters {
+  display: flex;
+  gap: 1rem;
+}
+
 .filters select {
-  padding: 0.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border-color, #d6d3d1);
+  border-radius: var(--radius-sm, 8px);
   outline: none;
-  background: #fff;
+  background-color: var(--bg-input, #fafaf9);
+  color: var(--text-main, #1c1917);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2357534e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.filters select:hover {
+  border-color: var(--border-focus, #ea580c);
+}
+
+.filters select:focus {
+  border-color: var(--border-focus, #ea580c);
+  box-shadow: 0 0 0 3px var(--primary-light, rgba(234, 88, 12, 0.1));
 }
 
 .table-container {

@@ -32,7 +32,7 @@
 
       <select [ngModel]="filterVehicleType()" (ngModelChange)="onFilterVehicleType($event)">
         <option value="">All Vehicle Types</option>
-        <option *ngFor="let vt of vehicleTypes" [value]="vt">{{ vt }}</option>
+        <option *ngFor="let vt of vehicleTypes()" [value]="vt.name">{{ vt.name }}</option>
       </select>
     </div>
   </div>
@@ -197,7 +197,7 @@
             <label>Vehicle Type <span class="required">*</span></label>
             <select formControlName="vehicle_type">
               <option value="">Select Vehicle Type</option>
-              <option *ngFor="let vt of vehicleTypes" [value]="vt">{{ vt }}</option>
+              <option *ngFor="let vt of vehicleTypes()" [value]="vt.name">{{ vt.name }}</option>
             </select>
           </div>
 

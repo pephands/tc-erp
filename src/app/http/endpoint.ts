@@ -60,6 +60,10 @@ export class Endpoint {
     return this.baseUrl + 'branches/vehicles/';
   }
 
+  get branchVehicleTypes(): string {
+    return this.baseUrl + 'branches/vehicle-types/';
+  }
+
 
   get branchExpenses(): string {
     return this.baseUrl + 'branches/expenses/';

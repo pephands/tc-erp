@@ -4,6 +4,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { BranchVehicleService } from '../../services/branch-vehicle.service';
 import { BranchListService } from '../../services/branch-list.service';
 import { AuthService } from '../../services/auth.service';
+import { VehicleTypeService } from '../../services/vehicle-type.service';
+import { VehicleType } from '../../models/vehicle-type.model';
 
 @Component({
   selector: 'app-branch-vehicles',
@@ -16,6 +18,7 @@ export class BranchVehiclesComponent implements OnInit {
   private service = inject(BranchVehicleService);
   private branchListService = inject(BranchListService);
   public authService = inject(AuthService);
+  private vehicleTypeService = inject(VehicleTypeService);
   private fb = inject(FormBuilder);
 
   isAdmin = computed(() => this.authService.hasRole(['ADMIN']));
@@ -28,7 +31,7 @@ export class BranchVehiclesComponent implements OnInit {
   filterBranch = signal<string>('');
   filterVehicleType = signal<string>('');
   searchQuery = signal<string>('');
-  vehicleTypes = ['SCOOTER', 'BIKE', 'CAR', 'VAN', 'BUS', 'DOST', 'TATA ACE'];
+  vehicleTypes = signal<VehicleType[]>([]);
   currentPage = signal<number>(1);
   pageNumbers = computed(() => {
     const pages = [];
@@ -82,7 +85,15 @@ export class BranchVehiclesComponent implements OnInit {
     if (this.isAdmin()) {
       this.loadBranches();
     }
+    this.loadVehicleTypes();
     this.loadVehicles();
+  }
+
+  loadVehicleTypes(): void {
+    this.vehicleTypeService.fetchVehicleTypes(true).subscribe({
+      next: (types) => this.vehicleTypes.set(types),
+      error: (err) => console.error('Error loading vehicle types', err)
+    });
   }
 
   handlePhoneInput(event: any, fieldName: string): void {
