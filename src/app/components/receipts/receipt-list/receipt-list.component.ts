@@ -528,8 +528,20 @@ export class ReceiptListComponent implements OnInit {
     }
   }
 
+  sendingWhatsApp = signal<Set<number>>(new Set());
+
   onSendWhatsApp(record: OnlinePaymentRecord) {
+    this.sendingWhatsApp.update(s => new Set(s).add(record.id));
     this.selectedRecordForReceipt = record;
+    
+    const finish = () => {
+      this.sendingWhatsApp.update(s => {
+        const newSet = new Set(s);
+        newSet.delete(record.id);
+        return newSet;
+      });
+    };
+
     setTimeout(async () => {
       try {
         const blob = await this.receiptGenerate.generatePdfBlob();
@@ -542,18 +554,22 @@ export class ReceiptListComponent implements OnInit {
             this.paymentService.sendWhatsappReceipt(record.id).subscribe({
               next: (res) => {
                 this.toastService.success('WhatsApp Receipt', 'WhatsApp receipt sent successfully!');
+                finish();
               },
               error: (err) => {
                 this.toastService.error('Send Failed', err.error?.error || 'Failed to send WhatsApp receipt.');
+                finish();
               }
             });
           },
           error: () => {
             this.toastService.error('Upload Failed', 'Failed to upload generated receipt to server.');
+            finish();
           }
         });
       } catch (err) {
         this.toastService.error('Generation Failed', 'Failed to generate receipt for WhatsApp.');
+        finish();
       }
     }, 100);
   }
