@@ -44,6 +44,30 @@
   border-left: 4px solid var(--primary, #0f766e);
 }
 
+.toast-notification.success {
+  border-left-color: #10b981;
+}
+
+.toast-notification.success .check-icon {
+  color: #10b981;
+}
+
+.toast-notification.error {
+  border-left-color: #ef4444;
+}
+
+.toast-notification.error .check-icon {
+  color: #ef4444;
+}
+
+.toast-notification.info {
+  border-left-color: #f59e0b;
+}
+
+.toast-notification.info .check-icon {
+  color: #f59e0b;
+}
+
 .shadow-card {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }

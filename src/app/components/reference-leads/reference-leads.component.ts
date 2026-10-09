@@ -93,6 +93,7 @@ export class ReferenceLeadsComponent implements OnInit {
   }
 
   toastMessage = signal<string>('');
+  toastType = signal<'success' | 'error' | 'info'>('info');
   showToast = signal<boolean>(false);
 
   currentPage = signal<number>(1);
@@ -151,8 +152,9 @@ export class ReferenceLeadsComponent implements OnInit {
     });
   }
 
-  showToastNotification(message: string) {
+  showToastNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
     this.toastMessage.set(message);
+    this.toastType.set(type);
     this.showToast.set(true);
     setTimeout(() => {
       this.showToast.set(false);
@@ -253,13 +255,13 @@ export class ReferenceLeadsComponent implements OnInit {
     this.http.post(`${environment.baseUrl}telecalling/reference-leads/`, payload, { headers: this.telecallingService.headers }).subscribe({
       next: (res: any) => {
         if (res && res.status === 'success') {
-          this.showToastNotification("Reference lead submitted successfully!");
+          this.showToastNotification("Reference lead submitted successfully!", "success");
           this.closeNewLeadModal();
           this.fetchLeads();
         }
       },
       error: (err) => {
-        this.showToastNotification(err.error?.message || "Failed to submit lead");
+        this.showToastNotification(err.error?.message || "Failed to submit lead", "error");
       }
     });
   }
@@ -286,10 +288,10 @@ export class ReferenceLeadsComponent implements OnInit {
         a.download = `Reference_Leads_${new Date().toISOString().slice(0,10)}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
-        this.showToastNotification("Export successful");
+        this.showToastNotification("Export successful", "success");
       },
       error: () => {
-        this.showToastNotification("Failed to export records");
+        this.showToastNotification("Failed to export records", "error");
       }
     });
   }
@@ -306,10 +308,10 @@ export class ReferenceLeadsComponent implements OnInit {
         a.download = `Reference_Leads_Sample.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
-        this.showToastNotification("Sample downloaded");
+        this.showToastNotification("Sample downloaded", "success");
       },
       error: () => {
-        this.showToastNotification("Failed to download sample");
+        this.showToastNotification("Failed to download sample", "error");
       }
     });
   }
@@ -330,16 +332,16 @@ export class ReferenceLeadsComponent implements OnInit {
         next: (res: any) => {
           this.isLoading.set(false);
           if (res && res.status === 'success') {
-            this.showToastNotification("File uploaded successfully");
+            this.showToastNotification("File uploaded successfully", "success");
             this.closeUploadModal();
             this.fetchLeads();
           } else {
-            this.showToastNotification("Upload failed");
+            this.showToastNotification("Upload failed", "error");
           }
         },
         error: (err) => {
           this.isLoading.set(false);
-          this.showToastNotification(err.error?.message || "Failed to upload file");
+          this.showToastNotification(err.error?.message || "Failed to upload file", "error");
         }
       });
       event.target.value = ''; // Reset input
@@ -351,12 +353,12 @@ export class ReferenceLeadsComponent implements OnInit {
     this.http.patch(`${environment.baseUrl}telecalling/reference-leads/${leadId}/`, { status }, { headers: this.telecallingService.headers }).subscribe({
       next: (res: any) => {
         if (res && res.status === 'success') {
-          this.showToastNotification(`Lead ${status.toLowerCase()} successfully!`);
+          this.showToastNotification(`Lead ${status.toLowerCase()} successfully!`, "success");
           this.fetchLeads();
         }
       },
       error: (err) => {
-        this.showToastNotification(err.error?.message || "Failed to update lead");
+        this.showToastNotification(err.error?.message || "Failed to update lead", "error");
       }
     });
   }

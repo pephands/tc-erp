@@ -1,6 +1,8 @@
 <div class="page-container">
-  <div *ngIf="showToast()" class="toast-notification shadow-card">
-    <span class="material-symbols-outlined check-icon">info</span>
+  <div *ngIf="showToast()" class="toast-notification shadow-card" [ngClass]="toastType()">
+    <span class="material-symbols-outlined check-icon">
+      {{ toastType() === 'success' ? 'check_circle' : (toastType() === 'error' ? 'error' : 'info') }}
+    </span>
     <span>{{ toastMessage() }}</span>
   </div>
   <div class="action-header-bar">
@@ -61,7 +63,6 @@
           <th>Status</th>
           <th *ngIf="role() !== 'TC'">Approver</th>
           <th>Date Submitted</th>
-          <th *ngIf="role() === 'ADMIN' || role() === 'TL'">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -90,12 +91,6 @@
           </td>
           <td *ngIf="role() !== 'TC'">{{ lead.approver_name || '-' }}</td>
           <td>{{ lead.created_at | date:'short' }}</td>
-          <td *ngIf="role() === 'ADMIN' || role() === 'TL'">
-            <div style="display: flex; gap: 0.5rem;" *ngIf="lead.status === 'IN REVIEW'">
-              <button class="btn-action approve-btn" (click)="updateLeadStatus(lead.id, 'APPROVED')">Approve</button>
-              <button class="btn-action reject-btn" (click)="updateLeadStatus(lead.id, 'REJECTED')">Reject</button>
-            </div>
-          </td>
         </tr>
       </tbody>
     </table>

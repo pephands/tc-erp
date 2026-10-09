@@ -655,6 +655,32 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/batch-settings')) return 'batch_settings';
     if (url.includes('/verified-donors')) return 'verified_donors';
 
+    // Whatsapp
+    if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
+    if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
+    if (url.includes('/whatsapp-send')) return 'send_whatsapp_message';
+    if (url.includes('/whatsapp-receipt-settings')) return 'whatsapp_receipt_settings';
+    if (url.includes('/whatsapp-history')) return 'whatsapp_send_history';
+
+    // Receipts / Finance
+    if (url.includes('/receipts/view')) return 'receipts';
+
+    // Branch Details
+    if (url.includes('/branch-documents')) return 'branch_documents';
+    if (url.includes('/expense-details')) return 'expense_details';
+    if (url.includes('/expense-report')) return 'expense_report';
+    if (url.includes('/trust-children')) return 'trust_children';
+    if (url.includes('/branch-vehicles')) return 'branch_vehicles';
+    if (url.includes('/branch-settings')) return 'branch_settings';
+
+    // Services
+    if (url.includes('/food-calendar')) return 'food_calendar';
+    if (url.includes('/occasions')) return 'occasions';
+
+    // Feedback
+    if (url.includes('/feedback-details')) return 'feedback_details';
+    if (url.includes('/feedbacks')) return 'feedbacks';
+
     // Both TC and Admin have history / approved records routes
     if (url.includes('/approved-records')) return this.primaryRole === 'TC' ? 'approved-records' : 'approved_records_admin';
     if (url.includes('/online-history')) return this.primaryRole === 'TC' ? 'online_history_tc' : 'online_history';
