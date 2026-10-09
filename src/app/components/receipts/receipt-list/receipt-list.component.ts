@@ -62,6 +62,7 @@ export class ReceiptListComponent implements OnInit {
 
   // Auth & Roles
   isAdmin = signal<boolean>(false);
+  isTCT = signal<boolean>(false);
   isManager = signal<boolean>(false);
   isTL = signal<boolean>(false);
   isTC = signal<boolean>(false);
@@ -89,7 +90,8 @@ export class ReceiptListComponent implements OnInit {
   }
 
   checkUserRole(): void {
-    this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
+    this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR', 'TCT']));
+    this.isTCT.set(this.authService.hasRole(['TCT']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER']));
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));

@@ -107,7 +107,7 @@ export class SidebarComponent implements OnInit {
       label: 'Dashboard',
       icon: 'dashboard',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT','PUBLIC_RELATIONS', 'USER', 'OT'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT','PUBLIC_RELATIONS', 'USER', 'OT', 'TCT'],
       route: '/dashboard',
     },
     {
@@ -192,7 +192,7 @@ export class SidebarComponent implements OnInit {
       label: 'Attendance Details',
       icon: 'event_available',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT','PUBLIC_RELATIONS', 'OT'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT','PUBLIC_RELATIONS', 'OT', 'TCT'],
       route: '/attendance',
     },
     {
@@ -359,7 +359,7 @@ export class SidebarComponent implements OnInit {
       label: 'Receipts',
       icon: 'receipt_long',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL', 'TC','PUBLIC_RELATIONS'],
+      allowedRoles: ['ADMIN', 'TL', 'TC','PUBLIC_RELATIONS', 'TCT'],
       route: '/receipts/view',
     },
 
