@@ -19,7 +19,7 @@
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">search</span>
           <input type="text" id="searchApprovedInput" placeholder="Search donor name, mobile, ref ID..."
-            [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+            [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" [disabled]="!isAdmin() && !isManager() && !isTL() && !isOT()" />
         </div>
       </div>
 
@@ -30,7 +30,7 @@
           <span class="material-symbols-outlined input-icon">calendar_today</span>
           <input type="date" id="startDateApprovedInput" [ngModel]="startDate()"
             (ngModelChange)="onStartDateChange($event)" [min]="minDate()" [max]="maxDate()"
-            [disabled]="!isAdmin() && !isManager() && !isTL()" />
+            [disabled]="!isAdmin() && !isManager() && !isTL() && !isOT()" />
         </div>
       </div>
 
@@ -40,7 +40,7 @@
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">event</span>
           <input type="date" id="endDateApprovedInput" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)"
-            [min]="minDate()" [max]="maxDate()" [disabled]="!isAdmin() && !isManager() && !isTL()" />
+            [min]="minDate()" [max]="maxDate()" [disabled]="!isAdmin() && !isManager() && !isTL() && !isOT()" />
         </div>
       </div>
 
@@ -58,8 +58,8 @@
         </div>
       </div>
 
-      <!-- Branch Filter (Only for Admin/Manager) -->
-      @if (isAdmin() || isManager()) {
+      <!-- Branch Filter (Only for Admin/Manager/OT) -->
+      @if (isAdmin() || isManager() || isOT()) {
       <div class="filter-field">
         <label>Branch</label>
         <div class="input-wrapper">

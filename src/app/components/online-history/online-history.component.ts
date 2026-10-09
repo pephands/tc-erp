@@ -36,6 +36,7 @@ export class OnlineHistoryComponent implements OnInit {
   isAdmin = signal<boolean>(false);
   isManager = signal<boolean>(false);
   isTL = signal<boolean>(false);
+  isOT = signal<boolean>(false);
   branches = signal<any[]>([]);
 
   // Pagination
@@ -62,8 +63,9 @@ export class OnlineHistoryComponent implements OnInit {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isTL.set(this.authService.hasRole(['TL']));
+    this.isOT.set(this.authService.hasRole(['OT']));
 
-    if (!this.isAdmin() && !this.isManager() && !this.isTL()) {
+    if (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isOT()) {
       const today = new Date();
       const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
@@ -75,7 +77,7 @@ export class OnlineHistoryComponent implements OnInit {
       this.maxDate.set(endStr);
     }
 
-    if (this.isAdmin() || this.isManager()) {
+    if (this.isAdmin() || this.isManager() || this.isOT()) {
       this.fetchBranches();
     }
   }
@@ -179,7 +181,7 @@ export class OnlineHistoryComponent implements OnInit {
 
   onResetFilters(): void {
     this.searchQuery.set('');
-    if (!this.isAdmin() && !this.isManager()) {
+    if (!this.isAdmin() && !this.isManager() && !this.isOT()) {
       const today = new Date();
       const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const sevenDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);

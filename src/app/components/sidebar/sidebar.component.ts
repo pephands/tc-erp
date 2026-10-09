@@ -107,7 +107,7 @@ export class SidebarComponent implements OnInit {
       label: 'Dashboard',
       icon: 'dashboard',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT','PUBLIC_RELATIONS', 'USER'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC','SUPERINTENDENT','PUBLIC_RELATIONS', 'USER', 'OT'],
       route: '/dashboard',
     },
     {
@@ -115,7 +115,7 @@ export class SidebarComponent implements OnInit {
       label: 'Announcements',
       icon: 'campaign',
       category: 'Core',
-      allowedRoles: ['ADMIN','TL','TC'],
+      allowedRoles: ['ADMIN','TL','TC', 'OT'],
       route: '/announcements',
     },
     {
@@ -192,7 +192,7 @@ export class SidebarComponent implements OnInit {
       label: 'Attendance Details',
       icon: 'event_available',
       category: 'Operations',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT','PUBLIC_RELATIONS'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT','PUBLIC_RELATIONS', 'OT'],
       route: '/attendance',
     },
     {
@@ -256,7 +256,7 @@ export class SidebarComponent implements OnInit {
       label: 'Payment Batches',
       icon: 'sync_alt',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT'],
       submenus: [
         {
           id: 'live_batch',
@@ -269,28 +269,28 @@ export class SidebarComponent implements OnInit {
           id: 'batch_reports',
           label: 'Batch Details',
           icon: 'receipt_long',
-          allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
+          allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT'],
           route: '/batch-reports',
         },
         {
           id: 'approved_records_admin',
           label: 'Approved Records',
           icon: 'verified',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN', 'TL', 'OT'],
           route: '/approved-records',
         },
         {
           id: 'online_history',
           label: 'Payment History',
           icon: 'history_toggle_off',
-          allowedRoles: ['ADMIN', 'TL'],
+          allowedRoles: ['ADMIN', 'TL', 'OT'],
           route: '/online-history',
         },
         {
           id: 'verified_donors',
           label: 'Verified Donors',
           icon: 'how_to_reg',
-          allowedRoles: ['ADMIN'],
+          allowedRoles: ['ADMIN', 'OT'],
           route: '/verified-donors',
         },
         {

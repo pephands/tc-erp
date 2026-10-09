@@ -68,7 +68,7 @@ export class BatchReportsComponent implements OnInit {
   totalCount = signal<number>(0);
 
   ngOnInit(): void {
-    this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
+    this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR', 'OT']));
     this.isManager.set(this.authService.hasRole(['MANAGER']) && !this.isAdmin());
     
     // Set default tab based on role
