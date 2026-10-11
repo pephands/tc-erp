@@ -101,6 +101,11 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.post(url, payload, { headers: this.headers });
   }
 
+  getUserPassword(userId: string | number): Observable<any> {
+    const url = `${this.endpoint}${userId}/view-password/`;
+    return this.httpClient.get(url, { headers: this.headers });
+  }
+
   uploadRoleUsersExcel(file: File, roleCode: string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);

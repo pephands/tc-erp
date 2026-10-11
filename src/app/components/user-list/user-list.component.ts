@@ -149,12 +149,20 @@ export class UserListComponent implements OnInit {
   isAddModalOpen = signal<boolean>(false);
   isEditModalOpen = signal<boolean>(false);
   isUploadModalOpen = signal<boolean>(false);
-  isResetPasswordModalOpen = signal<boolean>(false);
   selectedAadharUser = signal<UserRecord | null>(null);
   editingUser = signal<UserRecord | null>(null);
-  selectedResetUser = signal<UserRecord | null>(null);
 
-  // Reset Password State
+  // Unified Password Modal State (Admin Only)
+  isPasswordModalOpen = signal<boolean>(false);
+  selectedPasswordUser = signal<UserRecord | null>(null);
+  passwordModalActiveTab = signal<'current' | 'reset'>('current');
+
+  // Tab 1: Current Password State
+  viewPasswordData = signal<any | null>(null);
+  isLoadingViewPassword = signal<boolean>(false);
+  showViewPasswordPlain = signal<boolean>(false);
+
+  // Tab 2: Reset Password State
   resetCustomPassword = signal<string>('');
   resetConfirmPassword = signal<string>('');
   resetRequireChangeOnLogin = signal<boolean>(true);
@@ -844,26 +852,54 @@ export class UserListComponent implements OnInit {
     }
   }
 
-  // Reset Password Handlers
-  openResetPasswordModal(user: UserRecord): void {
+  // Unified Password Management Handlers (Admin Only)
+  openPasswordModal(user: UserRecord, defaultTab: 'current' | 'reset' = 'current'): void {
     if (!this.isAdminUser) {
-      this.toastService.error('Unauthorized', 'Only Admin role can reset user passwords.');
+      this.toastService.error('Unauthorized', 'Only Admin role is permitted to manage user passwords.');
       return;
     }
-    this.selectedResetUser.set(user);
+    this.selectedPasswordUser.set(user);
+    this.passwordModalActiveTab.set(defaultTab);
+    this.viewPasswordData.set(null);
+    this.showViewPasswordPlain.set(false);
     this.resetCustomPassword.set('');
     this.resetConfirmPassword.set('');
     this.resetRequireChangeOnLogin.set(true);
     this.showResetPasswordText.set(false);
     this.resetSuccessResult.set(null);
-    this.isResetPasswordModalOpen.set(true);
+    this.isPasswordModalOpen.set(true);
+
+    this.fetchUserPassword(user.dbId);
   }
 
-  closeResetPasswordModal(): void {
-    this.isResetPasswordModalOpen.set(false);
-    this.selectedResetUser.set(null);
+  fetchUserPassword(dbId: number): void {
+    this.isLoadingViewPassword.set(true);
+    this.userListService.getUserPassword(dbId).subscribe({
+      next: (res: any) => {
+        this.isLoadingViewPassword.set(false);
+        this.viewPasswordData.set(res?.data || null);
+      },
+      error: (err: any) => {
+        this.isLoadingViewPassword.set(false);
+        const errMsg = err?.error?.message || err?.error?.detail || 'Unable to retrieve password.';
+        this.toastService.error('Error', errMsg);
+      }
+    });
+  }
+
+  closePasswordModal(): void {
+    this.isPasswordModalOpen.set(false);
+    this.selectedPasswordUser.set(null);
+    this.viewPasswordData.set(null);
     this.resetSuccessResult.set(null);
     this.isSubmittingResetPassword.set(false);
+  }
+
+  switchPasswordTab(tab: 'current' | 'reset'): void {
+    this.passwordModalActiveTab.set(tab);
+    if (tab === 'current' && !this.viewPasswordData() && this.selectedPasswordUser()) {
+      this.fetchUserPassword(this.selectedPasswordUser()!.dbId);
+    }
   }
 
   onSubmitResetPassword(): void {
@@ -871,7 +907,7 @@ export class UserListComponent implements OnInit {
       this.toastService.error('Unauthorized', 'Only Admin role can reset user passwords.');
       return;
     }
-    const user = this.selectedResetUser();
+    const user = this.selectedPasswordUser();
     if (!user) return;
 
     const pw = this.resetCustomPassword().trim();
@@ -905,6 +941,25 @@ export class UserListComponent implements OnInit {
           employee_Id: user.employee_Id || user.id,
           full_name: user.fullName
         });
+
+        // Sync viewPasswordData so Tab 1 reflects the newly reset password immediately
+        if (this.viewPasswordData()) {
+          this.viewPasswordData.update(d => ({
+            ...d,
+            password: payload.new_password,
+            has_password: true,
+            is_password_reset_required: payload.is_password_reset_required
+          }));
+        } else {
+          this.viewPasswordData.set({
+            id: user.dbId,
+            employee_Id: user.employee_Id,
+            full_name: user.fullName,
+            password: payload.new_password,
+            has_password: true,
+            is_password_reset_required: payload.is_password_reset_required
+          });
+        }
       },
       error: (err: any) => {
         this.isSubmittingResetPassword.set(false);
@@ -915,14 +970,19 @@ export class UserListComponent implements OnInit {
     });
   }
 
-  copyCredentials(user: UserRecord, password?: string): void {
-    const pwd = password || 'Welcome@123';
-    const textToCopy = `User: ${user.fullName}\nID / Username: ${user.employee_Id || user.personalNo}\nPassword: ${pwd}`;
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      this.toastService.success('Copied', 'User credentials copied to clipboard!');
+  copyTextToClipboard(text: string, label: string = 'Password'): void {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      this.toastService.success('Copied', `${label} copied to clipboard!`);
     }).catch(() => {
-      this.toastService.info('Copy Failed', 'Please manually select and copy credentials.');
+      this.toastService.info('Copy Failed', 'Please manually select and copy.');
     });
+  }
+
+  copyCredentials(user: UserRecord, password?: string): void {
+    if (!user || !password) return;
+    const credText = `Username: ${user.employee_Id || user.id}\nPassword: ${password}`;
+    this.copyTextToClipboard(credText, 'Credentials');
   }
 
   // Bulk Upload Modal Handlers
