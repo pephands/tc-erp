@@ -813,68 +813,151 @@
   =========================================== -->
   @if (isTlUploadModalOpen()) {
     <div class="modal-backdrop" (click)="closeTlUploadModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-card tl-upload-modal-card" (click)="$event.stopPropagation()">
         
         <div class="modal-title-header">
-          <h2 style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="material-symbols-outlined">upload_file</span>
-            TL Base Upload
-          </h2>
+          <div class="modal-header-title-group">
+            <div class="modal-icon-badge">
+              <span class="material-symbols-outlined">upload_file</span>
+            </div>
+            <div>
+              <h2>TL Base Upload</h2>
+              <p class="modal-subtitle">Import donor numbers directly into your branch pool</p>
+            </div>
+          </div>
           <button type="button" class="modal-close-btn" (click)="closeTlUploadModal()" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <div class="modal-body-box">
-          <div class="box-header-bar">
-            <h3>Upload Data Direct to Branch</h3>
-          </div>
-
-          <div class="box-content-area">
-            <div style="background-color: #fff3cd; color: #856404; padding: 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-              <span class="material-symbols-outlined">info</span>
-              <p style="margin: 0; font-size: 0.9rem;">Upload a list of donor numbers directly to the branch. 
-                 Download the sample format below to ensure your columns match exactly.</p>
-            </div>
-
-            <div class="form-group margin-bottom-md" style="margin-bottom: 1.5rem;">
-              <button 
-                type="button" 
-                (click)="downloadTlUploadSample()"
-                style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: white; border: 1px solid #ddd; padding: 0.75rem; border-radius: 4px; cursor: pointer;"
-              >
-                <span class="material-symbols-outlined text-primary">download</span>
-                <span style="font-weight: 500;">Download Sample Excel Format</span>
-              </button>
-            </div>
-
-            <div class="form-group margin-bottom-md">
-              <label>Select Excel File (.xlsx) *</label>
-              <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
-                <input type="file" accept=".xlsx" (change)="onTlUploadFileSelected($event)" style="flex: 1;" />
+        <div class="modal-body-content">
+          <!-- Step 1 / Sample Download Card -->
+          <div class="sample-download-card">
+            <div class="sample-card-info">
+              <div class="sample-icon-wrap">
+                <span class="material-symbols-outlined">table_chart</span>
+              </div>
+              <div class="sample-text-wrap">
+                <h4>Sample Excel Template</h4>
+                <p>Download the pre-formatted Excel template with required columns before uploading.</p>
               </div>
             </div>
+            <button 
+              type="button" 
+              class="btn-download-sample"
+              (click)="downloadTlUploadSample()"
+            >
+              <span class="material-symbols-outlined">download</span>
+              <span>Download Format</span>
+            </button>
+          </div>
 
-            <div class="modal-actions-footer margin-top-lg" style="display: flex; gap: 1rem; justify-content: flex-end;">
-              <button
-                type="button"
-                class="btn-outline-secondary"
-                (click)="closeTlUploadModal()"
-                [disabled]="isLoading()"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                class="btn-modal-submit"
-                [disabled]="isLoading() || !selectedTlUploadFile()"
-                (click)="onTlDirectUploadSubmit()"
-              >
-                {{ isLoading() ? 'Uploading...' : 'Upload Base' }}
-              </button>
+          <!-- Step 2 / Modern File Upload Dropzone -->
+          <div class="upload-section-wrap">
+            <label class="section-field-label" for="tlExcelFileInput">
+              <span>Select Excel File (.xlsx, .xls)</span>
+              <span class="required-indicator">*</span>
+            </label>
+
+            <div 
+              class="tl-file-dropzone"
+              [class.drag-over]="isTlUploadDragOver()"
+              [class.has-file]="selectedTlUploadFile() !== null"
+              (dragover)="onTlUploadDragOver($event)"
+              (dragleave)="onTlUploadDragLeave($event)"
+              (drop)="onTlUploadDrop($event)"
+            >
+              @if (!selectedTlUploadFile()) {
+                <input 
+                  type="file" 
+                  id="tlExcelFileInput" 
+                  accept=".xlsx,.xls"
+                  (change)="onTlUploadFileSelected($event)" 
+                  class="tl-hidden-file-input"
+                />
+                <div class="dropzone-placeholder">
+                  <div class="dropzone-cloud-icon">
+                    <span class="material-symbols-outlined">cloud_upload</span>
+                  </div>
+                  <p class="dropzone-heading">
+                    Drag & drop your Excel file here or <span class="browse-link-btn">browse</span>
+                  </p>
+                  <p class="dropzone-subheading">
+                    Supports Microsoft Excel (<strong>.xlsx</strong>, <strong>.xls</strong>)
+                  </p>
+                </div>
+              } @else {
+                <div class="tl-selected-file-card">
+                  <div class="file-excel-icon-box">
+                    <span class="material-symbols-outlined">description</span>
+                  </div>
+                  <div class="file-info-col">
+                    <div class="file-name-row">
+                      <span class="file-name-text" [title]="selectedTlUploadFile()?.name">{{ selectedTlUploadFile()?.name }}</span>
+                      <span class="file-status-badge">
+                        <span class="material-symbols-outlined status-check">check_circle</span>
+                        Ready
+                      </span>
+                    </div>
+                    <span class="file-size-text">{{ getFileSizeString(selectedTlUploadFile()?.size || 0) }} • Microsoft Excel</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    class="btn-remove-selected-file" 
+                    (click)="removeTlUploadFile()" 
+                    [disabled]="isLoading()"
+                    title="Remove File"
+                  >
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              }
             </div>
           </div>
+
+          <!-- Recommended Columns Tip Pill Bar -->
+          <div class="columns-hint-box">
+            <div class="hint-header">
+              <span class="material-symbols-outlined hint-icon">lightbulb</span>
+              <span>Expected Columns:</span>
+            </div>
+            <div class="hint-tags">
+              <span class="hint-pill required">EMPLOYEE ID *</span>
+              <span class="hint-pill required">MOBILE NUMBER *</span>
+              <span class="hint-pill required">BASE CATEGORY *</span>
+              <span class="hint-pill required">DOB *</span>
+              <span class="hint-pill">NAME</span>
+              <span class="hint-pill">ANNIVERSARY</span>
+            </div>
+          </div>
+
+          <!-- Actions Footer -->
+          <div class="modal-footer-action-bar">
+            <button
+              type="button"
+              class="btn-footer-cancel"
+              (click)="closeTlUploadModal()"
+              [disabled]="isLoading()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-footer-upload"
+              [disabled]="isLoading() || !selectedTlUploadFile()"
+              (click)="onTlDirectUploadSubmit()"
+            >
+              @if (isLoading()) {
+                <span class="btn-spinner"></span>
+                <span>Uploading Base...</span>
+              } @else {
+                <span class="material-symbols-outlined">publish</span>
+                <span>Upload Base Numbers</span>
+              }
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
   }

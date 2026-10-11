@@ -45,6 +45,7 @@ export class TlDataManagementComponent implements OnInit {
   // TL Upload Modal
   isTlUploadModalOpen = signal<boolean>(false);
   selectedTlUploadFile = signal<File | null>(null);
+  isTlUploadDragOver = signal<boolean>(false);
   
   // Filters for new features
   startDate = signal<string>('');
@@ -548,19 +549,67 @@ export class TlDataManagementComponent implements OnInit {
 
   openTlUploadModal(): void {
     this.selectedTlUploadFile.set(null);
+    this.isTlUploadDragOver.set(false);
     this.isTlUploadModalOpen.set(true);
   }
 
   closeTlUploadModal(): void {
     this.isTlUploadModalOpen.set(false);
     this.selectedTlUploadFile.set(null);
+    this.isTlUploadDragOver.set(false);
   }
 
   onTlUploadFileSelected(event: any): void {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (file) {
-      this.selectedTlUploadFile.set(file);
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        this.selectedTlUploadFile.set(file);
+      } else {
+        this.triggerToast('Please select a valid Excel file (.xlsx or .xls)');
+      }
     }
+    if (event.target) {
+      event.target.value = '';
+    }
+  }
+
+  onTlUploadDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isTlUploadDragOver.set(true);
+  }
+
+  onTlUploadDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isTlUploadDragOver.set(false);
+  }
+
+  onTlUploadDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isTlUploadDragOver.set(false);
+
+    if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        this.selectedTlUploadFile.set(file);
+      } else {
+        this.triggerToast('Please select a valid Excel file (.xlsx or .xls)');
+      }
+    }
+  }
+
+  removeTlUploadFile(): void {
+    this.selectedTlUploadFile.set(null);
+  }
+
+  getFileSizeString(bytes: number): string {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   downloadTlUploadSample(): void {
