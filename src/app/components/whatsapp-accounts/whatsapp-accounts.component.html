@@ -6,7 +6,7 @@
       <span class="material-symbols-outlined search-icon">search</span>
       <input 
         type="text" 
-        placeholder="Search accounts by number, platform..." 
+        placeholder="Search by Branch, Platform, Number..." 
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
       />

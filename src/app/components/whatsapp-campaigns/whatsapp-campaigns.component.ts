@@ -75,6 +75,7 @@ export class WhatsappCampaignsComponent implements OnInit {
     const query = this.searchQuery().trim().toLowerCase();
     if (query) {
       list = list.filter(c => 
+        (c.branch_name && c.branch_name.toLowerCase().includes(query)) ||
         (c.campaign_name && c.campaign_name.toLowerCase().includes(query)) ||
         (c.description && c.description.toLowerCase().includes(query))
       );
@@ -107,9 +108,11 @@ export class WhatsappCampaignsComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.branchListService.getData().subscribe({
+    this.branchListService.getData(1, 1000, undefined, 'true').subscribe({
       next: (res: any) => {
-        this.branches.set(res.data || res);
+        const branchList = res?.data || (Array.isArray(res) ? res : []);
+        const activeBranches = branchList.filter((b: any) => b.is_active !== false);
+        this.branches.set(activeBranches);
       }
     });
   }

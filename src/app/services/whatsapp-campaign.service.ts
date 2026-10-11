@@ -22,8 +22,8 @@ export class WhatsappCampaignService extends BaseHttpService {
     return this.endPoint.whatsappCampaigns;
   }
 
-  getCampaigns(): Observable<any> {
-    return this.httpGetMethod({ is_active: 'all', page_size: 10 });
+  getCampaigns(params?: any): Observable<any> {
+    return this.httpGetMethod({ is_active: 'all', page_size: 1000, ...params });
   }
 }
 
@@ -46,7 +46,7 @@ export class WhatsappAccountService extends BaseHttpService {
     return this.endPoint.whatsappAccounts;
   }
 
-  getAccounts(): Observable<any> {
-    return this.httpGetMethod({ page_size: 10 });
+  getAccounts(params?: any): Observable<any> {
+    return this.httpGetMethod({ page_size: 1000, ...params });
   }
 }

@@ -40,8 +40,9 @@ export class WhatsappAccountsComponent implements OnInit {
     if (!query) return this.allAccounts();
 
     return this.allAccounts().filter(a => 
-      a.platform_name.toLowerCase().includes(query) ||
-      a.whatsapp_number.toLowerCase().includes(query)
+      (a.branch_name && a.branch_name.toLowerCase().includes(query)) ||
+      (a.platform_name && a.platform_name.toLowerCase().includes(query)) ||
+      (a.whatsapp_number && a.whatsapp_number.toLowerCase().includes(query))
     );
   });
 

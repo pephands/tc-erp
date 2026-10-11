@@ -35,9 +35,11 @@ export class AddWhatsappCampaignModalComponent implements OnInit, OnChanges {
   availableAccounts = signal<any[]>([]);
 
   ngOnInit() {
-    this.branchService.getData(1, 1000).subscribe({
+    this.branchService.getData(1, 1000, undefined, 'true').subscribe({
       next: (res: any) => {
-        this.branches.set(res.data || res);
+        const branchList = res?.data || (Array.isArray(res) ? res : []);
+        const activeBranches = branchList.filter((b: any) => b.is_active !== false);
+        this.branches.set(activeBranches);
       }
     });
 
