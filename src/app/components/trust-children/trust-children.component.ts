@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { TrustChildrenService, TrustChildRecord } from '../../services/trust-children.service';
 import { BranchListService } from '../../services/branch-list.service';
 import { AuthService } from '../../services/auth.service';
+import { Endpoint } from '../../http/endpoint';
 import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-trust-children',
@@ -21,6 +22,7 @@ export class TrustChildrenComponent implements OnInit {
   private branchListService = inject(BranchListService);
   public authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private endpoint = inject(Endpoint);
 
   Math = Math;
 
@@ -102,6 +104,23 @@ export class TrustChildrenComponent implements OnInit {
   uploadFileName = signal<string>('No file chosen');
   existingDocumentUrl = signal<string | null>(null);
   removeDocumentFlag = signal<boolean>(false);
+
+  // Person Image (Passport Photo)
+  selectedPersonImage = signal<File | null>(null);
+  uploadPersonImageName = signal<string>('No photo chosen');
+  existingPersonImageUrl = signal<string | null>(null);
+  removePersonImageFlag = signal<boolean>(false);
+  personImagePreview = signal<string | null>(null);
+  personImageError = signal<string | null>(null);
+
+  getAbsoluteUrl(path: string | null | undefined): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    const baseUrl = this.endpoint.baseUrl.endsWith('/')
+      ? this.endpoint.baseUrl.slice(0, -1)
+      : this.endpoint.baseUrl;
+    return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
 
   constructor() {
     this.childForm = this.fb.group({
@@ -336,6 +355,68 @@ export class TrustChildrenComponent implements OnInit {
     this.uploadFileName.set('No file chosen');
   }
 
+  onPersonImageChange(event: any): void {
+    this.personImageError.set(null);
+    const file = event.target?.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    // Only allow image format
+    if (!file.type.startsWith('image/')) {
+      this.personImageError.set('Only image files (JPG, PNG, JPEG, WEBP) are allowed for passport photo.');
+      if (event.target) event.target.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.personImageError.set('Photo file size must not exceed 5MB.');
+      if (event.target) event.target.value = '';
+      return;
+    }
+
+    // Validate passport photo aspect ratio (Portrait or near-square)
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const ratio = img.width / img.height;
+      if (ratio > 1.15) {
+        this.personImageError.set('Invalid photo aspect ratio. Please upload a passport size photo in portrait orientation (height must be greater than or equal to width).');
+        if (event.target) event.target.value = '';
+        return;
+      }
+
+      this.personImageError.set(null);
+      this.selectedPersonImage.set(file);
+      this.uploadPersonImageName.set(file.name);
+      this.removePersonImageFlag.set(false);
+
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.personImagePreview.set(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      this.personImageError.set('Failed to read image file. Please upload a valid image.');
+      if (event.target) event.target.value = '';
+    };
+
+    img.src = objectUrl;
+  }
+
+  onRemovePersonImage(): void {
+    this.personImageError.set(null);
+    this.removePersonImageFlag.set(true);
+    this.existingPersonImageUrl.set(null);
+    this.selectedPersonImage.set(null);
+    this.personImagePreview.set(null);
+    this.uploadPersonImageName.set('No photo chosen');
+  }
+
   onResetForm(): void {
     this.childForm.reset({
       is_active: true
@@ -344,6 +425,12 @@ export class TrustChildrenComponent implements OnInit {
     this.uploadFileName.set('No file chosen');
     this.existingDocumentUrl.set(null);
     this.removeDocumentFlag.set(false);
+    this.selectedPersonImage.set(null);
+    this.uploadPersonImageName.set('No photo chosen');
+    this.existingPersonImageUrl.set(null);
+    this.removePersonImageFlag.set(false);
+    this.personImagePreview.set(null);
+    this.personImageError.set(null);
     this.branchSearchTerm.set('');
   }
 
@@ -387,6 +474,13 @@ export class TrustChildrenComponent implements OnInit {
       formData.append('document', file);
     } else if (this.removeDocumentFlag()) {
       formData.append('document', ''); // Empty string to clear on backend
+    }
+
+    const personImage = this.selectedPersonImage();
+    if (personImage) {
+      formData.append('person_image', personImage);
+    } else if (this.removePersonImageFlag()) {
+      formData.append('person_image', ''); // Empty string to clear on backend
     }
 
     this.isSubmitting.set(true);
@@ -452,6 +546,14 @@ export class TrustChildrenComponent implements OnInit {
     this.existingDocumentUrl.set(child.document || null);
     this.removeDocumentFlag.set(false);
     this.uploadFileName.set(child.file_name ? `Current: ${child.file_name}` : 'No file chosen');
+
+    this.selectedPersonImage.set(null);
+    this.existingPersonImageUrl.set(child.person_image || null);
+    this.personImagePreview.set(child.person_image ? this.getAbsoluteUrl(child.person_image) : null);
+    this.removePersonImageFlag.set(false);
+    this.uploadPersonImageName.set(child.person_image ? (child.person_image_name ? `Current: ${child.person_image_name}` : 'Current photo preserved') : 'No photo chosen');
+    this.personImageError.set(null);
+
     this.isModalOpen.set(true);
   }
 
@@ -479,7 +581,7 @@ export class TrustChildrenComponent implements OnInit {
     }
   }
 
-  downloadApplication(child: TrustChildRecord): void {
+  async downloadApplication(child: TrustChildRecord): Promise<void> {
     this.editingChild.set(child);
     this.activeBranch = this.branchesList().find(b => b.id === child.trust_name) || {
       name: child.trust_branch_name || 'N/A',
@@ -488,21 +590,25 @@ export class TrustChildrenComponent implements OnInit {
       email: 'N/A'
     };
 
-    setTimeout(async () => {
-      try {
-        const blob = await this.trustChildForm.generatePdfBlob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Application_${child.children_name?.replace(/\s+/g, '_') || 'Child'}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error('Failed to generate PDF', err);
-        alert('Failed to generate PDF');
+    try {
+      if (this.trustChildForm) {
+        await this.trustChildForm.prepareForPdf(child, this.activeBranch);
       }
-    }, 200); // give the viewchild time to update
+      // Give Angular change detection a moment to render the template with the loaded image
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      const blob = await this.trustChildForm.generatePdfBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Application_${child.children_name?.replace(/\s+/g, '_') || 'Child'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to generate PDF', err);
+      alert('Failed to generate PDF');
+    }
   }
 }

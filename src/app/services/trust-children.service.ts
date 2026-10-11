@@ -26,6 +26,8 @@ export interface TrustChildRecord {
   date_of_birth?: string;
   document: string | null;
   file_name: string;
+  person_image?: string | null;
+  person_image_name?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

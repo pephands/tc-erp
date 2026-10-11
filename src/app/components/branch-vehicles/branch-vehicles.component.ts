@@ -6,6 +6,7 @@ import { BranchListService } from '../../services/branch-list.service';
 import { AuthService } from '../../services/auth.service';
 import { VehicleTypeService } from '../../services/vehicle-type.service';
 import { VehicleType } from '../../models/vehicle-type.model';
+import { Endpoint } from '../../http/endpoint';
 
 @Component({
   selector: 'app-branch-vehicles',
@@ -20,6 +21,7 @@ export class BranchVehiclesComponent implements OnInit {
   public authService = inject(AuthService);
   private vehicleTypeService = inject(VehicleTypeService);
   private fb = inject(FormBuilder);
+  private endpoint = inject(Endpoint);
 
   isAdmin = computed(() => this.authService.hasRole(['ADMIN']));
   userBranchId = computed(() => this.authService.currentUser()?.branch?.id || null);
@@ -386,7 +388,9 @@ export class BranchVehiclesComponent implements OnInit {
   getAbsoluteUrl(path: string | null): string {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    const baseUrl = 'http://127.0.0.1:8000';
+    const baseUrl = this.endpoint.baseUrl.endsWith('/')
+      ? this.endpoint.baseUrl.slice(0, -1)
+      : this.endpoint.baseUrl;
     return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
   }
 }

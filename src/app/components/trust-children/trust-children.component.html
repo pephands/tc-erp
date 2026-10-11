@@ -43,6 +43,7 @@
               <option value="NORMAL CHILDREN">NORMAL CHILDREN</option>
               <option value="SPECIAL CHILDREN">SPECIAL CHILDREN</option>
               <option value="ADOPTION CHILD">ADOPTION CHILD</option>
+              <option value="OLDAGEHOME">OLDAGEHOME</option>
             </select>
             <span class="material-symbols-outlined select-arrow">expand_more</span>
           </div>
@@ -122,7 +123,12 @@
                 @for (item of paginatedChildren(); track item.id; let i = $index) {
                   <tr>
                     <td class="font-medium cell-id">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
-                    <td class="font-semibold doc-name">{{ item.children_name }}</td>
+                    <td class="font-semibold doc-name">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <img *ngIf="item.person_image" [src]="getAbsoluteUrl(item.person_image)" style="width: 26px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid #d6d3d1; flex-shrink: 0;" alt="photo" />
+                        <span>{{ item.children_name }}</span>
+                      </div>
+                    </td>
                     <td class="branch-name">{{ item.trust_branch_name }}</td>
                     <td class="text-muted">{{ item.license_no }}</td>
                     <td class="text-muted">{{ item.gender }} / {{ item.category }}</td>
@@ -372,6 +378,7 @@
                         <option value="NORMAL CHILDREN">NORMAL CHILDREN</option>
                         <option value="SPECIAL CHILDREN">SPECIAL CHILDREN</option>
                         <option value="ADOPTION CHILD">ADOPTION CHILD</option>
+                        <option value="OLDAGEHOME">OLDAGEHOME</option>
                       </select>
                       <span class="material-symbols-outlined select-arrow">expand_more</span>
                     </div>
@@ -396,11 +403,6 @@
                   </div>
 
                   <div class="form-group margin-top-sm">
-                    <label>Birth Marks</label>
-                    <input type="text" formControlName="birth_marks" placeholder="Birth Marks" style="text-transform: uppercase;" />
-                  </div>
-
-                  <div class="form-group margin-top-sm">
                     <label>UDID No</label>
                     <input type="text" formControlName="udid_no" placeholder="UDID Number" style="text-transform: uppercase;" />
                   </div>
@@ -409,7 +411,7 @@
                     <label>Disability Certificate No</label>
                     <input type="text" formControlName="disability_certificate_no" placeholder="Certificate Number" style="text-transform: uppercase;" />
                   </div>
-  
+
                   <div class="form-group margin-top-sm">
                     <label>Date of Joining *</label>
                     <input type="date" formControlName="date_of_joining" />
@@ -421,26 +423,82 @@
                   <div class="form-group margin-top-sm">
                     <label>Discharge Date</label>
                     <input type="date" formControlName="discharge_date" />
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">Setting this automatically marks record as inactive.</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 2px;">Discharge date on or before today marks record as inactive. Future date or empty remains active.</span>
+                  </div>
+
+                  <!-- Birth Marks Full Width -->
+                  <div class="full-width-field">
+                    <div class="form-group margin-top-sm">
+                      <label>Birth Marks</label>
+                      <input type="text" formControlName="birth_marks" placeholder="Birth Marks" style="text-transform: uppercase;" />
+                    </div>
                   </div>
   
-                  <!-- File Upload Row -->
-                  <div class="form-group margin-top-sm">
-                    <label>Upload Document (PDF/Image)</label>
-                    <div class="file-upload-row" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 10px;">
-                      <label class="btn-file-choose">
-                        Choose file
-                        <input type="file" accept=".pdf,.png,.jpg,.jpeg" (change)="onFileChange($event)" hidden />
-                      </label>
-                      <span class="file-chosen-name">{{ uploadFileName() }}</span>
-                      
-                      @if (existingDocumentUrl() && !removeDocumentFlag()) {
-                        <a [href]="existingDocumentUrl()" target="_blank" class="btn-action-icon btn-view" title="View Document" style="margin-left: auto;">
-                          <span class="material-symbols-outlined" style="font-size: 1.2rem;">visibility</span>
-                        </a>
-                        <button type="button" class="btn-action-icon btn-delete" (click)="onRemoveDocument()" title="Remove Document">
-                          <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
-                        </button>
+                  <!-- File Upload Row (Full Width) -->
+                  <div class="full-width-field">
+                    <div class="form-group margin-top-sm">
+                      <label>Upload Document (PDF/Image)</label>
+                      <div class="file-upload-row" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 10px; background: #fafaf9; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 4px; min-height: 52px;">
+                        <div style="width: 34px; height: 42px; border: 1px solid #d6d3d1; border-radius: 4px; overflow: hidden; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          <span class="material-symbols-outlined" style="font-size: 1.3rem; color: #a8a29e;">description</span>
+                        </div>
+                        <label class="btn-file-choose" style="margin: 0; flex-shrink: 0;">
+                          Choose file
+                          <input type="file" accept=".pdf,.png,.jpg,.jpeg" (change)="onFileChange($event)" hidden />
+                        </label>
+                        <span class="file-chosen-name" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ uploadFileName() }}</span>
+                        
+                        @if (existingDocumentUrl() && !removeDocumentFlag()) {
+                          <a [href]="existingDocumentUrl()" target="_blank" class="btn-action-icon btn-view" title="View Document" style="margin-left: auto; flex-shrink: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 1.2rem;">visibility</span>
+                          </a>
+                          <button type="button" class="btn-action-icon btn-delete" (click)="onRemoveDocument()" title="Remove Document" style="flex-shrink: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Passport Photo Upload Row (Full Width) -->
+                  <div class="full-width-field">
+                    <div class="form-group margin-top-sm">
+                      <label>Passport Size Photo (Image only) <span style="font-size: 0.72rem; color: #ea580c; font-weight: normal;">*Portrait only, Max 5MB</span></label>
+                      <div class="file-upload-row" style="margin-top: 0.35rem; display: flex; align-items: center; gap: 10px; background: #fafaf9; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 4px; min-height: 52px;">
+                        <div style="width: 34px; height: 42px; border: 1px solid #d6d3d1; border-radius: 4px; overflow: hidden; background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          @if (personImagePreview()) {
+                            <img [src]="personImagePreview()" alt="Photo Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+                          } @else {
+                            <span class="material-symbols-outlined" style="font-size: 1.3rem; color: #a8a29e;">account_box</span>
+                          }
+                        </div>
+
+                        <label class="btn-file-choose" style="margin: 0; flex-shrink: 0;">
+                          Choose Photo
+                          <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" (change)="onPersonImageChange($event)" hidden />
+                        </label>
+                        <span class="file-chosen-name" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ uploadPersonImageName() }}</span>
+                        
+                        @if ((existingPersonImageUrl() || personImagePreview()) && !removePersonImageFlag()) {
+                          @if (existingPersonImageUrl()) {
+                            <a [href]="getAbsoluteUrl(existingPersonImageUrl())" target="_blank" class="btn-action-icon btn-view" title="View Photo" style="margin-left: auto; flex-shrink: 0;">
+                              <span class="material-symbols-outlined" style="font-size: 1.2rem;">visibility</span>
+                            </a>
+                          }
+                          <button type="button" class="btn-action-icon btn-delete" (click)="onRemovePersonImage()" title="Remove Photo" style="flex-shrink: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
+                          </button>
+                        }
+                      </div>
+
+                      @if (personImageError()) {
+                        <div class="photo-error-alert" style="margin-top: 0.45rem; padding: 7px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; display: flex; align-items: center; gap: 8px; color: #b91c1c; font-size: 0.78rem;">
+                          <span class="material-symbols-outlined" style="font-size: 1.15rem; color: #ef4444; flex-shrink: 0;">error</span>
+                          <span style="flex: 1; line-height: 1.35; font-weight: 500;">{{ personImageError() }}</span>
+                          <button type="button" (click)="personImageError.set(null)" title="Dismiss" style="background: none; border: none; cursor: pointer; color: #991b1b; display: flex; align-items: center; padding: 0;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem;">close</span>
+                          </button>
+                        </div>
                       }
                     </div>
                   </div>

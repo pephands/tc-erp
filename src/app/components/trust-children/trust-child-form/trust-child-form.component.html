@@ -6,21 +6,29 @@
   </div>
 
   <div class="content">
-    <div class="fields">
-      <div class="label">ADMISSION DATE</div><div class="colon">:</div><div class="value">{{ record?.date_of_joining | date:'dd-MM-yyyy' }}</div>
-      <div class="label">1. NAME</div><div class="colon">:</div><div class="value">{{ record?.children_name }}</div>
-      <div class="label">2. PARENT / GUARDIAN NAME</div><div class="colon">:</div><div class="value">{{ record?.parent_name }}</div>
-      <div class="label">3. DOB/AGE</div><div class="colon">:</div><div class="value">{{ record?.date_of_birth | date:'dd-MM-yyyy' }} / {{ age }}</div>
-      <div class="label">4. GENDER</div><div class="colon">:</div><div class="value">{{ record?.gender }}</div>
+    <div class="top-section">
+      <div class="fields-top">
+        <div class="label">ADMISSION DATE</div><div class="colon">:</div><div class="value">{{ record?.date_of_joining | date:'dd-MM-yyyy' }}</div>
+        <div class="label">1. NAME</div><div class="colon">:</div><div class="value">{{ record?.children_name }}</div>
+        <div class="label">2. PARENT / GUARDIAN NAME</div><div class="colon">:</div><div class="value">{{ record?.parent_name }}</div>
+        <div class="label">3. DOB/AGE</div><div class="colon">:</div><div class="value">{{ record?.date_of_birth | date:'dd-MM-yyyy' }} / {{ age }}</div>
+        <div class="label">4. GENDER</div><div class="colon">:</div><div class="value">{{ record?.gender }}</div>
+      </div>
+      <div class="passport-photo-container">
+        <img *ngIf="personImageSrc" [src]="personImageSrc" alt="Passport Photo" class="passport-photo-img" />
+        <div *ngIf="!personImageSrc" class="passport-photo-empty"></div>
+      </div>
+    </div>
+
+    <div class="fields-bottom">
       <div class="label">5. PERMANENT ADDRESS</div><div class="colon">:</div><div class="value">{{ record?.address }}</div>
       <div class="label">6. PARENTAL OCCUPATION</div><div class="colon">:</div><div class="value">{{ record?.parent_occupation }}</div>
       <div class="label">7. BIRTH MARKS</div><div class="colon">:</div><div class="value">{{ record?.birth_marks }}</div>
-      <div class="label">8. CHILDREN CATEGORY</div><div class="colon">:</div><div class="value">{{ record?.category }}</div>
-      <div class="label">9. DISABILITY PERCENTAGE</div><div class="colon">:</div><div class="value"> </div>
-      <div class="label">10. UDID NO</div><div class="colon">:</div><div class="value">{{ record?.udid_no }}</div>
-      <div class="label">11. DISABILITY CERTIFICATE NO</div><div class="colon">:</div><div class="value">{{ record?.disability_certificate_no }}</div>
-      <div class="label">12. AADHAR CARD NO</div><div class="colon">:</div><div class="value">{{ record?.aadhar_no }}</div>
-      <div class="label">13. PHONE NO</div><div class="colon">:</div><div class="value">{{ record?.mobile_number }}</div>
+      <div class="label">8. CATEGORY</div><div class="colon">:</div><div class="value">{{ record?.category }}</div>
+      <div class="label">9. UDID NO</div><div class="colon">:</div><div class="value">{{ record?.udid_no }}</div>
+      <div class="label">10. DISABILITY CERTIFICATE NO</div><div class="colon">:</div><div class="value">{{ record?.disability_certificate_no }}</div>
+      <div class="label">11. AADHAR CARD NO</div><div class="colon">:</div><div class="value">{{ record?.aadhar_no }}</div>
+      <div class="label">12. PHONE NO</div><div class="colon">:</div><div class="value">{{ record?.mobile_number }}</div>
     </div>
   </div>
 
