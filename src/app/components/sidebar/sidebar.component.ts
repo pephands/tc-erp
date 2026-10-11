@@ -339,7 +339,7 @@ export class SidebarComponent implements OnInit {
         },
         {
           id: 'whatsapp_receipt_settings',
-          label: 'WhatsApp Receipt',
+          label: 'WhatsApp Receipt Settings',
           icon: 'receipt',
           allowedRoles: ['ADMIN'],
           route: '/whatsapp-receipt-settings',
