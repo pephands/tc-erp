@@ -126,11 +126,43 @@ export class AttendanceComponent implements OnInit {
     return this.manualForm.userIds.includes(String(userId));
   }
 
+  manualUserSearch = signal<string>('');
+
+  get filteredCurrentTabUsers(): any[] {
+    const query = this.manualUserSearch().trim().toLowerCase();
+    const users = this.currentTabUsers;
+    if (!query) {
+      return users;
+    }
+    return users.filter(u => {
+      const name = (u.full_name || u.fullName || u.original_name || '').toLowerCase();
+      const empId = (u.employee_Id || '').toLowerCase();
+      const idCard = (u.id_card_number || '').toLowerCase();
+      const phone = (u.phone || u.office_phone || '').toLowerCase();
+
+      return name.includes(query) ||
+             empId.includes(query) ||
+             idCard.includes(query) ||
+             phone.includes(query);
+    });
+  }
+
+  get isAllCurrentTabUsersSelected(): boolean {
+    const list = this.filteredCurrentTabUsers;
+    if (list.length === 0) return false;
+    return list.every(u => this.isUserSelected(u.id));
+  }
+
   selectAllUsers(select: boolean): void {
+    const targetUsers = this.filteredCurrentTabUsers;
     if (select) {
-      this.manualForm.userIds = this.currentTabUsers.map(u => String(u.id));
+      const idsToAdd = targetUsers.map(u => String(u.id));
+      const currentSelected = new Set(this.manualForm.userIds);
+      idsToAdd.forEach(id => currentSelected.add(id));
+      this.manualForm.userIds = Array.from(currentSelected);
     } else {
-      this.manualForm.userIds = [];
+      const idsToRemove = new Set(targetUsers.map(u => String(u.id)));
+      this.manualForm.userIds = this.manualForm.userIds.filter(id => !idsToRemove.has(id));
     }
   }
 
@@ -506,9 +538,12 @@ export class AttendanceComponent implements OnInit {
         }
       }
     });
+
+    this.manualUserSearch.set('');
   }
 
   closeManualMarkModal(): void {
+    this.manualUserSearch.set('');
     this.isManualMarkModalOpen.set(false);
   }
 

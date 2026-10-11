@@ -282,28 +282,78 @@
         </button>
       </div>
       <div class="modal-tabs" style="display: flex; border-bottom: 1px solid var(--border-color);">
-        <button type="button" (click)="activeTab.set('checkin'); manualForm.userIds = []" style="flex: 1; padding: 0.75rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-main);" [style.borderBottomColor]="activeTab() === 'checkin' ? 'var(--primary)' : 'transparent'">Check In</button>
-        <button type="button" (click)="activeTab.set('checkout'); manualForm.userIds = []" style="flex: 1; padding: 0.75rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-main);" [style.borderBottomColor]="activeTab() === 'checkout' ? 'var(--primary)' : 'transparent'">Check Out</button>
+        <button type="button" (click)="activeTab.set('checkin'); manualForm.userIds = []; manualUserSearch.set('')" style="flex: 1; padding: 0.75rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-main);" [style.borderBottomColor]="activeTab() === 'checkin' ? 'var(--primary)' : 'transparent'">Check In</button>
+        <button type="button" (click)="activeTab.set('checkout'); manualForm.userIds = []; manualUserSearch.set('')" style="flex: 1; padding: 0.75rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-main);" [style.borderBottomColor]="activeTab() === 'checkout' ? 'var(--primary)' : 'transparent'">Check Out</button>
       </div>
       <div class="modal-body-box" style="padding-top: 1rem;">
         <form (submit)="$event.preventDefault()">
           
           <div class="form-group margin-top-sm">
-            <label>Trust Users ({{ activeTab() === 'checkin' ? 'Absent Today' : 'Present Today' }}) *</label>
-            <div class="multi-select-list" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; background: var(--bg-input);">
-              <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: none; color: var(--text-main);">
-                <input type="checkbox" (change)="selectAllUsers($any($event.target).checked)" [checked]="manualForm.userIds.length === currentTabUsers.length && currentTabUsers.length > 0">
-                <strong>Select All</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="margin: 0;">Trust Users ({{ activeTab() === 'checkin' ? 'Absent Today' : 'Present Today' }}) *</label>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">
+                Selected: <strong style="color: var(--primary);">{{ manualForm.userIds.length }}</strong>
+              </span>
+            </div>
+
+            <!-- User Search Input -->
+            <div class="user-search-wrapper" style="position: relative; margin-bottom: 0.5rem;">
+              <span class="material-symbols-outlined" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; color: var(--text-muted); pointer-events: none;">search</span>
+              <input 
+                type="text" 
+                placeholder="Search by Name, ID Card No, Employee ID, Phone..." 
+                [ngModel]="manualUserSearch()" 
+                (ngModelChange)="manualUserSearch.set($event)" 
+                [ngModelOptions]="{standalone: true}"
+                style="width: 100%; padding: 0.5rem 2rem 0.5rem 2.2rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); outline: none; box-sizing: border-box;"
+              />
+              @if (manualUserSearch()) {
+                <button 
+                  type="button" 
+                  (click)="manualUserSearch.set('')" 
+                  title="Clear search"
+                  style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; display: flex; align-items: center;"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 1.1rem;">close</span>
+                </button>
+              }
+            </div>
+
+            <div class="multi-select-list" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; background: var(--bg-input);">
+              <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: none; color: var(--text-main); cursor: pointer;">
+                <input type="checkbox" (change)="selectAllUsers($any($event.target).checked)" [checked]="isAllCurrentTabUsersSelected">
+                <strong>Select All ({{ filteredCurrentTabUsers.length }})</strong>
               </label>
               <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 0.5rem 0;">
-              @for (u of currentTabUsers; track u.id) {
-                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; font-size: 0.9rem; text-transform: none; color: var(--text-main);">
-                  <input type="checkbox" [checked]="isUserSelected(u.id)" (change)="toggleManualUser(u.id)">
-                  {{ u.full_name || u.fullName || 'No Name' }} ({{ u.employee_Id }})
+              @for (u of filteredCurrentTabUsers; track u.id) {
+                <label style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.35rem; padding: 0.3rem 0.4rem; border-radius: 4px; font-size: 0.875rem; text-transform: none; color: var(--text-main); cursor: pointer; transition: background 0.1s;" [style.background]="isUserSelected(u.id) ? 'rgba(16, 185, 129, 0.08)' : 'transparent'">
+                  <input type="checkbox" [checked]="isUserSelected(u.id)" (change)="toggleManualUser(u.id)" style="margin-top: 3px;">
+                  <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
+                    <div style="font-weight: 500; color: var(--text-main); line-height: 1.3;">
+                      {{ u.full_name || u.fullName || 'No Name' }}
+                      <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: normal;">({{ u.employee_Id || 'No ID' }})</span>
+                    </div>
+                    @if (u.id_card_number || u.phone) {
+                      <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px;">
+                        <!-- @if (u.id_card_number) {
+                          <span>ID Card: <strong style="color: #475569;">{{ u.id_card_number }}</strong></span>
+                        }
+                        @if (u.phone) {
+                          <span>Phone: <strong style="color: #475569;">{{ u.phone }}</strong></span>
+                        } -->
+                      </div>
+                    }
+                  </div>
                 </label>
               }
-              @if (currentTabUsers.length === 0) {
-                <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 0.5rem;">No eligible users found for this action.</div>
+              @if (filteredCurrentTabUsers.length === 0) {
+                <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 0.75rem;">
+                  @if (manualUserSearch()) {
+                    No users matching "{{ manualUserSearch() }}"
+                  } @else {
+                    No eligible users found for this action.
+                  }
+                </div>
               }
             </div>
           </div>
