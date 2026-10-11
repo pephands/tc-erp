@@ -1,4 +1,27 @@
 <main class="page-container">
+  <!-- Upload Processing Loader Overlay -->
+  @if (isUploading()) {
+    <div class="upload-loader-overlay">
+      <div class="upload-loader-card">
+        <div class="upload-spinner-container">
+          <div class="upload-spinner-ring"></div>
+          <span class="material-symbols-outlined upload-spinner-icon">upload_file</span>
+        </div>
+        <h3 class="upload-loader-title">Processing Excel File</h3>
+        <p class="upload-loader-desc">
+          Uploading and updating batch records... Please wait, this may take a few moments.
+        </p>
+        <div class="upload-progress-bar-container">
+          <div class="upload-progress-bar-indeterminate"></div>
+        </div>
+        <p class="upload-loader-note">
+          <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">info</span>
+          Please do not refresh or close this page
+        </p>
+      </div>
+    </div>
+  }
+
   <!-- Header Bar -->
   <div class="page-header-bar">
     <div class="page-title-group">
@@ -24,14 +47,19 @@
     }
   </div>
 
+  <!-- Toast Notifications (5 Seconds Auto-Dismiss) -->
   @if (uploadMessage()) {
-    <div class="alert alert-success" style="padding: 1rem; background-color: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #10b981;">
-      {{ uploadMessage() }}
+    <div class="toast-notification toast-success shadow-card">
+      <span class="material-symbols-outlined check-icon">check_circle</span>
+      <span class="toast-text">{{ uploadMessage() }}</span>
+      <button type="button" class="toast-close-btn" (click)="clearToast()" aria-label="Close">✕</button>
     </div>
   }
   @if (uploadError()) {
-    <div class="alert alert-danger" style="padding: 1rem; background-color: #fee2e2; color: #b91c1c; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #ef4444;">
-      {{ uploadError() }}
+    <div class="toast-notification toast-error shadow-card">
+      <span class="material-symbols-outlined check-icon">error</span>
+      <span class="toast-text">{{ uploadError() }}</span>
+      <button type="button" class="toast-close-btn" (click)="clearToast()" aria-label="Close">✕</button>
     </div>
   }
 

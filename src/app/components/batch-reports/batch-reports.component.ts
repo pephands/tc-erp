@@ -242,16 +242,42 @@ export class BatchReportsComponent implements OnInit {
     });
   }
 
+  private toastTimeout: any = null;
+
+  showToast(message: string, isError: boolean = false): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    if (isError) {
+      this.uploadError.set(message);
+      this.uploadMessage.set('');
+    } else {
+      this.uploadMessage.set(message);
+      this.uploadError.set('');
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.uploadMessage.set('');
+      this.uploadError.set('');
+    }, 5000);
+  }
+
+  clearToast(): void {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.uploadMessage.set('');
+    this.uploadError.set('');
+  }
+
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
       if (!file.name.endsWith('.xlsx')) {
-        this.uploadError.set('Only .xlsx files are allowed');
+        this.showToast('Only .xlsx files are allowed', true);
         return;
       }
       
-      this.uploadError.set('');
-      this.uploadMessage.set('');
+      this.clearToast();
       this.isUploading.set(true);
       
       const formData = new FormData();
@@ -260,13 +286,13 @@ export class BatchReportsComponent implements OnInit {
       this.paymentService.uploadBatchFile(formData).subscribe({
         next: (res: any) => {
           this.isUploading.set(false);
-          this.uploadMessage.set(res.message || 'Successfully updated records. Batch completed if no pending records left.');
+          this.showToast(res.message || 'Successfully updated records. Batch completed if no pending records left.', false);
           this.fileInput.nativeElement.value = '';
           this.fetchDataForActiveTab(); // Refresh current tab data
         },
         error: (err: any) => {
           this.isUploading.set(false);
-          this.uploadError.set(err.error?.error || 'Error uploading file.');
+          this.showToast(err.error?.error || 'Error uploading file.', true);
           this.fileInput.nativeElement.value = '';
         }
       });
