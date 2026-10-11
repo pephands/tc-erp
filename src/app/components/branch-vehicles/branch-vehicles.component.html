@@ -51,8 +51,9 @@
           <th>FC EXP</th>
           <th>Pollution EXP</th>
           <th>RC EXP</th>
+          <th>Road Tax EXP</th>
           <th>Status</th>
-          <th *ngIf="isAdmin()">Actions</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -95,23 +96,34 @@
             </div>
           </td>
           <td>
+            <div class="date-doc-wrapper">
+              <span class="date-text">{{ item.road_tax_end_date ? (item.road_tax_end_date | date) : 'N/A' }}</span>
+              <a *ngIf="item.road_tax_certificate_document" [href]="getAbsoluteUrl(item.road_tax_certificate_document)" target="_blank" title="View Document" class="doc-link">
+                <span class="material-symbols-outlined">description</span>
+              </a>
+            </div>
+          </td>
+          <td>
             <span class="status-badge" [class.active]="item.is_active" [class.inactive]="!item.is_active">
               {{ item.is_active ? 'Active' : 'Inactive' }}
             </span>
           </td>
-          <td *ngIf="isAdmin()">
+          <td>
             <div class="action-buttons">
-              <button class="btn-icon edit" (click)="openEditModal(item)" title="Edit">
+              <button class="btn-icon view" (click)="openViewModal(item)" title="View Details">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+              <button *ngIf="isAdmin()" class="btn-icon edit" (click)="openEditModal(item)" title="Edit">
                 <span class="material-symbols-outlined">edit</span>
               </button>
-              <button class="btn-icon delete" (click)="deleteVehicle(item.id)" title="Delete">
+              <button *ngIf="isAdmin()" class="btn-icon delete" (click)="deleteVehicle(item.id)" title="Delete">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
           </td>
         </tr>
         <tr *ngIf="totalItems() === 0">
-          <td [attr.colspan]="isAdmin() ? 11 : 10" class="empty-state">No vehicles found.</td>
+          <td colspan="12" class="empty-state">No vehicles found.</td>
         </tr>
       </tbody>
     </table>
@@ -160,7 +172,7 @@
 <div class="modal-backdrop" *ngIf="showModal()" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{ isEditMode() ? 'Edit Vehicle' : 'Add New Vehicle' }}</h2>
+      <h2>{{ isViewMode() ? 'View Vehicle Details' : (isEditMode() ? 'Edit Vehicle' : 'Add New Vehicle') }}</h2>
       <button class="btn-close" (click)="closeModal()">
         <span class="material-symbols-outlined">close</span>
       </button>
@@ -170,31 +182,32 @@
       <div class="modal-body custom-scrollbar">
         <div class="form-grid">
           
-          <div class="form-group" *ngIf="isAdmin()">
-            <label>Branch <span class="required">*</span></label>
-            <select formControlName="branch">
+          <div class="form-group" *ngIf="isViewMode() || isAdmin()">
+            <label>Branch <span class="required" *ngIf="!isViewMode()">*</span></label>
+            <input *ngIf="isViewMode()" type="text" [value]="currentVehicle()?.branch_name || currentVehicle()?.branch || 'N/A'" readonly disabled>
+            <select *ngIf="!isViewMode()" formControlName="branch">
               <option value="">Select Branch</option>
               <option *ngFor="let b of branchesList()" [value]="b.id">{{ b.name }}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Registered Name <span class="required">*</span></label>
+            <label>Registered Name <span class="required" *ngIf="!isViewMode()">*</span></label>
             <input type="text" formControlName="registered_name" placeholder="Enter name" style="text-transform: uppercase;">
           </div>
 
           <div class="form-group">
-            <label>Mobile No <span class="required">*</span></label>
+            <label>Mobile No <span class="required" *ngIf="!isViewMode()">*</span></label>
             <input type="text" formControlName="registered_mobile_no" placeholder="Enter 10-digit mobile no" maxlength="10" inputmode="numeric" (input)="handlePhoneInput($event, 'registered_mobile_no')">
           </div>
 
           <div class="form-group">
-            <label>Vehicle No <span class="required">*</span></label>
+            <label>Vehicle No <span class="required" *ngIf="!isViewMode()">*</span></label>
             <input type="text" formControlName="registered_vehicle_no" placeholder="e.g. TN-00-XX-0000" style="text-transform: uppercase;">
           </div>
 
           <div class="form-group">
-            <label>Vehicle Type <span class="required">*</span></label>
+            <label>Vehicle Type <span class="required" *ngIf="!isViewMode()">*</span></label>
             <select formControlName="vehicle_type">
               <option value="">Select Vehicle Type</option>
               <option *ngFor="let vt of vehicleTypes()" [value]="vt.name">{{ vt.name }}</option>
@@ -202,7 +215,7 @@
           </div>
 
           <div class="form-group">
-            <label>User Name <span class="required">*</span></label>
+            <label>User Name <span class="required" *ngIf="!isViewMode()">*</span></label>
             <input type="text" formControlName="vehicle_user_name" placeholder="Who uses this vehicle?" style="text-transform: uppercase;">
           </div>
 
@@ -221,12 +234,13 @@
           <div class="form-group full-width">
             <label>Insurance Document (PDF/Image)</label>
             <div class="file-upload-container">
-              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.insurance_document">
+              <div class="current-file" *ngIf="(isEditMode() || isViewMode()) && currentVehicle()?.insurance_document">
                 <span class="material-symbols-outlined">description</span>
-                <a [href]="getAbsoluteUrl(currentVehicle().insurance_document)" target="_blank">View Current Document</a>
+                <a [href]="getAbsoluteUrl(currentVehicle().insurance_document)" target="_blank">View Document</a>
               </div>
-              <input type="file" (change)="onFileChange($event, 'insurance_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.insurance_document">
-              <small *ngIf="isEditMode()">{{ currentVehicle()?.insurance_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+              <span *ngIf="isViewMode() && !currentVehicle()?.insurance_document" style="font-size: 13px; color: var(--text-muted, #718096); font-style: italic;">No document uploaded</span>
+              <input *ngIf="!isViewMode()" type="file" (change)="onFileChange($event, 'insurance_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.insurance_document">
+              <small *ngIf="!isViewMode() && isEditMode()">{{ currentVehicle()?.insurance_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
             </div>
           </div>
 
@@ -245,12 +259,13 @@
           <div class="form-group full-width">
             <label>FC Document</label>
             <div class="file-upload-container">
-              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.fitness_certificate_document">
+              <div class="current-file" *ngIf="(isEditMode() || isViewMode()) && currentVehicle()?.fitness_certificate_document">
                 <span class="material-symbols-outlined">description</span>
-                <a [href]="getAbsoluteUrl(currentVehicle().fitness_certificate_document)" target="_blank">View Current Document</a>
+                <a [href]="getAbsoluteUrl(currentVehicle().fitness_certificate_document)" target="_blank">View Document</a>
               </div>
-              <input type="file" (change)="onFileChange($event, 'fitness_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.fitness_certificate_document">
-              <small *ngIf="isEditMode()">{{ currentVehicle()?.fitness_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+              <span *ngIf="isViewMode() && !currentVehicle()?.fitness_certificate_document" style="font-size: 13px; color: var(--text-muted, #718096); font-style: italic;">No document uploaded</span>
+              <input *ngIf="!isViewMode()" type="file" (change)="onFileChange($event, 'fitness_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.fitness_certificate_document">
+              <small *ngIf="!isViewMode() && isEditMode()">{{ currentVehicle()?.fitness_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
             </div>
           </div>
 
@@ -269,12 +284,13 @@
           <div class="form-group full-width">
             <label>PC Document</label>
             <div class="file-upload-container">
-              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.pollution_certificate_document">
+              <div class="current-file" *ngIf="(isEditMode() || isViewMode()) && currentVehicle()?.pollution_certificate_document">
                 <span class="material-symbols-outlined">description</span>
-                <a [href]="getAbsoluteUrl(currentVehicle().pollution_certificate_document)" target="_blank">View Current Document</a>
+                <a [href]="getAbsoluteUrl(currentVehicle().pollution_certificate_document)" target="_blank">View Document</a>
               </div>
-              <input type="file" (change)="onFileChange($event, 'pollution_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.pollution_certificate_document">
-              <small *ngIf="isEditMode()">{{ currentVehicle()?.pollution_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+              <span *ngIf="isViewMode() && !currentVehicle()?.pollution_certificate_document" style="font-size: 13px; color: var(--text-muted, #718096); font-style: italic;">No document uploaded</span>
+              <input *ngIf="!isViewMode()" type="file" (change)="onFileChange($event, 'pollution_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.pollution_certificate_document">
+              <small *ngIf="!isViewMode() && isEditMode()">{{ currentVehicle()?.pollution_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
             </div>
           </div>
 
@@ -293,12 +309,38 @@
           <div class="form-group full-width">
             <label>RC Document</label>
             <div class="file-upload-container">
-              <div class="current-file" *ngIf="isEditMode() && currentVehicle()?.rc_certificate_document">
+              <div class="current-file" *ngIf="(isEditMode() || isViewMode()) && currentVehicle()?.rc_certificate_document">
                 <span class="material-symbols-outlined">description</span>
-                <a [href]="getAbsoluteUrl(currentVehicle().rc_certificate_document)" target="_blank">View Current Document</a>
+                <a [href]="getAbsoluteUrl(currentVehicle().rc_certificate_document)" target="_blank">View Document</a>
               </div>
-              <input type="file" (change)="onFileChange($event, 'rc_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.rc_certificate_document">
-              <small *ngIf="isEditMode()">{{ currentVehicle()?.rc_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+              <span *ngIf="isViewMode() && !currentVehicle()?.rc_certificate_document" style="font-size: 13px; color: var(--text-muted, #718096); font-style: italic;">No document uploaded</span>
+              <input *ngIf="!isViewMode()" type="file" (change)="onFileChange($event, 'rc_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.rc_certificate_document">
+              <small *ngIf="!isViewMode() && isEditMode()">{{ currentVehicle()?.rc_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
+            </div>
+          </div>
+
+          <div class="form-section-title">Road Tax</div>
+
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" formControlName="road_tax_start_date">
+          </div>
+
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" formControlName="road_tax_end_date">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Road Tax Document</label>
+            <div class="file-upload-container">
+              <div class="current-file" *ngIf="(isEditMode() || isViewMode()) && currentVehicle()?.road_tax_certificate_document">
+                <span class="material-symbols-outlined">description</span>
+                <a [href]="getAbsoluteUrl(currentVehicle().road_tax_certificate_document)" target="_blank">View Document</a>
+              </div>
+              <span *ngIf="isViewMode() && !currentVehicle()?.road_tax_certificate_document" style="font-size: 13px; color: var(--text-muted, #718096); font-style: italic;">No document uploaded</span>
+              <input *ngIf="!isViewMode()" type="file" (change)="onFileChange($event, 'road_tax_certificate_document')" accept=".pdf,image/*" [class.mt-2]="isEditMode() && currentVehicle()?.road_tax_certificate_document">
+              <small *ngIf="!isViewMode() && isEditMode()">{{ currentVehicle()?.road_tax_certificate_document ? 'Upload a new file to replace the existing one.' : 'No document uploaded yet. Upload one now.' }}</small>
             </div>
           </div>
 
@@ -312,8 +354,10 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="submitting()">Cancel</button>
-        <button type="submit" class="btn-primary" [disabled]="submitting() || vehicleForm.invalid">
+        <button type="button" [class]="isViewMode() ? 'btn-primary' : 'btn-secondary'" (click)="closeModal()" [disabled]="submitting()">
+          {{ isViewMode() ? 'Close' : 'Cancel' }}
+        </button>
+        <button *ngIf="!isViewMode()" type="submit" class="btn-primary" [disabled]="submitting() || vehicleForm.invalid">
           <span class="material-symbols-outlined" *ngIf="submitting()">sync</span>
           {{ isEditMode() ? 'Update Vehicle' : 'Save Vehicle' }}
         </button>

@@ -50,6 +50,7 @@ export class BranchVehiclesComponent implements OnInit {
   // Modal State
   showModal = signal<boolean>(false);
   isEditMode = signal<boolean>(false);
+  isViewMode = signal<boolean>(false);
   selectedVehicleId = signal<number | null>(null);
   currentVehicle = signal<any>(null);
   submitting = signal<boolean>(false);
@@ -58,7 +59,9 @@ export class BranchVehiclesComponent implements OnInit {
   selectedFiles: { [key: string]: File | null } = {
     insurance_document: null,
     fitness_certificate_document: null,
-    pollution_certificate_document: null
+    pollution_certificate_document: null,
+    rc_certificate_document: null,
+    road_tax_certificate_document: null
   };
 
   constructor() {
@@ -77,6 +80,8 @@ export class BranchVehiclesComponent implements OnInit {
       pollution_certificate_end_date: [''],
       rc_start_date: [''],
       rc_end_date: [''],
+      road_tax_start_date: [''],
+      road_tax_end_date: [''],
       is_active: [true]
     });
   }
@@ -202,7 +207,9 @@ export class BranchVehiclesComponent implements OnInit {
   }
 
   openAddModal() {
+    this.isViewMode.set(false);
     this.isEditMode.set(false);
+    this.vehicleForm.enable();
     this.selectedVehicleId.set(null);
     this.currentVehicle.set(null);
     this.vehicleForm.reset({ is_active: true });
@@ -215,13 +222,16 @@ export class BranchVehiclesComponent implements OnInit {
       insurance_document: null,
       fitness_certificate_document: null,
       pollution_certificate_document: null,
-      rc_certificate_document: null
+      rc_certificate_document: null,
+      road_tax_certificate_document: null
     };
     this.showModal.set(true);
   }
 
   openEditModal(vehicle: any) {
+    this.isViewMode.set(false);
     this.isEditMode.set(true);
+    this.vehicleForm.enable();
     this.selectedVehicleId.set(vehicle.id);
     this.currentVehicle.set(vehicle);
     this.vehicleForm.patchValue({
@@ -239,18 +249,59 @@ export class BranchVehiclesComponent implements OnInit {
       pollution_certificate_end_date: vehicle.pollution_certificate_end_date,
       rc_start_date: vehicle.rc_start_date,
       rc_end_date: vehicle.rc_end_date,
+      road_tax_start_date: vehicle.road_tax_start_date,
+      road_tax_end_date: vehicle.road_tax_end_date,
       is_active: vehicle.is_active
     });
     this.selectedFiles = {
       insurance_document: null,
       fitness_certificate_document: null,
       pollution_certificate_document: null,
-      rc_certificate_document: null
+      rc_certificate_document: null,
+      road_tax_certificate_document: null
+    };
+    this.showModal.set(true);
+  }
+
+  openViewModal(vehicle: any) {
+    this.isViewMode.set(true);
+    this.isEditMode.set(false);
+    this.selectedVehicleId.set(vehicle.id);
+    this.currentVehicle.set(vehicle);
+    this.vehicleForm.reset();
+    this.vehicleForm.patchValue({
+      branch: vehicle.branch,
+      registered_name: vehicle.registered_name,
+      registered_mobile_no: vehicle.registered_mobile_no,
+      registered_vehicle_no: vehicle.registered_vehicle_no,
+      vehicle_type: vehicle.vehicle_type,
+      vehicle_user_name: vehicle.vehicle_user_name,
+      insurance_start_date: vehicle.insurance_start_date,
+      insurance_end_date: vehicle.insurance_end_date,
+      fitness_certificate_start_date: vehicle.fitness_certificate_start_date,
+      fitness_certificate_end_date: vehicle.fitness_certificate_end_date,
+      pollution_certificate_start_date: vehicle.pollution_certificate_start_date,
+      pollution_certificate_end_date: vehicle.pollution_certificate_end_date,
+      rc_start_date: vehicle.rc_start_date,
+      rc_end_date: vehicle.rc_end_date,
+      road_tax_start_date: vehicle.road_tax_start_date,
+      road_tax_end_date: vehicle.road_tax_end_date,
+      is_active: vehicle.is_active
+    });
+    this.vehicleForm.disable();
+    this.selectedFiles = {
+      insurance_document: null,
+      fitness_certificate_document: null,
+      pollution_certificate_document: null,
+      rc_certificate_document: null,
+      road_tax_certificate_document: null
     };
     this.showModal.set(true);
   }
 
   closeModal() {
+    this.vehicleForm.enable();
+    this.isViewMode.set(false);
     this.showModal.set(false);
   }
 
@@ -262,6 +313,7 @@ export class BranchVehiclesComponent implements OnInit {
   }
 
   saveVehicle() {
+    if (this.isViewMode()) return;
     if (this.vehicleForm.invalid) {
       alert('Please fill out all required fields correctly.');
       return;

@@ -250,6 +250,10 @@
   background: #edf2f7;
 }
 
+.btn-icon.view:hover {
+  color: #2563eb;
+}
+
 .btn-icon.edit:hover {
   color: #3182ce;
 }
