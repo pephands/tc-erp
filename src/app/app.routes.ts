@@ -32,6 +32,7 @@ import { WorkstationComponent } from './components/workstation/workstation.compo
 import { FeedbacksComponent } from './components/feedbacks/feedbacks.component';
 import { FeedbackDetailsComponent } from './components/feedback-details/feedback-details.component';
 import { VerifiedDonorsComponent } from './components/verified-donors/verified-donors.component';
+import { UnclaimedRecordsComponent } from './components/unclaimed-records/unclaimed-records.component';
 import { ReceiptListComponent } from './components/receipts/receipt-list/receipt-list.component';
 import { ReceiptCreateComponent } from './components/receipts/receipt-create/receipt-create.component';
 
@@ -258,6 +259,11 @@ export const routes: Routes = [
       {
         path: 'verified-donors',
         component: VerifiedDonorsComponent,
+        canActivate: [deviceAuthGuard]
+      },
+      {
+        path: 'unclaimed-records',
+        component: UnclaimedRecordsComponent,
         canActivate: [deviceAuthGuard]
       },
       {

@@ -293,6 +293,13 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['ADMIN', 'OT'],
           route: '/verified-donors',
         },
+                {
+          id: 'unclaimed_records',
+          label: 'Unclaimed Records',
+          icon: 'receipt',
+          allowedRoles: ['ADMIN'],
+          route: '/unclaimed-records',
+        },
         {
           id: 'batch_settings',
           label: 'Batch Setting',
@@ -300,6 +307,7 @@ export class SidebarComponent implements OnInit {
           allowedRoles: ['ADMIN'],
           route: '/batch-settings',
         },
+
       ],
     },
     {
@@ -654,6 +662,7 @@ export class SidebarComponent implements OnInit {
     if (url.includes('/batch-reports')) return 'batch_reports';
     if (url.includes('/batch-settings')) return 'batch_settings';
     if (url.includes('/verified-donors')) return 'verified_donors';
+    if (url.includes('/unclaimed-records')) return 'unclaimed_records';
 
     // Whatsapp
     if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';

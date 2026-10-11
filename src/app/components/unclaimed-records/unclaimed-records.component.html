@@ -1,0 +1,343 @@
+<div class="page-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <span class="material-symbols-outlined title-icon">receipt</span>
+        <div>
+          <h1 class="page-title">Unclaimed Records</h1>
+          <p class="page-subtitle">Upload and manage unclaimed payment records (Auto assigned to Admin & SLAB-0).</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn-outline"
+          (click)="downloadSampleFormat()"
+          title="Download Sample Format (.xlsx)"
+        >
+          <span class="material-symbols-outlined">download</span>
+          <span>Sample Format</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-outline"
+          (click)="exportToExcel()"
+          [disabled]="isExporting() || totalRecords() === 0"
+          title="Export records to Excel"
+        >
+          <span class="material-symbols-outlined">{{ isExporting() ? 'sync' : 'file_download' }}</span>
+          <span>{{ isExporting() ? 'Exporting...' : 'Export Excel' }}</span>
+        </button>
+
+        <input
+          type="file"
+          #fileInput
+          id="unclaimedUpload"
+          style="display: none"
+          accept=".xlsx, .xls"
+          (change)="onFileUpload($event)"
+        />
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="fileInput.click()"
+          [disabled]="isUploading()"
+        >
+          <span class="material-symbols-outlined" [class.spin-icon-btn]="isUploading()">
+            {{ isUploading() ? 'progress_activity' : 'upload_file' }}
+          </span>
+          <span>{{ isUploading() ? 'Uploading...' : 'Upload XLSX' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Metric Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon-box count-bg">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Total Unclaimed Records</span>
+        <h3 class="metric-value">{{ totalRecords() | number }}</h3>
+      </div>
+    </div>
+
+
+    <div class="metric-card">
+      <div class="metric-icon-box branch-bg">
+        <span class="material-symbols-outlined">apartment</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Target Branch</span>
+        <h3 class="metric-value">ADMIN (ID: 3)</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Card & Filter Toolbar -->
+  <div class="content-card">
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input
+            type="text"
+            placeholder="Search by Customer, Mobile, Reference, Receipt..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchInput($event)"
+            (keyup.enter)="onSearchSubmit()"
+          />
+          @if (searchQuery()) {
+            <button type="button" class="clear-search-btn" (click)="clearSearch()" title="Clear">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+
+        <div class="status-filter">
+          <select
+            [ngModel]="selectedStatus()"
+            (ngModelChange)="onStatusChange($event)"
+            class="filter-select"
+          >
+            <option value="">All Statuses</option>
+            <option value="OK">OK</option>
+            <option value="NEW">NEW</option>
+            <option value="RESEND">RESEND</option>
+            <option value="PENDING">PENDING</option>
+            <option value="REJECTED">REJECTED</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <span class="record-count-badge">
+          <strong>{{ totalRecords() }}</strong> Records Found
+        </span>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 60px">S.No</th>
+            <th>Task ID</th>
+            <th>Payment Date</th>
+            <th>Customer Name</th>
+            <th>Customer Number</th>
+            <th>Payment Details (₹)</th>
+            <th>Reference ID</th>
+            <th>Payment Mode</th>
+            <th>Status</th>
+            <th>PAN Number</th>
+            <th>Receipt ID</th>
+            <th>Remarks</th>
+            <th>DOB</th>
+            <th>Address</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="15" class="loading-state">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <p>Loading unclaimed records...</p>
+              </td>
+            </tr>
+          } @else if (records().length === 0) {
+            <tr>
+              <td colspan="15" class="empty-state">
+                <span class="material-symbols-outlined empty-icon">folder_off</span>
+                <p class="empty-title">No Unclaimed Records Found</p>
+                <p class="empty-subtitle">Upload an Excel file (.xlsx) using the expected headers to add unclaimed records.</p>
+              </td>
+            </tr>
+          } @else {
+            @for (rec of records(); track rec.id; let i = $index) {
+              <tr>
+                <td class="col-sno">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
+                <td class="col-task font-medium">{{ rec.task_id || '-' }}</td>
+                <td class="col-date">{{ rec.payment_date || '-' }}</td>
+                <td class="col-name font-semibold">{{ rec.donor_name || '-' }}</td>
+                <td class="col-phone">{{ rec.mobile_number || '-' }}</td>
+                <td class="col-amount font-bold">₹{{ rec.amount | number:'1.2-2' }}</td>
+                <td class="col-ref">{{ rec.reference_id || '-' }}</td>
+                <td>
+                  <span class="badge-mode">{{ rec.mode_of_payment || 'N/A' }}</span>
+                </td>
+                <td>
+                  <span
+                    class="badge-status"
+                    [class.status-ok]="rec.status === 'OK'"
+                    [class.status-pending]="rec.status === 'PENDING' || rec.status === 'NEW'"
+                    [class.status-resend]="rec.status === 'RESEND'"
+                    [class.status-rejected]="rec.status === 'REJECTED'"
+                  >
+                    {{ rec.status || 'EMPTY' }}
+                  </span>
+                </td>
+                <td class="col-pan">{{ rec.pan_number || '-' }}</td>
+                <td class="col-receipt">
+                  <code>{{ rec.receipt_id || '-' }}</code>
+                </td>
+                <td class="col-remarks">{{ rec.remarks || '-' }}</td>
+                <td>{{ rec.dob || '-' }}</td>
+                <td class="col-address">{{ rec.address || '-' }}</td>
+                <td class="col-actions">
+                  <div class="actions-group">
+                    <!-- View Receipt -->
+                    <button
+                      type="button"
+                      class="btn-action-aesthetic btn-view"
+                      title="View Receipt"
+                      (click)="onView(rec)"
+                    >
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+
+                    <!-- Download Receipt -->
+                    <button
+                      type="button"
+                      class="btn-action-aesthetic btn-download"
+                      title="Download Receipt"
+                      (click)="onDownload(rec)"
+                    >
+                      <span class="material-symbols-outlined">download</span>
+                    </button>
+
+                    <!-- Send WhatsApp Receipt -->
+                    <button
+                      type="button"
+                      class="btn-action-aesthetic btn-whatsapp"
+                      title="Send WhatsApp Receipt"
+                      (click)="onSendWhatsApp(rec)"
+                      [disabled]="sendingWhatsApp().has(rec.id)"
+                    >
+                      @if (sendingWhatsApp().has(rec.id)) {
+                        <span class="action-spinner"></span>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                          <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+                          <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (records().length > 0) {
+      <div class="pagination-bar">
+        <div class="pagination-info">
+          Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalRecords() }} total records)
+          <span class="per-page-selector">
+            Per page:
+            <select
+              [ngModel]="pageSize()"
+              (ngModelChange)="onPageSizeChange(+$event)"
+              class="per-page-select"
+            >
+              <option [value]="10">10</option>
+              <option [value]="20">20</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+          </span>
+        </div>
+
+        <div class="pagination-controls">
+          <button
+            type="button"
+            class="page-btn nav-btn"
+            [disabled]="currentPage() === 1"
+            (click)="setPage(currentPage() - 1)"
+          >
+            Prev
+          </button>
+
+          @for (p of pageNumbers(); track p) {
+            <button
+              type="button"
+              class="page-btn"
+              [class.active]="currentPage() === p"
+              (click)="setPage(p)"
+            >
+              {{ p }}
+            </button>
+          }
+
+          <button
+            type="button"
+            class="page-btn nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="setPage(currentPage() + 1)"
+          >
+            Next
+          </button>
+
+          <button
+            type="button"
+            class="page-btn nav-btn"
+            [disabled]="currentPage() === totalPages()"
+            (click)="setPage(totalPages())"
+          >
+            Last
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Upload Result Modal -->
+@if (showUploadResultModal()) {
+  <div class="modal-backdrop" (click)="closeResultModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <span class="material-symbols-outlined modal-icon success-icon">check_circle</span>
+          <h3 class="modal-title">Upload Result</h3>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeResultModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-message">{{ uploadSuccessMessage() }}</p>
+
+        @if (uploadErrors().length > 0) {
+          <div class="error-box">
+            <h4 class="error-box-title">Upload Warnings ({{ uploadErrors().length }}):</h4>
+            <ul class="error-list">
+              @for (err of uploadErrors(); track err) {
+                <li>{{ err }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" (click)="closeResultModal()">Done</button>
+      </div>
+    </div>
+  </div>
+}

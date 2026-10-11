@@ -223,4 +223,45 @@ export class PaymentService extends BaseHttpService {
       responseType: 'blob',
     });
   }
+
+  // --- Unclaimed Records APIs ---
+  getUnclaimedRecords(page: number = 1, search: string = '', status: string = '', pageSize: number = 10): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('page_size', pageSize.toString());
+    if (search) params = params.set('search', search);
+    if (status) params = params.set('status', status);
+
+    return this.httpClient.get<any>(this.endPoint.unclaimedRecords, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  uploadUnclaimedRecords(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.httpClient.post<any>(this.endPoint.unclaimedRecordsUpload, formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
+  downloadUnclaimedSample(): Observable<Blob> {
+    return this.httpClient.get(this.endPoint.unclaimedRecordsSample, {
+      headers: this.headers,
+      responseType: 'blob',
+    });
+  }
+
+  exportUnclaimedRecords(search: string = '', status: string = ''): Observable<Blob> {
+    let params = new HttpParams().set('export', 'true');
+    if (search) params = params.set('search', search);
+    if (status) params = params.set('status', status);
+
+    return this.httpClient.get(this.endPoint.unclaimedRecords, {
+      headers: this.headers,
+      params,
+      responseType: 'blob',
+    });
+  }
 }

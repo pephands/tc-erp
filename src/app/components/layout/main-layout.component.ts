@@ -97,6 +97,10 @@ export class MainLayoutComponent {
       this.pageTitle.set('Approved Records');
       this.pageIcon.set('verified');
       this.parentTitle.set('Payment Batches');
+    } else if (url.includes('/unclaimed-records')) {
+      this.pageTitle.set('Unclaimed Records');
+      this.pageIcon.set('receipt');
+      this.parentTitle.set('Payment Batches');
     } else {
       this.pageTitle.set('Dashboard');
       this.pageIcon.set('dashboard');
