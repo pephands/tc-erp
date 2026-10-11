@@ -264,4 +264,41 @@ export class PaymentService extends BaseHttpService {
       responseType: 'blob',
     });
   }
+
+  // --- Batch Receipts ---
+  getBatchReceiptRuns(batchDate: string = ''): Observable<any> {
+    let params = new HttpParams();
+    if (batchDate) params = params.set('batch_date', batchDate);
+    return this.httpClient.get<any>(this.endPoint.batchReceiptRuns, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  getBatchReceipts(
+    page: number = 1,
+    batchId: string | number = '',
+    search: string = '',
+    whatsappGenerated: string = 'false',
+    pageSize: number = 10,
+    startDate: string = '',
+    endDate: string = '',
+    batchDate: string = ''
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('page_size', pageSize.toString())
+      .set('whatsapp_generated', whatsappGenerated);
+
+    if (batchId) params = params.set('batch_id', batchId.toString());
+    if (batchDate) params = params.set('batch_date', batchDate);
+    if (search) params = params.set('search', search);
+    if (startDate) params = params.set('start_date', startDate);
+    if (endDate) params = params.set('end_date', endDate);
+
+    return this.httpClient.get<any>(this.endPoint.batchReceipts, {
+      headers: this.headers,
+      params,
+    });
+  }
 }

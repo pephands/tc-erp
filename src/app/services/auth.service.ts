@@ -194,6 +194,10 @@ export class AuthService {
         if (upper === 'TEAM LEAD' || upper === 'MANAGER' || upper === 'TL') codes.push('TL');
         if (upper === 'TELE CALLER' || upper === 'TELECALLER' || upper === 'TC') codes.push('TC');
         if (upper === 'ADMINISTRATOR' || upper === 'ADMIN') codes.push('ADMIN');
+        if (upper === 'THANKS CALLING TEAM' || upper === 'TCT') {
+          codes.push('TCT');
+          codes.push('THANKS CALLING TEAM');
+        }
       } else if (r && typeof r === 'object') {
         const code = (r.code || '').trim().toUpperCase();
         const name = (r.name || '').trim().toUpperCase();
@@ -202,6 +206,10 @@ export class AuthService {
         if (name === 'TEAM LEAD' || name === 'MANAGER' || code === 'TL') codes.push('TL');
         if (name === 'TELE CALLER' || name === 'TELECALLER' || code === 'TC') codes.push('TC');
         if (name === 'ADMINISTRATOR' || code === 'ADMIN') codes.push('ADMIN');
+        if (name === 'THANKS CALLING TEAM' || code === 'TCT') {
+          codes.push('TCT');
+          codes.push('THANKS CALLING TEAM');
+        }
       }
     }
     return Array.from(new Set(codes));

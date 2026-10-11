@@ -101,6 +101,10 @@ export class MainLayoutComponent {
       this.pageTitle.set('Unclaimed Records');
       this.pageIcon.set('receipt');
       this.parentTitle.set('Payment Batches');
+    } else if (url.includes('/receipts/batch-receipts')) {
+      this.pageTitle.set('Batch Receipts');
+      this.pageIcon.set('inventory_2');
+      this.parentTitle.set('Receipts');
     } else {
       this.pageTitle.set('Dashboard');
       this.pageIcon.set('dashboard');

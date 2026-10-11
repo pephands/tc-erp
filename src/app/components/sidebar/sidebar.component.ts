@@ -84,6 +84,7 @@ export class SidebarComponent implements OnInit {
     if (roles.includes('MANAGER')) return 'MANAGER';
     if (roles.includes('SUPERINTENDENT')) return 'SUPERINTENDENT';
     if (roles.includes('TL')) return 'TL';
+    if (roles.includes('TCT')) return 'TCT';
     if (roles.includes('TC')) return 'TC';
     return roles.length > 0 ? roles[0] : '';
   }
@@ -367,8 +368,22 @@ export class SidebarComponent implements OnInit {
       label: 'Receipts',
       icon: 'receipt_long',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL', 'TC','PUBLIC_RELATIONS', 'TCT'],
-      route: '/receipts/view',
+      allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'TCT'],
+      submenus: [
+        {
+          id: 'receipts_view',
+          label: 'Receipt List',
+          icon: 'receipt',
+          route: '/receipts/view',
+        },
+        {
+          id: 'batch_receipts',
+          label: 'Batch Receipts',
+          icon: 'inventory_2',
+          route: '/receipts/batch-receipts',
+          allowedRoles: ['ADMIN', 'TCT'],
+        },
+      ],
     },
 
     {
@@ -582,32 +597,20 @@ export class SidebarComponent implements OnInit {
   // Computed filtered items based on user role AND search query
   filteredMenuItems = computed(() => {
     const activeRole = this.primaryRole;
+    const userRoles = this.userRoles;
     const query = this.searchQuery().trim().toLowerCase();
 
-    return this.menuItems
-      .filter((item) => {
-        if (
-          item.allowedRoles &&
-          activeRole &&
-          !item.allowedRoles.includes(activeRole)
-        ) {
-          return false;
-        }
+    const hasRoleAccess = (allowedRoles?: string[]) => {
+      if (!allowedRoles || allowedRoles.length === 0) return true;
+      if (activeRole && allowedRoles.includes(activeRole)) return true;
+      return allowedRoles.some((r) => userRoles.includes(r));
+    };
 
-        return true;
-      })
+    return this.menuItems
+      .filter((item) => hasRoleAccess(item.allowedRoles))
       .map((item) => {
         const validSubmenus = item.submenus
-          ? item.submenus.filter((sub) => {
-            if (
-              sub.allowedRoles &&
-              activeRole &&
-              !sub.allowedRoles.includes(activeRole)
-            ) {
-              return false;
-            }
-            return true;
-          })
+          ? item.submenus.filter((sub) => hasRoleAccess(sub.allowedRoles))
           : undefined;
 
         return {
@@ -630,96 +633,46 @@ export class SidebarComponent implements OnInit {
 
   private determineActiveMenuFromUrl(targetUrl?: string): string {
     const url = targetUrl || this.router.url;
-    
-    // Core & Operations
-    if (url.includes('/dashboard')) return 'dashboard';
-    if (url.includes('/branches')) return 'branches';
-    if (url.includes('/announcements')) return 'announcements';
-    if (url.includes('/attendance')) return 'attendance';
-    if (url.includes('/workstation') || url.includes('/work-details') || url.includes('/telecaller-workstation')) return 'workstation';
-    if (url.includes('/reference-leads')) return 'reference_leads';
-    if (url.includes('/send-records')) return 'send-records';
-    if (url.includes('/approve-assign')) return 'approve_assign';
-    if (url.includes('/tl-data-management')) return 'tl_data_management';
-    
-    // Users Submenus
-    if (url.includes('/users/admin') || url.includes('/admins')) return 'admin';
-    if (url.includes('/users/telecaller') || url.includes('/telecallers')) return 'telecaller';
-    if (url.includes('/users/team-leader')) return 'team_leader';
-    if (url.includes('/users/manager') || url.includes('/managers')) return 'manager';
-    if (url.includes('/users/backend')) return 'backend';
-    if (url.includes('/users/trust-users')) return 'trust_users';
-    if (url.includes('/users/settings')) return 'user_setting';
-    if (url.includes('/users/driver')) return 'driver';
-    if (url.includes('/users/cook')) return 'cook';
-    if (url.includes('/users/assistant-cook')) return 'assistant_cook';
-    if (url.includes('/users/public-relations')) return 'public_relations';
-    if (url.includes('/users/counselor')) return 'counselor';
-    if (url.includes('/users/superintendent')) return 'superintendent';
 
-    // Payment Batches
-    if (url.includes('/live-batch')) return 'live_batch';
-    if (url.includes('/batch-reports')) return 'batch_reports';
-    if (url.includes('/batch-settings')) return 'batch_settings';
-    if (url.includes('/verified-donors')) return 'verified_donors';
-    if (url.includes('/unclaimed-records')) return 'unclaimed_records';
-
-    // Whatsapp
-    if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
-    if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
-    if (url.includes('/whatsapp-send')) return 'send_whatsapp_message';
-    if (url.includes('/whatsapp-receipt-settings')) return 'whatsapp_receipt_settings';
-    if (url.includes('/whatsapp-history')) return 'whatsapp_send_history';
-
-    // Receipts / Finance
-    if (url.includes('/receipts/view')) return 'receipts';
-
-    // Branch Details
-    if (url.includes('/branch-documents')) return 'branch_documents';
-    if (url.includes('/expense-details')) return 'expense_details';
-    if (url.includes('/expense-report')) return 'expense_report';
-    if (url.includes('/trust-children')) return 'trust_children';
-    if (url.includes('/branch-vehicles')) return 'branch_vehicles';
-    if (url.includes('/branch-settings')) return 'branch_settings';
-
-    // Services
-    if (url.includes('/food-calendar')) return 'food_calendar';
-    if (url.includes('/occasions')) return 'occasions';
-
-    // Feedback
-    if (url.includes('/feedback-details')) return 'feedback_details';
-    if (url.includes('/feedbacks')) return 'feedbacks';
-
-    // Both TC and Admin have history / approved records routes
+    // 1. Role-dependent & alias routes that don't match standard item.route
     if (url.includes('/approved-records')) return this.primaryRole === 'TC' ? 'approved-records' : 'approved_records_admin';
     if (url.includes('/online-history')) return this.primaryRole === 'TC' ? 'online_history_tc' : 'online_history';
+    if (url.includes('/admins')) {
+      this.expandedMenuIds.update((set) => new Set(set).add('users'));
+      return 'admin';
+    }
+    if (url.includes('/telecallers')) {
+      this.expandedMenuIds.update((set) => new Set(set).add('users'));
+      return 'telecaller';
+    }
+    if (url.includes('/managers')) {
+      this.expandedMenuIds.update((set) => new Set(set).add('users'));
+      return 'manager';
+    }
+    if (url.includes('/receipts/create')) {
+      this.expandedMenuIds.update((set) => new Set(set).add('receipts'));
+      return 'receipts_view';
+    }
 
-    // Whatsapp
-    if (url.includes('/whatsapp-receipt-settings')) return 'whatsapp_receipt_settings';
-    if (url.includes('/whatsapp-accounts')) return 'whatsapp_accounts';
-    if (url.includes('/whatsapp-campaigns')) return 'whatsapp_campaigns';
-    if (url.includes('/whatsapp-send')) return 'send_whatsapp_message';
-    if (url.includes('/whatsapp-history')) return 'whatsapp_send_history';
+    // 2. Check submenus first (so child routes take precedence over parents)
+    for (const item of this.menuItems) {
+      if (item.submenus) {
+        for (const sub of item.submenus) {
+          if (sub.route && url.includes(sub.route)) {
+            // Auto-expand parent menu when child is active
+            this.expandedMenuIds.update((set) => new Set(set).add(item.id));
+            return sub.id;
+          }
+        }
+      }
+    }
 
-    // Receipts
-    if (url.includes('/receipts/view') || url.includes('/receipts/create')) return 'receipts';
-
-    // Branch Details
-    if (url.includes('/branch-documents')) return 'branch_documents';
-    if (url.includes('/expense-details')) return 'expense_details';
-    if (url.includes('/expense-report')) return 'expense_report';
-    if (url.includes('/branch-settings')) return 'branch_settings';
-    if (url.includes('/trust-children')) return 'trust_children';
-    if (url.includes('/branch-vehicles')) return 'branch_vehicles';
-
-    // Miscellaneous
-    if (url.includes('/received-records')) return 'received-records';
-    if (url.includes('/received-status')) return 'received_status';
-    if (url.includes('/feedback-details')) return 'feedback_details';
-    if (url.includes('/feedbacks')) return 'feedbacks';
-    if (url.includes('/food-calendar')) return 'food_bookings';
-    if (url.includes('/upload-pan')) return 'upload_pan';
-    if (url.includes('/website-activities')) return 'website_activities';
+    // 3. Check top-level items with matching route
+    for (const item of this.menuItems) {
+      if (item.route && url.includes(item.route)) {
+        return item.id;
+      }
+    }
 
     return 'dashboard';
   }

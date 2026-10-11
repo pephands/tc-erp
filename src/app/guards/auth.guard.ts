@@ -23,3 +23,20 @@ export const loginGuard: CanActivateFn = () => {
 
   return true;
 };
+
+export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
+  return (route, state) => {
+    const authService = inject(AuthService);
+    const router = inject(Router);
+
+    if (!authService.isLoggedIn()) {
+      return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+    }
+
+    if (authService.hasRole(allowedRoles)) {
+      return true;
+    }
+
+    return router.createUrlTree(['/dashboard']);
+  };
+};

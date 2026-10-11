@@ -35,6 +35,7 @@ import { VerifiedDonorsComponent } from './components/verified-donors/verified-d
 import { UnclaimedRecordsComponent } from './components/unclaimed-records/unclaimed-records.component';
 import { ReceiptListComponent } from './components/receipts/receipt-list/receipt-list.component';
 import { ReceiptCreateComponent } from './components/receipts/receipt-create/receipt-create.component';
+import { BatchReceiptsComponent } from './components/receipts/batch-receipts/batch-receipts.component';
 
 import {
   TelecallersPageComponent,
@@ -53,7 +54,7 @@ import {
 
 import { UserSettingsComponent } from './components/user-settings/user-settings.component';
 
-import { authGuard, loginGuard } from './guards/auth.guard';
+import { authGuard, loginGuard, roleGuard } from './guards/auth.guard';
 import { deviceAuthGuard } from './guards/device-auth.guard';
 
 import { ReferenceLeadsComponent } from './components/reference-leads/reference-leads.component';
@@ -310,6 +311,11 @@ export const routes: Routes = [
         path: 'receipts/view',
         component: ReceiptListComponent,
         canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'receipts/batch-receipts',
+        component: BatchReceiptsComponent,
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TCT'])],
       },
       {
         path: 'receipts/create',
