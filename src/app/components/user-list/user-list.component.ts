@@ -82,8 +82,13 @@ export class UserListComponent implements OnInit {
     const isAdmin = roles.includes('ADMIN');
     if (isAdmin) return true;
     
-    const isTlOrManager = roles.includes('TL') || roles.includes('MANAGER');
-    if (this.roleCode === 'TC' && isTlOrManager) {
+    // Managers should never be allowed to edit, update, add, or toggle any users
+    if (roles.includes('MANAGER')) {
+      return false;
+    }
+    
+    const isTl = roles.includes('TL');
+    if (this.roleCode === 'TC' && isTl) {
       return false;
     }
     
@@ -419,6 +424,7 @@ export class UserListComponent implements OnInit {
 
   // Add User Modal Handlers
   openAddModal(): void {
+    if (!this.canEditOrDelete) return;
     this.resetForm();
     this.isAddModalOpen.set(true);
   }
@@ -429,6 +435,7 @@ export class UserListComponent implements OnInit {
 
   // Edit User Modal Handlers
   openEditModal(user: UserRecord): void {
+    if (!this.canEditOrDelete) return;
     this.editingUser.set(user);
     this.formEmployeeId = user.id_card_number || user.id;
     this.formFullName = user.fullName;
@@ -791,6 +798,7 @@ export class UserListComponent implements OnInit {
 
   // Toggle Active / Inactive Status
   onToggleStatus(user: UserRecord): void {
+    if (!this.canEditOrDelete) return;
     const nextStatus = user.status.toLowerCase() === 'active' ? 'Inactive' : 'Active';
     const msg = `Are you sure you want to set the status of "${user.fullName}" to ${nextStatus}?`;
     if (confirm(msg)) {
@@ -809,6 +817,7 @@ export class UserListComponent implements OnInit {
 
   // Delete User
   onDeleteUser(user: UserRecord): void {
+    if (!this.canEditOrDelete) return;
     const msg = `WARNING: Are you sure you want to permanently delete or relieve ${this.roleTitle} "${user.fullName}" (${user.id})?`;
     if (confirm(msg)) {
       this.userListService.deleteUser(user.dbId).subscribe({
@@ -826,6 +835,7 @@ export class UserListComponent implements OnInit {
 
   // Bulk Upload Modal Handlers
   openUploadModal(): void {
+    if (!this.canEditOrDelete) return;
     this.selectedExcelFile = null;
     this.isUploadModalOpen.set(true);
   }

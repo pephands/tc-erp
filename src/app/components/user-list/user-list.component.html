@@ -143,7 +143,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="11" class="loading-state">
+              <td [attr.colspan]="canEditOrDelete ? 11 : 10" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading {{ roleTitle }} records...</p>
               </td>
@@ -213,10 +213,10 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="11" class="empty-state">
+                <td [attr.colspan]="canEditOrDelete ? 11 : 10" class="empty-state">
                   <span class="material-symbols-outlined empty-icon">{{ roleIcon }}</span>
                   <p class="empty-title">No {{ roleTitle }} Users Found</p>
-                  <p class="empty-sub">Click "+ Add {{ roleTitle }}" to add a new user record.</p>
+                  <p class="empty-sub">{{ canEditOrDelete ? 'Click "+ Add ' + roleTitle + '" to add a new user record.' : 'No ' + roleTitle + ' records found matching filters.' }}</p>
                 </td>
               </tr>
             }
