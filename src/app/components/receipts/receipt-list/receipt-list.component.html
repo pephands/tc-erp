@@ -178,6 +178,7 @@
                 (click)="onDownload(rec)">
                 <span class="material-symbols-outlined">download</span>
               </button>
+              @if (!isTC()) {
               <button type="button" class="btn-action-aesthetic btn-whatsapp" title="Send WhatsApp"
                 (click)="onSendWhatsApp(rec)" [disabled]="sendingWhatsApp().has(rec.id)">
                 @if (sendingWhatsApp().has(rec.id)) {
@@ -191,6 +192,7 @@
                   </svg>
                 }
               </button>
+              }
 
               } @else {
               <!-- For Goodies, just a placeholder or alternative view if needed. No receipt generation. -->

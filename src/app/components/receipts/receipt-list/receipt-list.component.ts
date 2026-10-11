@@ -96,7 +96,7 @@ export class ReceiptListComponent implements OnInit {
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER']));
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
     this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS']));
-    this.isTC.set(!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR());
+    this.isTC.set(this.authService.hasRole(['TC', 'TELECALLER', 'TELE CALLER']) || (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR()));
 
     if (this.isTC()) {
       const today = new Date();
