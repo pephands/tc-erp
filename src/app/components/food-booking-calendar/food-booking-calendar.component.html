@@ -45,7 +45,7 @@
         <div class="form-group" style="margin: 0; min-width: 180px;">
           <label>Trust Filter</label>
           <select class="custom-select" [(ngModel)]="listFilters.trust_name" (change)="applyListFilters()">
-            <option [ngValue]="null" *ngIf="!isPR() && !isTL()">All Trusts</option>
+            <option [ngValue]="null" *ngIf="!isPR()">All Trusts</option>
             <ng-container *ngFor="let branch of branchesList()">
               <option *ngIf="branch.is_trust" [value]="branch.id">{{ branch.name }}</option>
             </ng-container>
