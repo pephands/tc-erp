@@ -266,20 +266,8 @@
               Validating mobile records, auto-detecting BASE / NON-BASE, and synchronizing with master database.
             </p>
 
-            <div class="loader-progress-container">
-              <div class="loader-progress-track">
-                <div 
-                  class="loader-progress-fill" 
-                  [style.width.%]="uploadProgress() ?? 100"
-                  [class.indeterminate]="uploadProgress() === null || uploadProgress() === 100"
-                ></div>
-              </div>
-              <div class="loader-progress-meta">
-                <span>{{ selectedFile()?.name }} ({{ (selectedFile()?.size || 0) / 1024 | number:'1.0-1' }} KB)</span>
-                @if (uploadProgress() !== null) {
-                  <span>{{ uploadProgress() }}%</span>
-                }
-              </div>
+            <div class="loader-progress-meta" style="justify-content: center; margin-bottom: 1.25rem;">
+              <span>{{ selectedFile()?.name }} ({{ (selectedFile()?.size || 0) / 1024 | number:'1.0-1' }} KB)</span>
             </div>
 
             <div class="loader-notice">

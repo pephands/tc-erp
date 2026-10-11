@@ -231,14 +231,10 @@ export class ApproveAssignComponent implements OnInit {
     this.service.uploadExcelWithProgress(file).subscribe({
       next: (event: any) => {
         if (event.type === HttpEventType.UploadProgress) {
-          if (event.total) {
-            const percent = Math.round((100 * event.loaded) / event.total);
-            this.uploadProgress.set(percent);
-            if (percent >= 100) {
-              this.uploadStatusMessage.set('File uploaded! Processing & parsing records on server...');
-            } else {
-              this.uploadStatusMessage.set(`Uploading file... ${percent}%`);
-            }
+          if (event.total && event.loaded >= event.total) {
+            this.uploadStatusMessage.set('File uploaded! Processing records on server...');
+          } else {
+            this.uploadStatusMessage.set('Uploading file to server...');
           }
         } else if (event.type === HttpEventType.Response) {
           this.isSubmitting.set(false);
