@@ -10,13 +10,13 @@
       <h1 class="page-title" style="margin: 0;">Food Booking Management</h1>
       
       <div class="actions" style="display: flex; gap: 10px;">
-        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'list' ? '1' : '0.6'" (click)="activeTab.set('list')">
+        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'list' ? '1' : '0.6'" (click)="switchTab('list')">
           <span class="material-symbols-outlined" style="font-size: 18px;">list</span> Bookings List
         </button>
-        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'calendar' ? '1' : '0.6'" (click)="activeTab.set('calendar')">
+        <button class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'calendar' ? '1' : '0.6'" (click)="switchTab('calendar')">
           <span class="material-symbols-outlined" style="font-size: 18px;">event</span> Calendar View
         </button>
-        <button *ngIf="!isTL() && !isPR() && !isManager()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="activeTab.set('menus')">
+        <button *ngIf="!isTL() && !isPR() && !isManager()" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" [style.opacity]="activeTab() === 'menus' ? '1' : '0.6'" (click)="switchTab('menus')">
           <span class="material-symbols-outlined" style="font-size: 18px;">restaurant_menu</span> Menu Setup
         </button>
       </div>
@@ -45,13 +45,13 @@
         <div class="form-group" style="margin: 0; min-width: 180px;">
           <label>Trust Filter</label>
           <select class="custom-select" [(ngModel)]="listFilters.trust_name" (change)="applyListFilters()">
-            <option [ngValue]="null">All Trusts</option>
+            <option [ngValue]="null" *ngIf="!isPR() && !isTL()">All Trusts</option>
             <ng-container *ngFor="let branch of branchesList()">
               <option *ngIf="branch.is_trust" [value]="branch.id">{{ branch.name }}</option>
             </ng-container>
           </select>
         </div>
-        <div class="form-group" style="margin: 0; min-width: 180px;" *ngIf="isManager() || !isTL()">
+        <div class="form-group" style="margin: 0; min-width: 180px;" *ngIf="isManager() || isPR() || !isTL()">
           <label>Branch Filter</label>
           <select class="custom-select" [(ngModel)]="listFilters.branch_name" (change)="applyListFilters()">
             <option [ngValue]="null">All Branches</option>
@@ -67,6 +67,7 @@
             <option value="RESERVED">Reserved</option>
             <option value="BOOKED">Booked</option>
             <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
           </select>
         </div>
         <div class="form-group" style="margin: 0; min-width: 150px;">
@@ -101,7 +102,7 @@
             <tr>
               <th>S.No</th>
               <th>Trust Name</th>
-              <th *ngIf="!isPR()">Branch</th>
+              <th>Branch Name</th>
               <th>Booking Date</th>
               <th>Donor Name</th>
               <th>Mobile</th>
@@ -118,7 +119,7 @@
             <tr *ngFor="let bk of allBookings(); let i = index">
               <td>{{ (listPagination().page - 1) * listPagination().limit + i + 1 }}</td>
               <td>{{ bk.trust_name_display }}</td>
-              <td *ngIf="!isPR()">{{ bk.branch_display || 'N/A' }}</td>
+              <td>{{ bk.branch_display || 'N/A' }}</td>
               <td><strong>{{ bk.booking_date }}</strong></td>
               <td>{{ bk.donor_name }}</td>
               <td>{{ bk.mobile_number }}</td>
@@ -144,7 +145,7 @@
               </td>
             </tr>
             <tr *ngIf="allBookings().length === 0">
-              <td [colSpan]="isPR() ? ((isTL() || isManager()) ? 12 : 11) : ((isTL() || isManager()) ? 12 : 13)" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
+              <td [colSpan]="(!isTL() && !isPR() && !isManager()) ? 13 : 12" style="text-align: center; padding: 30px; color: #777;">No bookings found matching filters.</td>
             </tr>
           </tbody>
         </table>
@@ -360,14 +361,52 @@
     </div>
     
     <form ngNativeValidate (ngSubmit)="submitBooking()">
-      <div class="form-group">
+      <div class="form-group branch-dropdown-container" style="position: relative;">
         <label>Booked By Branch / Trust *</label>
-        <select class="custom-select" [(ngModel)]="bookingForm.branch" name="branch" style="width: 100%;" required>
-          <option [ngValue]="null">-- Select Branch --</option>
-          <option *ngFor="let branch of branchesList()" [value]="branch.id">
-            {{ branch.name }}
-          </option>
-        </select>
+        <input 
+          type="text" 
+          tabindex="-1"
+          style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; padding: 0; border: none; margin: 0;" 
+          [ngModel]="bookingForm.branch" 
+          name="branch_validation" 
+          required 
+        />
+        <div 
+          class="custom-select dropdown-trigger" 
+          (click)="toggleBranchDropdown($event)" 
+          style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; min-width: 0; width: 100%; border: 1px solid #dfe4ea; border-radius: 8px; padding: 10px 16px; user-select: none;">
+          <span [style.color]="bookingForm.branch ? '#1e293b' : '#94a3b8'" [style.font-weight]="bookingForm.branch ? '500' : 'normal'">
+            {{ getSelectedBranchName() || '-- Select Branch --' }}
+          </span>
+          <span class="material-symbols-outlined" style="color: #64748b; font-size: 1.25rem;">
+            {{ isBranchDropdownOpen() ? 'arrow_drop_up' : 'arrow_drop_down' }}
+          </span>
+        </div>
+
+        @if (isBranchDropdownOpen()) {
+          <div 
+            class="custom-dropdown-menu" 
+            style="position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); z-index: 1000; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="dropdown-list" style="max-height: 380px; overflow-y: auto; flex: 1;">
+              @for (branch of branchesList(); track branch.id) {
+                <div 
+                  class="dropdown-item" 
+                  (click)="selectBranch(branch.id); $event.stopPropagation()" 
+                  [style.background]="bookingForm.branch == branch.id ? '#eff6ff' : 'transparent'"
+                  [style.color]="bookingForm.branch == branch.id ? '#2563eb' : '#334155'"
+                  [style.font-weight]="bookingForm.branch == branch.id ? '600' : 'normal'"
+                  style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f8fafc; font-size: 13.5px; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center;">
+                  <span>{{ branch.name }}</span>
+                  @if (bookingForm.branch == branch.id) {
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: #2563eb;">check</span>
+                  }
+                </div>
+              } @empty {
+                <div style="padding: 12px; color: #94a3b8; text-align: center; font-size: 13px;">No branches available</div>
+              }
+            </div>
+          </div>
+        }
       </div>
       <div class="form-group">
         <label>Donor Name *</label>
@@ -381,14 +420,52 @@
         <label>Alternative Number (Optional)</label>
         <input type="text" class="form-control" [(ngModel)]="bookingForm.alternative_number" name="alternative_number" placeholder="e.g., +41 123 456 789  ">
       </div>
-      <div class="form-group">
+      <div class="form-group occasion-dropdown-container" style="position: relative;">
         <label>Occasion *</label>
-        <select class="custom-select" [(ngModel)]="bookingForm.occasion_name" name="occasion_name" style="width: 100%;" required>
-          <option value="">-- Select Occasion --</option>
-          <option *ngFor="let occ of occasionsList()" [value]="occ.name">
-            {{ occ.name }}
-          </option>
-        </select>
+        <input 
+          type="text" 
+          tabindex="-1"
+          style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; padding: 0; border: none; margin: 0;" 
+          [ngModel]="bookingForm.occasion_name" 
+          name="occasion_name_validation" 
+          required 
+        />
+        <div 
+          class="custom-select dropdown-trigger" 
+          (click)="toggleOccasionDropdown($event)" 
+          style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; min-width: 0; width: 100%; border: 1px solid #dfe4ea; border-radius: 8px; padding: 10px 16px; user-select: none;">
+          <span [style.color]="bookingForm.occasion_name ? '#1e293b' : '#94a3b8'" [style.font-weight]="bookingForm.occasion_name ? '500' : 'normal'">
+            {{ bookingForm.occasion_name || '-- Select Occasion --' }}
+          </span>
+          <span class="material-symbols-outlined" style="color: #64748b; font-size: 1.25rem;">
+            {{ isOccasionDropdownOpen() ? 'arrow_drop_up' : 'arrow_drop_down' }}
+          </span>
+        </div>
+
+        @if (isOccasionDropdownOpen()) {
+          <div 
+            class="custom-dropdown-menu" 
+            style="position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); z-index: 1000; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="dropdown-list" style="max-height: 380px; overflow-y: auto; flex: 1;">
+              @for (occ of occasionsList(); track occ.id || occ.name) {
+                <div 
+                  class="dropdown-item" 
+                  (click)="selectOccasion(occ.name); $event.stopPropagation()" 
+                  [style.background]="bookingForm.occasion_name === occ.name ? '#eff6ff' : 'transparent'"
+                  [style.color]="bookingForm.occasion_name === occ.name ? '#2563eb' : '#334155'"
+                  [style.font-weight]="bookingForm.occasion_name === occ.name ? '600' : 'normal'"
+                  style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f8fafc; font-size: 13.5px; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center;">
+                  <span>{{ occ.name }}</span>
+                  @if (bookingForm.occasion_name === occ.name) {
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: #2563eb;">check</span>
+                  }
+                </div>
+              } @empty {
+                <div style="padding: 12px; color: #94a3b8; text-align: center; font-size: 13px;">No occasions found</div>
+              }
+            </div>
+          </div>
+        }
       </div>
       <div class="form-group">
         <label>Remarks (Optional)</label>
@@ -416,6 +493,7 @@
           <option value="RESERVED">RESERVED (Partial Payment)</option>
           <option value="BOOKED">BOOKED (Full Payment)</option>
           <option value="COMPLETED">COMPLETED</option>
+          <option value="CANCELLED">CANCELLED</option>
         </select>
       </div>
       
@@ -434,12 +512,52 @@
               <label style="font-size: 11px;">Amount (₹) *</label>
               <input type="number" class="form-control" style="padding: 6px 10px; height: 32px;" [(ngModel)]="payment.amount_paid" name="payment_amount_{{i}}" required>
             </div>
-            <div class="form-group" style="flex: 1 1 120px; margin: 0;">
+            <div class="form-group payment-mode-dropdown-container" style="flex: 1 1 120px; margin: 0; position: relative;">
               <label style="font-size: 11px;">Mode of Payment *</label>
-              <select class="custom-select" style="padding: 4px 10px; height: 32px;" [(ngModel)]="payment.mode_of_payment" name="payment_mode_{{i}}" required>
-                <option value="">-- Select --</option>
-                <option *ngFor="let mode of paymentModesList()" [value]="mode.name">{{ mode.name }}</option>
-              </select>
+              <input 
+                type="text" 
+                tabindex="-1"
+                style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; padding: 0; border: none; margin: 0;" 
+                [ngModel]="payment.mode_of_payment" 
+                name="payment_mode_val_{{i}}" 
+                required 
+              />
+              <div 
+                class="custom-select dropdown-trigger" 
+                (click)="togglePaymentModeDropdown(i, $event)" 
+                style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; min-width: 0; width: 100%; border: 1px solid #dfe4ea; border-radius: 6px; padding: 4px 10px; height: 32px; user-select: none;">
+                <span [style.color]="payment.mode_of_payment ? '#1e293b' : '#94a3b8'" style="font-size: 12px;">
+                  {{ payment.mode_of_payment || '-- Select --' }}
+                </span>
+                <span class="material-symbols-outlined" style="color: #64748b; font-size: 1.1rem;">
+                  {{ openPaymentModeDropdownIndex() === i ? 'arrow_drop_up' : 'arrow_drop_down' }}
+                </span>
+              </div>
+
+              @if (openPaymentModeDropdownIndex() === i) {
+                <div 
+                  class="custom-dropdown-menu" 
+                  style="position: absolute; top: calc(100% + 2px); left: 0; right: 0; min-width: 140px; background: white; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); z-index: 1050; overflow: hidden; display: flex; flex-direction: column;">
+                  <div class="dropdown-list" style="max-height: 250px; overflow-y: auto; flex: 1;">
+                    @for (mode of paymentModesList(); track mode.id || mode.name) {
+                      <div 
+                        class="dropdown-item" 
+                        (click)="selectPaymentMode(i, mode.name); $event.stopPropagation()" 
+                        [style.background]="payment.mode_of_payment === mode.name ? '#eff6ff' : 'transparent'"
+                        [style.color]="payment.mode_of_payment === mode.name ? '#2563eb' : '#334155'"
+                        [style.font-weight]="payment.mode_of_payment === mode.name ? '600' : 'normal'"
+                        style="padding: 8px 10px; cursor: pointer; border-bottom: 1px solid #f8fafc; font-size: 12px; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center;">
+                        <span>{{ mode.name }}</span>
+                        @if (payment.mode_of_payment === mode.name) {
+                          <span class="material-symbols-outlined" style="font-size: 14px; color: #2563eb;">check</span>
+                        }
+                      </div>
+                    } @empty {
+                      <div style="padding: 8px; color: #94a3b8; text-align: center; font-size: 11px;">No modes available</div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
             <div class="form-group" style="flex: 1 1 120px; margin: 0;">
               <label style="font-size: 11px;">Date *</label>
@@ -453,14 +571,40 @@
         </div>
       </div>
       
-      <div class="form-actions" style="margin-top: 20px; display: flex; justify-content: space-between; gap: 10px;">
-        <div style="display: flex; gap: 10px;">
-          <button *ngIf="bookingForm.id" type="button" class="btn btn-danger" style="padding: 10px 15px; border-radius: 6px; background: #ef4444; color: white; border: none;" (click)="deleteBooking(bookingForm.id)">
-             <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">delete</span> Delete
+      <!-- Inline Neat Cancel Confirmation Section -->
+      <div *ngIf="showCancelConfirm()" class="fade-in" style="margin-top: 18px; padding: 14px 16px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="color: #dc2626; font-size: 20px;">cancel</span>
+            </div>
+            <div>
+              <div style="font-size: 13.5px; font-weight: 700; color: #991b1b;">Cancel this booking?</div>
+              <div style="font-size: 12px; color: #b91c1c; margin-top: 2px;">This will release the food slot and update status to CANCELLED.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn" style="padding: 7px 14px; font-size: 12.5px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; font-weight: 600;" (click)="showCancelConfirm.set(false)">
+              No, Keep
+            </button>
+            <button type="button" class="btn btn-danger" style="padding: 7px 16px; font-size: 12.5px; background: #dc2626; color: white; border: none; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);" (click)="confirmCancelBooking(bookingForm.id)">
+              <span class="material-symbols-outlined" style="font-size: 16px;">check</span> Yes, Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-actions" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button *ngIf="bookingForm.id && bookingForm.booking_status !== 'CANCELLED'" type="button" class="btn btn-danger" style="padding: 10px 16px; border-radius: 6px; background: #ef4444; color: white; border: none; display: flex; align-items: center; gap: 6px; font-weight: 600;" (click)="cancelBooking(bookingForm.id)">
+             <span class="material-symbols-outlined" style="font-size: 18px;">cancel</span> Cancel Booking
           </button>
+          <span *ngIf="bookingForm.id && bookingForm.booking_status === 'CANCELLED'" class="status-badge cancelled" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+             <span class="material-symbols-outlined" style="font-size: 16px;">block</span> Booking Cancelled
+          </span>
         </div>
         <div style="display: flex; gap: 10px;">
-          <button type="button" class="btn" style="padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; background: white;" (click)="closeBookingModal()">Cancel</button>
+          <button type="button" class="btn" style="padding: 10px 18px; border-radius: 6px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 600;" (click)="closeBookingModal()">Close</button>
           <button type="submit" class="btn btn-primary">
             Confirm Booking
           </button>

@@ -323,17 +323,35 @@
 }
 
 .status-badge {
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 20px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  background: #ffebee;
-  color: #c62828;
+  background: #f1f5f9;
+  color: #475569;
+  display: inline-block;
+  text-transform: uppercase;
 }
 
-.status-badge.active {
-  background: #e8f5e9;
-  color: #2e7d32;
+.status-badge.active,
+.status-badge.booked {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.reserved {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-badge.completed {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-badge.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 /* Form Styles */

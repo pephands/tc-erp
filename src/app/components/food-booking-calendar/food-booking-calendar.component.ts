@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +25,77 @@ export class FoodBookingCalendarComponent implements OnInit {
   branchesList = signal<Branch[]>([]);
   trustBranchesList = computed(() => this.branchesList().filter(b => b.is_trust === true));
   occasionsList = signal<any[]>([]);
+  isOccasionDropdownOpen = signal<boolean>(false);
+  isBranchDropdownOpen = signal<boolean>(false);
+  openPaymentModeDropdownIndex = signal<number | null>(null);
+
+  toggleOccasionDropdown(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isOccasionDropdownOpen.update(v => !v);
+    this.isBranchDropdownOpen.set(false);
+    this.openPaymentModeDropdownIndex.set(null);
+  }
+
+  selectOccasion(occName: string) {
+    this.bookingForm.occasion_name = occName;
+    this.isOccasionDropdownOpen.set(false);
+  }
+
+  toggleBranchDropdown(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isBranchDropdownOpen.update(v => !v);
+    this.isOccasionDropdownOpen.set(false);
+    this.openPaymentModeDropdownIndex.set(null);
+  }
+
+  selectBranch(bId: any) {
+    this.bookingForm.branch = bId;
+    this.isBranchDropdownOpen.set(false);
+  }
+
+  togglePaymentModeDropdown(index: number, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.openPaymentModeDropdownIndex() === index) {
+      this.openPaymentModeDropdownIndex.set(null);
+    } else {
+      this.openPaymentModeDropdownIndex.set(index);
+      this.isOccasionDropdownOpen.set(false);
+      this.isBranchDropdownOpen.set(false);
+    }
+  }
+
+  selectPaymentMode(index: number, modeName: string) {
+    if (this.bookingForm.payments && this.bookingForm.payments[index]) {
+      this.bookingForm.payments[index].mode_of_payment = modeName;
+    }
+    this.openPaymentModeDropdownIndex.set(null);
+  }
+
+  getSelectedBranchName(): string {
+    if (!this.bookingForm.branch) return '';
+    const b = this.branchesList().find(item => item.id == this.bookingForm.branch);
+    return b ? b.name : '';
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.occasion-dropdown-container')) {
+      this.isOccasionDropdownOpen.set(false);
+    }
+    if (!target.closest('.branch-dropdown-container')) {
+      this.isBranchDropdownOpen.set(false);
+    }
+    if (!target.closest('.payment-mode-dropdown-container')) {
+      this.openPaymentModeDropdownIndex.set(null);
+    }
+  }
   paymentModesList = signal<any[]>([]);
   selectedBranchId = signal<number | null>(null);
   activeTab = signal<'list' | 'calendar' | 'menus'>('list');
@@ -179,15 +250,33 @@ export class FoodBookingCalendarComponent implements OnInit {
         }
       }
       
-      this.fetchData();
-      this.fetchAllBookings();
+      this.loadActiveTabData();
     });
+  }
+
+  switchTab(tab: 'list' | 'calendar' | 'menus') {
+    this.activeTab.set(tab);
+    this.loadActiveTabData();
+  }
+
+  loadActiveTabData() {
+    const tab = this.activeTab();
+    if (tab === 'list') {
+      this.fetchAllBookings();
+    } else if (tab === 'calendar') {
+      this.fetchCalendarData();
+    } else if (tab === 'menus') {
+      this.loadFoodMenus();
+    }
   }
 
   onBranchChange() {
     this.listFilters.trust_name = this.selectedBranchId();
-    this.fetchData();
-    this.fetchAllBookings();
+    if (this.activeTab() === 'calendar') {
+      this.fetchCalendarData();
+    } else if (this.activeTab() === 'list') {
+      this.fetchAllBookings();
+    }
   }
 
   applyListFilters() {
@@ -268,14 +357,17 @@ export class FoodBookingCalendarComponent implements OnInit {
     delete actualFilters.branch_name;
 
     this.foodService.getFoodBookings(actualFilters).subscribe((res: any) => {
+      let items: any[] = [];
       if (res && res.results) {
-        this.allBookings.set(res.results);
+        items = res.results;
         this.listPagination.update(p => ({ ...p, total: res.count }));
       } else {
         const bks = res.data || res;
-        this.allBookings.set(Array.isArray(bks) ? bks : []);
-        this.listPagination.update(p => ({ ...p, total: Array.isArray(bks) ? bks.length : 0 }));
+        items = Array.isArray(bks) ? bks : [];
+        this.listPagination.update(p => ({ ...p, total: items.length }));
       }
+      items.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      this.allBookings.set(items);
     });
   }
 
@@ -322,7 +414,14 @@ export class FoodBookingCalendarComponent implements OnInit {
     this.fetchData();
   }
 
-  fetchData() {
+  loadFoodMenus() {
+    this.foodService.getFoodMenus().subscribe((res: any) => {
+      const data = res.results || res.data || res;
+      this.foodMenus.set(Array.isArray(data) ? data : []);
+    });
+  }
+
+  fetchCalendarData() {
     const trustId = this.selectedBranchId();
 
     this.foodService.getFoodMenus().subscribe((res: any) => {
@@ -334,6 +433,7 @@ export class FoodBookingCalendarComponent implements OnInit {
           trust_name: trustId,
           month: this.currentMonth(),
           year: this.currentYear(),
+          for_calendar: true,
           page_size: 10000
         }).subscribe((res: any) => {
           const bks = res.results || res.data || res;
@@ -345,6 +445,10 @@ export class FoodBookingCalendarComponent implements OnInit {
         this.calendarDays.set([]);
       }
     });
+  }
+
+  fetchData() {
+    this.fetchCalendarData();
   }
 
   buildCalendar() {
@@ -438,7 +542,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     if (!day.date) return null;
     const currentTrustId = this.selectedBranchId();
     const menusForSlot = this.foodMenus().filter(m => m.slot === slot && m.is_active && m.trust_name == currentTrustId);
-    const bookingsForSlot = day.bookings.filter((b: any) => menusForSlot.some(m => m.id === b.menu));
+    const bookingsForSlot = day.bookings.filter((b: any) => menusForSlot.some(m => m.id === b.menu) && b.booking_status !== 'CANCELLED');
     
     if (menusForSlot.length === 0) return 'NONE';
     if (bookingsForSlot.length === 0) return 'OPEN';
@@ -453,7 +557,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     
     const currentTrustId = this.selectedBranchId();
     return this.foodMenus().filter(m => m.slot === slot && m.is_active && m.trust_name == currentTrustId).map(m => {
-       const booking = day.bookings.find((b: any) => b.menu === m.id);
+       const booking = day.bookings.find((b: any) => b.menu === m.id && b.booking_status !== 'CANCELLED');
        return {
          ...m,
          booking: booking || null
@@ -463,6 +567,7 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   showBookingModal = signal(false);
   showViewBookingModal = signal(false);
+  showCancelConfirm = signal(false);
   viewBookingDetails = signal<any>(null);
   
   bookingForm: any = {
@@ -578,6 +683,10 @@ export class FoodBookingCalendarComponent implements OnInit {
 
   closeBookingModal() {
     this.showBookingModal.set(false);
+    this.showCancelConfirm.set(false);
+    this.isOccasionDropdownOpen.set(false);
+    this.isBranchDropdownOpen.set(false);
+    this.openPaymentModeDropdownIndex.set(null);
     this.selectedFile = null;
   }
 
@@ -615,7 +724,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     this.globalToast.set({msg, isError});
     setTimeout(() => {
       this.globalToast.set(null);
-    }, 3000);
+    }, 5000);
   }
 
   editBookingDirectly(booking: any) {
@@ -656,8 +765,15 @@ export class FoodBookingCalendarComponent implements OnInit {
     formData.append('occasion_name', this.bookingForm.occasion_name);
     formData.append('total_amount', this.bookingForm.total_amount);
     if (this.bookingForm.branch) formData.append('branch', this.bookingForm.branch);
-    if (this.bookingForm.remarks) formData.append('remarks', this.bookingForm.remarks);
-    formData.append('booking_status', this.bookingForm.booking_status === 'COMPLETED' ? 'COMPLETED' : (totalPaid >= this.bookingForm.total_amount ? 'BOOKED' : 'RESERVED'));
+    let finalStatus = 'RESERVED';
+    if (this.bookingForm.booking_status === 'CANCELLED') {
+      finalStatus = 'CANCELLED';
+    } else if (this.bookingForm.booking_status === 'COMPLETED') {
+      finalStatus = 'COMPLETED';
+    } else {
+      finalStatus = totalPaid >= this.bookingForm.total_amount ? 'BOOKED' : 'RESERVED';
+    }
+    formData.append('booking_status', finalStatus);
     
     if (this.selectedFile) {
       formData.append('attachment', this.selectedFile);
@@ -687,21 +803,18 @@ export class FoodBookingCalendarComponent implements OnInit {
                 next: () => {
                    this.showToast('Booking and payments updated successfully!');
                    this.closeBookingModal();
-                   this.fetchData();
-                   this.fetchAllBookings();
+                   this.loadActiveTabData();
                 },
                 error: (err: any) => {
                    this.showToast('Booking updated, but some payments failed: ' + err.message, true);
                    this.closeBookingModal();
-                   this.fetchData();
-                   this.fetchAllBookings();
+                   this.loadActiveTabData();
                 }
              });
           } else {
              this.showToast('Booking updated successfully!');
              this.closeBookingModal();
-             this.fetchData();
-             this.fetchAllBookings();
+             this.loadActiveTabData();
           }
         },
         error: (err) => {
@@ -730,21 +843,18 @@ export class FoodBookingCalendarComponent implements OnInit {
                 next: () => {
                    this.showToast('Booking and payments saved successfully!');
                    this.closeBookingModal();
-                   this.fetchData();
-                   this.fetchAllBookings();
+                   this.loadActiveTabData();
                 },
                 error: (err: any) => {
                    this.showToast('Booking saved, but some payments failed: ' + err.message, true);
                    this.closeBookingModal();
-                   this.fetchData();
-                   this.fetchAllBookings();
+                   this.loadActiveTabData();
                 }
              });
           } else {
              this.showToast('Booking saved successfully!');
              this.closeBookingModal();
-             this.fetchData();
-             this.fetchAllBookings();
+             this.loadActiveTabData();
           }
         },
       error: (err) => {
@@ -754,13 +864,33 @@ export class FoodBookingCalendarComponent implements OnInit {
     }
   }
 
+  cancelBooking(id: number) {
+    if (!id) return;
+    this.showCancelConfirm.set(true);
+  }
+
+  confirmCancelBooking(id: number) {
+    if (!id) return;
+    const payload = { booking_status: 'CANCELLED' };
+    this.foodService.updateFoodBooking(id, payload).subscribe({
+      next: () => {
+        this.showCancelConfirm.set(false);
+        this.showToast("Booking cancelled successfully.");
+        this.closeBookingModal();
+        this.loadActiveTabData();
+      },
+      error: (err: any) => {
+        this.showToast("Failed to cancel booking: " + (err.error?.detail || err.message), true);
+      }
+    });
+  }
+
   deleteBooking(id: number) {
     if (confirm("Are you sure you want to delete this booking completely? This action cannot be undone.")) {
       this.foodService.deleteFoodBooking(id).subscribe({
         next: () => {
            this.showToast("Booking deleted successfully.");
-           this.fetchData();
-           this.fetchAllBookings();
+           this.loadActiveTabData();
            this.closeBookingModal();
         },
         error: (err) => this.showToast("Failed to delete booking: " + (err.error?.detail || err.message), true)
@@ -789,7 +919,7 @@ export class FoodBookingCalendarComponent implements OnInit {
           this.showFormMessage('Menu updated successfully!');
           const lastTrust = this.newMenu.trust_name;
           this.newMenu = { id: null, trust_name: lastTrust, slot: '', menu_name: '', amount: 0, is_active: true };
-          this.fetchData(); // Refresh the lists
+          this.loadFoodMenus(); // Refresh the lists
         },
         error: (err) => {
           console.error(err);
@@ -802,7 +932,7 @@ export class FoodBookingCalendarComponent implements OnInit {
           this.showFormMessage('Menu created successfully!');
           const lastTrust = this.newMenu.trust_name;
           this.newMenu = { id: null, trust_name: lastTrust, slot: '', menu_name: '', amount: 0, is_active: true };
-          this.fetchData(); // Refresh the lists
+          this.loadFoodMenus(); // Refresh the lists
         },
         error: (err) => {
           console.error(err);

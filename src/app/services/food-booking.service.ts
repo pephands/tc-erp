@@ -38,7 +38,7 @@ export interface FoodBooking {
   mobile_number: string;
   alternative_number?: string;
   remarks?: string;
-  booking_status: 'RESERVED' | 'BOOKED' | 'COMPLETED';
+  booking_status: 'RESERVED' | 'BOOKED' | 'COMPLETED' | 'CANCELLED';
   is_active: boolean;
   total_paid_amount: number;
   payments: FoodBookingPayment[];
