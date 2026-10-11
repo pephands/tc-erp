@@ -61,6 +61,8 @@ export interface TelecallerUserOption {
   employee_Id: string;
   full_name: string;
   branch_name?: string;
+  attendance_status?: string;
+  is_wfh?: boolean;
 }
 
 export interface BranchPoolData {

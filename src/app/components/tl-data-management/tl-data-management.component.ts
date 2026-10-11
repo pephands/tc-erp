@@ -24,6 +24,7 @@ export class TlDataManagementComponent implements OnInit {
   masterSummary = signal<MasterSummaryData | null>(null);
   requestsList = signal<BranchAllocationRequestRecord[]>([]);
   telecallersList = signal<TelecallerUserOption[]>([]);
+  allTelecallersList = signal<TelecallerUserOption[]>([]);
   
   // New features
   currentTab = signal<'REQUESTS' | 'HISTORY' | 'SUMMARY' | 'TL_UPLOADS'>('REQUESTS');
@@ -72,6 +73,8 @@ export class TlDataManagementComponent implements OnInit {
   // Toast feedback
   toastMessage = signal<string>('');
   showToast = signal<boolean>(false);
+  modalError = signal<string>('');
+  assignModalError = signal<string>('');
 
   // Search & Pagination
   searchQuery = signal<string>('');
@@ -484,9 +487,16 @@ export class TlDataManagementComponent implements OnInit {
   }
 
   loadTelecallers(): void {
-    this.service.fetchTelecallers().subscribe({
+    // Load present & WFH telecallers for today's assignment modal
+    this.service.fetchTelecallers(true).subscribe({
       next: (tcs) => this.telecallersList.set(tcs),
-      error: (err) => console.error('Error loading telecallers:', err),
+      error: (err) => console.error('Error loading present telecallers:', err),
+    });
+
+    // Load all telecallers for historical filter dropdowns
+    this.service.fetchTelecallers(false).subscribe({
+      next: (tcs) => this.allTelecallersList.set(tcs),
+      error: (err) => console.error('Error loading all telecallers:', err),
     });
   }
 
@@ -622,19 +632,22 @@ export class TlDataManagementComponent implements OnInit {
 
   // Request Batch Modal
   onOpenSubmitTaskModal(): void {
+    this.modalError.set('');
     this.submitCategory.set('BASE');
     this.submitQuantity.set(null);
     this.isSubmitModalOpen.set(true);
   }
 
   closeSubmitModal(): void {
+    this.modalError.set('');
     this.isSubmitModalOpen.set(false);
   }
 
   onSubmitTaskRequest(): void {
+    this.modalError.set('');
     const qty = this.submitQuantity();
     if (!qty || qty <= 0) {
-      alert('Please enter a valid requested quantity.');
+      this.modalError.set('Please enter a valid requested quantity.');
       return;
     }
 
@@ -650,35 +663,53 @@ export class TlDataManagementComponent implements OnInit {
         this.isSubmitting.set(false);
         console.error('Error submitting request:', err);
         const msg = err.error?.message || 'Failed to submit request.';
-        alert(msg);
+        this.modalError.set(msg);
       },
     });
   }
 
   // Assign TC Modal
   onOpenAssignTcModal(): void {
+    this.assignModalError.set('');
     this.selectedTcIds.set([]);
     this.lastClickedIndex.set(null);
     this.assignCategory.set('BASE');
     this.assignQuantity.set(null);
+    this.loadTelecallers();
     this.isAssignTcModalOpen.set(true);
   }
 
   closeAssignTcModal(): void {
+    this.assignModalError.set('');
     this.isAssignTcModalOpen.set(false);
   }
 
   onSubmitAssignTc(): void {
+    this.assignModalError.set('');
     const tcIds = this.selectedTcIds();
     const qty = this.assignQuantity();
     const category = this.assignCategory();
 
     if (tcIds.length === 0) {
-      alert('Please select at least one Telecaller.');
+      this.assignModalError.set('Please select at least one Telecaller.');
       return;
     }
     if (!qty || qty <= 0) {
-      alert('Please enter a valid count per telecaller.');
+      this.assignModalError.set('Please enter a valid count per telecaller.');
+      return;
+    }
+
+    // Client-side pool balance check for instant inline feedback
+    const pool = this.branchPool();
+    const available = category === 'BASE' 
+      ? (pool?.unused_base_count || 0) 
+      : (pool?.unused_non_base_count || 0);
+    const required = tcIds.length * qty;
+
+    if (required > available) {
+      this.assignModalError.set(
+        `Insufficient ${category} numbers in branch pool. Required: ${required} (${qty} each for ${tcIds.length} telecallers), but only ${available} available.`
+      );
       return;
     }
 
@@ -697,7 +728,7 @@ export class TlDataManagementComponent implements OnInit {
         this.isSubmitting.set(false);
         console.error('Error assigning to telecallers:', err);
         const errorMsg = err.error?.message || 'Failed to assign numbers to telecallers.';
-        alert(errorMsg);
+        this.assignModalError.set(errorMsg);
       },
     });
   }

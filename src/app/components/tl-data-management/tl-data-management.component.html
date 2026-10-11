@@ -233,7 +233,7 @@
             <label>Telecaller</label>
             <select class="form-input" [ngModel]="selectedTelecallerFilter()" (ngModelChange)="selectedTelecallerFilter.set($event); onFilterChange()">
               <option value="">All Telecallers</option>
-              @for (tc of telecallersList(); track tc.id) {
+              @for (tc of allTelecallersList(); track tc.id) {
                 <option [value]="tc.id">{{ tc.full_name || tc.employee_Id }}</option>
               }
             </select>
@@ -442,7 +442,7 @@
             <label>Telecaller</label>
             <select class="form-input" [ngModel]="selectedTelecallerFilter()" (ngModelChange)="selectedTelecallerFilter.set($event); onFilterChange()">
               <option value="">All Telecallers</option>
-              @for (tc of telecallersList(); track tc.id) {
+              @for (tc of allTelecallersList(); track tc.id) {
                 <option [value]="tc.id">{{ tc.full_name || tc.employee_Id }}</option>
               }
             </select>
@@ -546,6 +546,13 @@
           </div>
 
           <div class="box-content-area">
+            @if (modalError()) {
+              <div class="modal-error-banner">
+                <span class="material-symbols-outlined">error</span>
+                <span>{{ modalError() }}</span>
+              </div>
+            }
+
             <div class="form-group">
               <label>Data Category *</label>
               <div class="select-wrapper">
@@ -606,6 +613,13 @@
           </div>
 
           <div class="box-content-area">
+            @if (assignModalError()) {
+              <div class="modal-error-banner">
+                <span class="material-symbols-outlined">error</span>
+                <span>{{ assignModalError() }}</span>
+              </div>
+            }
+
             <div class="form-group">
               <div class="multi-select-header">
                 <label>Select Telecallers ({{ selectedTcIds().length }} Selected) *</label>
@@ -638,9 +652,17 @@
                       <span class="tc-name">{{ tc.full_name || tc.employee_Id }}</span>
                       <span class="tc-user">@{{ tc.employee_Id }}</span>
                     </div>
+                    @if (tc.is_wfh || tc.attendance_status === 'WFH') {
+                      <span class="tc-status-pill wfh-pill">WFH</span>
+                    } @else {
+                      <span class="tc-status-pill present-pill">Present</span>
+                    }
                   </div>
                 } @empty {
-                  <p class="no-tc-text">No telecallers available in your branch.</p>
+                  <div class="no-tc-empty-state">
+                    <span class="material-symbols-outlined">person_off</span>
+                    <p class="no-tc-text">No telecallers marked Present or Work From Home (WFH) today in your branch.</p>
+                  </div>
                 }
               </div>
             </div>

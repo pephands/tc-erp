@@ -310,8 +310,12 @@ export class TelecallingService extends BaseHttpService {
     });
   }
 
-  fetchTelecallers(): Observable<TelecallerUserOption[]> {
-    return this.httpClient.get<any>(this.endPoint.telecallers, { headers: this.headers }).pipe(
+  fetchTelecallers(presentToday: boolean = false): Observable<TelecallerUserOption[]> {
+    let url = this.endPoint.telecallers;
+    if (presentToday) {
+      url += '&present_today=true';
+    }
+    return this.httpClient.get<any>(url, { headers: this.headers }).pipe(
       map((res: any) => {
         const list = res.data || res.results || (Array.isArray(res) ? res : []);
         return list.map((item: any) => ({
@@ -319,6 +323,8 @@ export class TelecallingService extends BaseHttpService {
           employee_Id: item.employee_Id || item.email || '',
           full_name: item.full_name || item.name || item.employee_Id || '',
           branch_name: item.branch_name || item.branch?.name || '',
+          attendance_status: item.attendance_status || (item.is_wfh ? 'WFH' : 'P'),
+          is_wfh: item.is_wfh || item.attendance_status === 'WFH',
         }));
       })
     );
