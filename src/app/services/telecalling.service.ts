@@ -1,5 +1,5 @@
 import { Injectable, Injector, signal } from '@angular/core';
-import { HttpEvent } from '@angular/common/http';
+import { HttpEvent, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BaseHttpService } from '../http/baseHttp';
@@ -91,6 +91,30 @@ export class TelecallingService extends BaseHttpService {
     return this.httpClient.get(this.endPoint.telecallingUnallocatedExport, {
       headers: this.headers,
       params: { category },
+      responseType: 'blob',
+    });
+  }
+
+  exportBranchPoolExcel(params?: {
+    branchIds?: number[];
+    requestIds?: number[];
+    category?: string;
+  }): Observable<Blob> {
+    let httpParams = new HttpParams();
+    if (params?.branchIds && params.branchIds.length > 0) {
+      httpParams = httpParams.set('branch_ids', params.branchIds.join(','));
+    }
+    if (params?.requestIds && params.requestIds.length > 0) {
+      httpParams = httpParams.set('request_ids', params.requestIds.join(','));
+    }
+    if (params?.category) {
+      httpParams = httpParams.set('category', params.category);
+    }
+
+    const url = `${this.endPoint.baseUrl}telecalling/branch-pool/export/`;
+    return this.httpClient.get(url, {
+      headers: this.headers,
+      params: httpParams,
       responseType: 'blob',
     });
   }

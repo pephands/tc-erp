@@ -36,6 +36,15 @@
 
         <button
           type="button"
+          class="btn-toolbar btn-download-branch"
+          (click)="onOpenDownloadBranchModal()"
+        >
+          <span class="material-symbols-outlined">sim_card_download</span>
+          <span>Download Branch Records</span>
+        </button>
+
+        <button
+          type="button"
           class="btn-toolbar btn-download-base"
           [disabled]="isExporting()"
           (click)="onDownloadUnallocatedData()"
@@ -91,24 +100,86 @@
     <!-- Main Table Card Container: Branch Allocation Requests -->
     <div class="table-card margin-top-sm">
       <div class="table-header-bar">
+        <div class="table-header-left">
+          <h3 class="table-card-title">Allocation Requests</h3>
+          <span class="table-count-pill">{{ totalRequests() }} total</span>
+        </div>
+
         <div class="search-box">
           <input
             type="text"
             placeholder="Search request ID, branch, category, status..."
             [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+            (ngModelChange)="onSearchInput($event)"
+            (keyup.enter)="onSearchSubmit()"
           />
-          <button type="button" class="search-btn" title="Search">
+          @if (searchQuery()) {
+            <button type="button" class="clear-search-btn" title="Clear search" (click)="clearSearch()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+          <button type="button" class="search-btn" title="Search" (click)="onSearchSubmit()">
             <span class="material-symbols-outlined">search</span>
           </button>
         </div>
       </div>
+
+      <!-- Selected Requests Banner -->
+      @if (selectedRequestIds().length > 0) {
+        <div class="selected-requests-banner">
+          <div class="banner-left">
+            <div class="selection-pill">
+              <span class="material-symbols-outlined check-icon">check_circle</span>
+              <span class="selection-count">
+                <strong>{{ selectedRequestIds().length }}</strong> {{ selectedRequestIds().length === 1 ? 'Request' : 'Requests' }} Selected
+              </span>
+            </div>
+            <span class="banner-divider"></span>
+            <span class="banner-subtitle">Export records from selected allocation requests into a single Excel file</span>
+          </div>
+
+          <div class="banner-actions">
+            <button
+              type="button"
+              class="btn-bulk-export"
+              (click)="onDownloadSelectedRequests()"
+              [disabled]="isExporting()"
+              title="Download merged data for selected requests"
+            >
+              @if (isExporting()) {
+                <span class="material-symbols-outlined spin-icon">sync</span>
+                <span>Exporting...</span>
+              } @else {
+                <span class="material-symbols-outlined">download</span>
+                <span>Download</span>
+              }
+            </button>
+            <button
+              type="button"
+              class="btn-clear-selection"
+              (click)="clearSelectedRequests()"
+              title="Clear all selections"
+            >
+              <span class="material-symbols-outlined clear-icon">close</span>
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+      }
 
       <!-- Data Table -->
       <div class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
+              <th class="th-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="isAllApprovedSelected()"
+                  (change)="toggleSelectAllApproved()"
+                  title="Select All Approved"
+                />
+              </th>
               <th>Req ID</th>
               <th>Branch</th>
               <th>Category</th>
@@ -124,14 +195,23 @@
           <tbody>
             @if (isLoading()) {
               <tr>
-                <td colspan="10" class="loading-table-state">
+                <td colspan="11" class="loading-table-state">
                   <span class="material-symbols-outlined spin-icon loading-spinner">progress_activity</span>
                   <p class="loading-title">Fetching branch allocation requests...</p>
                 </td>
               </tr>
             } @else {
               @for (item of paginatedRecords(); track item.id) {
-                <tr>
+                <tr [class.row-selected]="isRequestSelected(item.id)">
+                  <td class="td-checkbox">
+                    <input
+                      type="checkbox"
+                      [checked]="isRequestSelected(item.id)"
+                      (change)="toggleRequestSelection(item.id)"
+                      [disabled]="item.status !== 'APPROVED'"
+                      title="Select for bulk download"
+                    />
+                  </td>
                   <td class="font-medium">#{{ item.id }}</td>
                   <td class="font-semibold branch-name">{{ item.branchName }}</td>
                   <td>
@@ -212,7 +292,7 @@
             Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalRequests() }} total records)
             <span style="margin-left: 15px;">
               Per page: 
-              <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+              <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
                 <option [value]="5">5</option>
                 <option [value]="10">10</option>
                 <option [value]="20">20</option>
@@ -554,6 +634,163 @@
             </button>
           }
         </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==========================================
+       MODAL: DOWNLOAD BRANCH RECORDS (SINGLE / MULTI)
+       ========================================== -->
+  @if (isDownloadBranchModalOpen()) {
+    <div class="modal-backdrop" (click)="closeDownloadBranchModal()">
+      <div class="modal-card download-branch-modal-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-title-header">
+          <div class="modal-header-title-group">
+            <div class="modal-icon-badge">
+              <span class="material-symbols-outlined">sim_card_download</span>
+            </div>
+            <div>
+              <h2>Download Branch Records</h2>
+              <p class="modal-subtitle">Export allocated donor data for a single branch or multiple branches into a single Excel file</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeDownloadBranchModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body-content">
+          @if (downloadModalError()) {
+            <div class="modal-error-banner">
+              <span class="material-symbols-outlined">error</span>
+              <span>{{ downloadModalError() }}</span>
+            </div>
+          }
+
+          <!-- Mode Switcher: Single Branch vs Multiple Branches -->
+          <div class="branch-mode-tabs">
+            <button
+              type="button"
+              class="mode-tab-btn"
+              [class.active]="downloadBranchMode() === 'SINGLE'"
+              (click)="downloadBranchMode.set('SINGLE')"
+            >
+              <span class="material-symbols-outlined">domain</span>
+              <span>Particular Branch</span>
+            </button>
+            <button
+              type="button"
+              class="mode-tab-btn"
+              [class.active]="downloadBranchMode() === 'MULTI'"
+              (click)="downloadBranchMode.set('MULTI')"
+            >
+              <span class="material-symbols-outlined">hub</span>
+              <span>Multiple Branches (Combined Excel)</span>
+            </button>
+          </div>
+
+          <!-- Mode 1: Single Branch -->
+          @if (downloadBranchMode() === 'SINGLE') {
+            <div class="form-group">
+              <label>Select Target Branch *</label>
+              <div class="select-wrapper">
+                <select [ngModel]="selectedSingleBranchId()" (ngModelChange)="selectedSingleBranchId.set($event)">
+                  <option value="">-- Choose a Branch --</option>
+                  @for (b of branchesList(); track b.id) {
+                    <option [value]="b.id">{{ b.name }} {{ b.code ? '(' + b.code + ')' : '' }}</option>
+                  }
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+          }
+
+          <!-- Mode 2: Multiple Branches -->
+          @if (downloadBranchMode() === 'MULTI') {
+            <div class="multi-branch-section">
+              <div class="multi-branch-header">
+                <label>Select Branches ({{ selectedMultiBranchIds().length }} Selected) *</label>
+                <button type="button" class="btn-select-all-branches" (click)="toggleSelectAllBranches()">
+                  {{ isAllBranchesSelected() ? 'Deselect All' : 'Select All Branches' }}
+                </button>
+              </div>
+
+              <div class="branch-search-bar">
+                <span class="material-symbols-outlined">search</span>
+                <input
+                  type="text"
+                  placeholder="Filter branches by name or code..."
+                  [ngModel]="downloadBranchSearchQuery()"
+                  (ngModelChange)="downloadBranchSearchQuery.set($event)"
+                />
+              </div>
+
+              <div class="branches-checklist-container">
+                @for (b of getFilteredDownloadBranches(); track b.id) {
+                  <label
+                    class="branch-checkbox-card"
+                    [class.selected]="isBranchMultiSelected(b.id)"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="isBranchMultiSelected(b.id)"
+                      (change)="toggleMultiBranchSelection(b.id)"
+                    />
+                    <div class="branch-card-info">
+                      <span class="branch-card-name">{{ b.name }}</span>
+                      @if (b.code) {
+                        <span class="branch-card-code">{{ b.code }}</span>
+                      }
+                    </div>
+                  </label>
+                } @empty {
+                  <div class="no-branches-found">No branches match your search.</div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Category Filter -->
+          <div class="form-group margin-top-sm">
+            <label>Data Category</label>
+            <div class="select-wrapper">
+              <select [ngModel]="downloadCategory()" (ngModelChange)="downloadCategory.set($event)">
+                <option value="ALL">All Categories (Base & Non Base)</option>
+                <option value="BASE">Base Only</option>
+                <option value="NON BASE">Non Base Only</option>
+              </select>
+              <span class="material-symbols-outlined select-arrow">expand_more</span>
+            </div>
+          </div>
+
+          <!-- Download Action Footer -->
+          <div class="modal-footer-action-bar">
+            <button
+              type="button"
+              class="btn-footer-cancel"
+              (click)="closeDownloadBranchModal()"
+              [disabled]="isDownloadingBranchData()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-footer-download"
+              [disabled]="isDownloadingBranchData() || (downloadBranchMode() === 'SINGLE' ? !selectedSingleBranchId() : selectedMultiBranchIds().length === 0)"
+              (click)="onSubmitDownloadBranchData()"
+            >
+              @if (isDownloadingBranchData()) {
+                <span class="btn-spinner"></span>
+                <span>Generating Combined Excel...</span>
+              } @else {
+                <span class="material-symbols-outlined">download</span>
+                <span>Download Excel (.xlsx)</span>
+              }
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   }

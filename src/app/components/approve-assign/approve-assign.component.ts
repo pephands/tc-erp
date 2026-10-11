@@ -1,7 +1,9 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { TelecallingService } from '../../services/telecalling.service';
 import {
   BranchAllocationRequestRecord,
@@ -15,8 +17,10 @@ import {
   templateUrl: './approve-assign.component.html',
   styleUrl: './approve-assign.component.css',
 })
-export class ApproveAssignComponent implements OnInit {
+export class ApproveAssignComponent implements OnInit, OnDestroy {
   private service = inject(TelecallingService);
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<string>();
 
   // Data signals
   requestsList = signal<BranchAllocationRequestRecord[]>([]);
@@ -56,6 +60,19 @@ export class ApproveAssignComponent implements OnInit {
   isUploadModalOpen = signal<boolean>(false);
   isFlushConfirmModalOpen = signal<boolean>(false);
   isAssignBranchModalOpen = signal<boolean>(false);
+  isDownloadBranchModalOpen = signal<boolean>(false);
+
+  // Table multi-selection for requests
+  selectedRequestIds = signal<number[]>([]);
+
+  // Branch Download Modal State
+  downloadBranchMode = signal<'SINGLE' | 'MULTI'>('SINGLE');
+  selectedSingleBranchId = signal<string>('');
+  selectedMultiBranchIds = signal<number[]>([]);
+  downloadCategory = signal<string>('ALL');
+  isDownloadingBranchData = signal<boolean>(false);
+  downloadBranchSearchQuery = signal<string>('');
+  downloadModalError = signal<string>('');
   
   // Generic Action Confirmation Modal
   isActionConfirmModalOpen = signal<boolean>(false);
@@ -86,6 +103,26 @@ export class ApproveAssignComponent implements OnInit {
   ngOnInit(): void {
     this.loadData();
     this.loadBranches();
+
+    // Auto-fetch when user types 3 or more characters (or clears input)
+    this.searchSubject
+      .pipe(
+        debounceTime(350),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((query) => {
+        const trimmed = (query || '').trim();
+        if (trimmed.length >= 3 || trimmed.length === 0) {
+          this.currentPage.set(1);
+          this.fetchRequests();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadBranches(): void {
@@ -148,12 +185,33 @@ export class ApproveAssignComponent implements OnInit {
     });
   }
 
-  // Handle page changes
+  // Handle page & search changes
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.loadData();
+      this.fetchRequests();
     }
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.pageSize.set(newSize);
+    this.currentPage.set(1);
+    this.fetchRequests();
+  }
+
+  onSearchInput(value: string): void {
+    this.searchQuery.set(value);
+    this.searchSubject.next(value);
+  }
+
+  onSearchSubmit(): void {
+    this.currentPage.set(1);
+    this.fetchRequests();
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.searchSubject.next('');
   }
 
   paginatedRecords = computed(() => {
@@ -176,17 +234,18 @@ export class ApproveAssignComponent implements OnInit {
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
+      this.fetchRequests();
     }
   }
 
   nextPage(): void {
     if (this.currentPage() < this.totalPages()) {
-      this.currentPage.update((p) => p + 1);
+      this.setPage(this.currentPage() + 1);
     }
   }
 
   lastPage(): void {
-    this.currentPage.set(this.totalPages());
+    this.setPage(this.totalPages());
   }
 
   // Admin Actions: Upload Base Excel
@@ -515,6 +574,166 @@ export class ApproveAssignComponent implements OnInit {
         const errMsg = err.error?.message || 'Failed to assign numbers to branch.';
         this.modalError.set(errMsg);
         this.triggerToast(errMsg, 'error');
+      },
+    });
+  }
+
+  // --- Table Request Multi-Selection & Export ---
+  approvedRequests = computed(() => this.requestsList().filter((r) => r.status === 'APPROVED'));
+
+  isRequestSelected(reqId: number): boolean {
+    return this.selectedRequestIds().includes(reqId);
+  }
+
+  toggleRequestSelection(reqId: number): void {
+    this.selectedRequestIds.update((current) =>
+      current.includes(reqId) ? current.filter((id) => id !== reqId) : [...current, reqId]
+    );
+  }
+
+  isAllApprovedSelected = computed(() => {
+    const approved = this.approvedRequests();
+    return approved.length > 0 && approved.every((r) => this.selectedRequestIds().includes(r.id));
+  });
+
+  toggleSelectAllApproved(): void {
+    const approved = this.approvedRequests();
+    if (this.isAllApprovedSelected()) {
+      this.selectedRequestIds.set([]);
+    } else {
+      this.selectedRequestIds.set(approved.map((r) => r.id));
+    }
+  }
+
+  clearSelectedRequests(): void {
+    this.selectedRequestIds.set([]);
+  }
+
+  onDownloadSelectedRequests(): void {
+    const reqIds = this.selectedRequestIds();
+    if (reqIds.length === 0) {
+      this.triggerToast('Please select at least one approved request.', 'warning');
+      return;
+    }
+
+    this.isExporting.set(true);
+    this.service.exportBranchPoolExcel({ requestIds: reqIds }).subscribe({
+      next: (blob: Blob) => {
+        const fileUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.download = `Selected_Allocation_Requests_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(fileUrl);
+        this.isExporting.set(false);
+        this.triggerToast(`Exported ${reqIds.length} request(s) into single Excel file.`);
+      },
+      error: (err: any) => {
+        this.isExporting.set(false);
+        console.error('Error downloading selected requests:', err);
+        this.triggerToast('Failed to download exported records.', 'error');
+      },
+    });
+  }
+
+  // --- Branch Download Modal Methods ---
+  onOpenDownloadBranchModal(): void {
+    this.downloadBranchMode.set('SINGLE');
+    this.selectedSingleBranchId.set('');
+    this.selectedMultiBranchIds.set([]);
+    this.downloadCategory.set('ALL');
+    this.downloadBranchSearchQuery.set('');
+    this.downloadModalError.set('');
+    this.isDownloadBranchModalOpen.set(true);
+  }
+
+  closeDownloadBranchModal(): void {
+    this.downloadModalError.set('');
+    this.isDownloadBranchModalOpen.set(false);
+  }
+
+  getFilteredDownloadBranches(): any[] {
+    const query = this.downloadBranchSearchQuery().toLowerCase().trim();
+    if (!query) return this.branchesList();
+    return this.branchesList().filter(
+      (b) =>
+        (b.name && b.name.toLowerCase().includes(query)) ||
+        (b.code && b.code.toLowerCase().includes(query))
+    );
+  }
+
+  isBranchMultiSelected(branchId: number): boolean {
+    return this.selectedMultiBranchIds().includes(branchId);
+  }
+
+  toggleMultiBranchSelection(branchId: number): void {
+    this.selectedMultiBranchIds.update((current) =>
+      current.includes(branchId) ? current.filter((id) => id !== branchId) : [...current, branchId]
+    );
+  }
+
+  toggleSelectAllBranches(): void {
+    const list = this.getFilteredDownloadBranches();
+    const allIds = list.map((b) => b.id);
+    const allSelected = allIds.length > 0 && allIds.every((id) => this.selectedMultiBranchIds().includes(id));
+    if (allSelected) {
+      this.selectedMultiBranchIds.update((current) => current.filter((id) => !allIds.includes(id)));
+    } else {
+      this.selectedMultiBranchIds.update((current) => Array.from(new Set([...current, ...allIds])));
+    }
+  }
+
+  isAllBranchesSelected = computed(() => {
+    const list = this.branchesList();
+    return list.length > 0 && list.every((b) => this.selectedMultiBranchIds().includes(b.id));
+  });
+
+  onSubmitDownloadBranchData(): void {
+    this.downloadModalError.set('');
+    let branchIds: number[] = [];
+
+    if (this.downloadBranchMode() === 'SINGLE') {
+      const bId = this.selectedSingleBranchId();
+      if (!bId) {
+        this.downloadModalError.set('Please select a branch to download.');
+        return;
+      }
+      branchIds = [parseInt(bId, 10)];
+    } else {
+      branchIds = this.selectedMultiBranchIds();
+      if (branchIds.length === 0) {
+        this.downloadModalError.set('Please select at least one branch.');
+        return;
+      }
+    }
+
+    this.isDownloadingBranchData.set(true);
+    const category = this.downloadCategory();
+
+    this.service.exportBranchPoolExcel({ branchIds, category }).subscribe({
+      next: (blob: Blob) => {
+        const fileUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        const bCount = branchIds.length;
+        const bName = bCount === 1 ? (this.branchesList().find((b) => b.id === branchIds[0])?.name || 'Branch') : `${bCount}_Branches`;
+        a.download = `${bName}_Allocated_Records_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(fileUrl);
+        this.isDownloadingBranchData.set(false);
+        this.closeDownloadBranchModal();
+        this.triggerToast(`Excel downloaded successfully for ${bCount} branch(es).`);
+      },
+      error: (err: any) => {
+        this.isDownloadingBranchData.set(false);
+        console.error('Error downloading branch data:', err);
+        const msg = err.error?.message || 'Failed to download branch data.';
+        this.downloadModalError.set(msg);
+        this.triggerToast(msg, 'error');
       },
     });
   }
