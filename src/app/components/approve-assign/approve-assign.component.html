@@ -249,8 +249,46 @@
        MODAL 1: EXCEL UPLOAD MODAL (ADMIN)
        ========================================== -->
   @if (isUploadModalOpen()) {
-    <div class="modal-backdrop" (click)="closeUploadModal()">
-      <div class="modal-card modal-lg-upload" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" (click)="!isSubmitting() && closeUploadModal()">
+      <div class="modal-card modal-lg-upload" (click)="$event.stopPropagation()" style="position: relative; overflow: hidden;">
+        
+        <!-- Local Loader Overlay while Uploading & Processing -->
+        @if (isSubmitting()) {
+          <div class="local-loader-overlay">
+            <div class="loader-spinner-container">
+              <div class="loader-spinner"></div>
+              <span class="material-symbols-outlined loader-inner-icon">cloud_upload</span>
+            </div>
+            
+            <h3 class="loader-title">{{ uploadStatusMessage() }}</h3>
+            
+            <p class="loader-subtext">
+              Validating mobile records, auto-detecting BASE / NON-BASE, and synchronizing with master database.
+            </p>
+
+            <div class="loader-progress-container">
+              <div class="loader-progress-track">
+                <div 
+                  class="loader-progress-fill" 
+                  [style.width.%]="uploadProgress() ?? 100"
+                  [class.indeterminate]="uploadProgress() === null || uploadProgress() === 100"
+                ></div>
+              </div>
+              <div class="loader-progress-meta">
+                <span>{{ selectedFile()?.name }} ({{ (selectedFile()?.size || 0) / 1024 | number:'1.0-1' }} KB)</span>
+                @if (uploadProgress() !== null) {
+                  <span>{{ uploadProgress() }}%</span>
+                }
+              </div>
+            </div>
+
+            <div class="loader-notice">
+              <span class="material-symbols-outlined notice-icon">info</span>
+              <span>Large datasets (100k+ records) may take 30–60 seconds. Please do not refresh or close this tab.</span>
+            </div>
+          </div>
+        }
+
         <div class="modal-title-header">
           <div class="header-title-flex">
             <span class="material-symbols-outlined header-icon-purple">upload_file</span>
@@ -259,7 +297,7 @@
               <p class="header-subtext">Upload bulk telecalling leads. Category (BASE / NON BASE) is auto-detected per record.</p>
             </div>
           </div>
-          <button type="button" class="modal-close-btn" (click)="closeUploadModal()" title="Close">
+          <button type="button" class="modal-close-btn" (click)="closeUploadModal()" [disabled]="isSubmitting()" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -287,8 +325,8 @@
           </div>
 
           <!-- Drag and Drop Dropzone -->
-          <div class="upload-dropzone" [class.has-file]="selectedFile()">
-            <input type="file" accept=".xls,.xlsx" (change)="onFileChange($event)" class="dropzone-input" />
+          <div class="upload-dropzone" [class.has-file]="selectedFile()" [class.uploading]="isSubmitting()">
+            <input type="file" accept=".xls,.xlsx" (change)="onFileChange($event)" [disabled]="isSubmitting()" class="dropzone-input" />
             <div class="dropzone-content">
               @if (!selectedFile()) {
                 <div class="cloud-circle">
@@ -325,15 +363,20 @@
         </div>
 
         <div class="modal-footer-actions">
-          <button type="button" class="btn-cancel" (click)="closeUploadModal()">Cancel</button>
+          <button type="button" class="btn-cancel" (click)="closeUploadModal()" [disabled]="isSubmitting()">Cancel</button>
           <button
             type="button"
             class="btn-submit-upload"
             [disabled]="isSubmitting() || !selectedFile()"
             (click)="onSubmitUpload()"
           >
-            <span class="material-symbols-outlined">publish</span>
-            <span>{{ isSubmitting() ? 'Uploading Data...' : 'Upload Telecalling Data' }}</span>
+            @if (isSubmitting()) {
+              <div class="btn-spinner"></div>
+              <span>Uploading Data...</span>
+            } @else {
+              <span class="material-symbols-outlined">publish</span>
+              <span>Upload Telecalling Data</span>
+            }
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpEventType } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { TelecallingService } from '../../services/telecalling.service';
 import {
@@ -27,6 +28,8 @@ export class ApproveAssignComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
   isExporting = signal<boolean>(false);
+  uploadProgress = signal<number | null>(null);
+  uploadStatusMessage = signal<string>('Uploading & Processing Data...');
 
   // Toast feedback
   toastMessage = signal<string>('');
@@ -195,7 +198,11 @@ export class ApproveAssignComponent implements OnInit {
   }
 
   closeUploadModal(): void {
+    if (this.isSubmitting()) return;
     this.isUploadModalOpen.set(false);
+    this.selectedFile.set(null);
+    this.uploadFileName.set('No file chosen');
+    this.uploadProgress.set(null);
   }
 
   onFileChange(event: any): void {
@@ -218,16 +225,33 @@ export class ApproveAssignComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.service.uploadExcel(file).subscribe({
-      next: (res: any) => {
-        this.isSubmitting.set(false);
-        this.closeUploadModal();
-        const msg = res.message || 'File uploaded and parsed successfully!';
-        this.triggerToast(msg);
-        this.loadData();
+    this.uploadProgress.set(0);
+    this.uploadStatusMessage.set('Uploading file to server...');
+
+    this.service.uploadExcelWithProgress(file).subscribe({
+      next: (event: any) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          if (event.total) {
+            const percent = Math.round((100 * event.loaded) / event.total);
+            this.uploadProgress.set(percent);
+            if (percent >= 100) {
+              this.uploadStatusMessage.set('File uploaded! Processing & parsing records on server...');
+            } else {
+              this.uploadStatusMessage.set(`Uploading file... ${percent}%`);
+            }
+          }
+        } else if (event.type === HttpEventType.Response) {
+          this.isSubmitting.set(false);
+          this.uploadProgress.set(null);
+          this.closeUploadModal();
+          const msg = event.body?.message || 'File uploaded and parsed successfully!';
+          this.triggerToast(msg);
+          this.loadData();
+        }
       },
       error: (err: any) => {
         this.isSubmitting.set(false);
+        this.uploadProgress.set(null);
         console.error('Error uploading excel:', err);
         const errorMsg = err.error?.message || 'Failed to upload Excel file.';
         this.triggerToast(errorMsg);

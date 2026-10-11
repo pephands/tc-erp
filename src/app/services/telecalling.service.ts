@@ -1,4 +1,5 @@
 import { Injectable, Injector, signal } from '@angular/core';
+import { HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BaseHttpService } from '../http/baseHttp';
@@ -41,6 +42,18 @@ export class TelecallingService extends BaseHttpService {
 
     return this.httpClient.post(this.endPoint.telecallingUpload, formData, {
       headers: this.multipartHeaders,
+    });
+  }
+
+  uploadExcelWithProgress(file: File, category: string = 'BASE'): Observable<HttpEvent<any>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+
+    return this.httpClient.post<any>(this.endPoint.telecallingUpload, formData, {
+      headers: this.multipartHeaders,
+      reportProgress: true,
+      observe: 'events',
     });
   }
 
