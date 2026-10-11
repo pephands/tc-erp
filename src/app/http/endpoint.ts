@@ -36,7 +36,7 @@ export class Endpoint {
   }
 
   get telecallers(): string {
-    return this.baseUrl + 'accounts/users/?role=TC&is_active=true&page_size=1000';
+    return this.baseUrl + 'accounts/users/?role=TC&is_active=true&page_size=2000';
   }
 
   get changePassword(): string {
@@ -228,6 +228,14 @@ export class Endpoint {
     return this.baseUrl + `payments/records/${id}/send-receipt/`;
   }
 
+  get batchReceiptRuns(): string {
+    return this.baseUrl + 'payments/batch-receipts/runs/';
+  }
+
+  get batchReceipts(): string {
+    return this.baseUrl + 'payments/batch-receipts/';
+  }
+
   get verifiedDonorsUpload(): string {
     return this.baseUrl + 'payments/verified-donors/upload/';
   }
@@ -242,6 +250,19 @@ export class Endpoint {
 
   get verifiedDonorsForceDelete(): string {
     return this.baseUrl + 'payments/verified-donors/force-delete/';
+  }
+
+  // Unclaimed Records
+  get unclaimedRecords(): string {
+    return this.baseUrl + 'payments/unclaimed-records/';
+  }
+
+  get unclaimedRecordsUpload(): string {
+    return this.baseUrl + 'payments/unclaimed-records/upload/';
+  }
+
+  get unclaimedRecordsSample(): string {
+    return this.baseUrl + 'payments/unclaimed-records/sample/';
   }
 
   // Whatsapp
