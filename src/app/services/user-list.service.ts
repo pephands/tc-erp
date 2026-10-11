@@ -96,6 +96,11 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.delete(url, { headers: this.headers });
   }
 
+  resetPassword(userId: string | number, payload: { new_password?: string; is_password_reset_required?: boolean } = {}): Observable<any> {
+    const url = `${this.endpoint}${userId}/reset-password/`;
+    return this.httpClient.post(url, payload, { headers: this.headers });
+  }
+
   uploadRoleUsersExcel(file: File, roleCode: string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);

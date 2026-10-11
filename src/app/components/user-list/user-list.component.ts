@@ -69,7 +69,8 @@ export class UserListComponent implements OnInit {
   }
 
   get isAdminUser(): boolean {
-    return this.authService.userRoles().includes('ADMIN');
+    const roles = this.authService.userRoles();
+    return roles.includes('ADMIN') || roles.includes('ADMINISTRATOR');
   }
 
   get isSuperintendent(): boolean {
@@ -148,8 +149,18 @@ export class UserListComponent implements OnInit {
   isAddModalOpen = signal<boolean>(false);
   isEditModalOpen = signal<boolean>(false);
   isUploadModalOpen = signal<boolean>(false);
+  isResetPasswordModalOpen = signal<boolean>(false);
   selectedAadharUser = signal<UserRecord | null>(null);
   editingUser = signal<UserRecord | null>(null);
+  selectedResetUser = signal<UserRecord | null>(null);
+
+  // Reset Password State
+  resetCustomPassword = signal<string>('');
+  resetConfirmPassword = signal<string>('');
+  resetRequireChangeOnLogin = signal<boolean>(true);
+  showResetPasswordText = signal<boolean>(false);
+  isSubmittingResetPassword = signal<boolean>(false);
+  resetSuccessResult = signal<{ new_password?: string; employee_Id?: string; full_name?: string } | null>(null);
 
   // Form Fields - Add & Edit
   formEmployeeId = '';
@@ -831,6 +842,87 @@ export class UserListComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Reset Password Handlers
+  openResetPasswordModal(user: UserRecord): void {
+    if (!this.isAdminUser) {
+      this.toastService.error('Unauthorized', 'Only Admin role can reset user passwords.');
+      return;
+    }
+    this.selectedResetUser.set(user);
+    this.resetCustomPassword.set('');
+    this.resetConfirmPassword.set('');
+    this.resetRequireChangeOnLogin.set(true);
+    this.showResetPasswordText.set(false);
+    this.resetSuccessResult.set(null);
+    this.isResetPasswordModalOpen.set(true);
+  }
+
+  closeResetPasswordModal(): void {
+    this.isResetPasswordModalOpen.set(false);
+    this.selectedResetUser.set(null);
+    this.resetSuccessResult.set(null);
+    this.isSubmittingResetPassword.set(false);
+  }
+
+  onSubmitResetPassword(): void {
+    if (!this.isAdminUser) {
+      this.toastService.error('Unauthorized', 'Only Admin role can reset user passwords.');
+      return;
+    }
+    const user = this.selectedResetUser();
+    if (!user) return;
+
+    const pw = this.resetCustomPassword().trim();
+    const cpw = this.resetConfirmPassword().trim();
+
+    if (!pw) {
+      this.toastService.error('Password Required', 'Please enter a new password.');
+      return;
+    }
+    if (pw.length < 6) {
+      this.toastService.error('Invalid Password', 'Password must be at least 6 characters long.');
+      return;
+    }
+    if (pw !== cpw) {
+      this.toastService.error('Password Mismatch', 'The new password and confirm password do not match.');
+      return;
+    }
+
+    const payload = {
+      new_password: pw,
+      is_password_reset_required: this.resetRequireChangeOnLogin()
+    };
+
+    this.isSubmittingResetPassword.set(true);
+    this.userListService.resetPassword(user.dbId, payload).subscribe({
+      next: (res: any) => {
+        this.isSubmittingResetPassword.set(false);
+        this.toastService.success('Password Reset', `Password has been reset successfully for ${user.fullName}.`);
+        this.resetSuccessResult.set({
+          new_password: payload.new_password,
+          employee_Id: user.employee_Id || user.id,
+          full_name: user.fullName
+        });
+      },
+      error: (err: any) => {
+        this.isSubmittingResetPassword.set(false);
+        console.error('Password reset error:', err);
+        const errorMsg = err.error?.message || err.error?.error || 'Failed to reset password.';
+        this.toastService.error('Reset Failed', errorMsg);
+      }
+    });
+  }
+
+  copyCredentials(user: UserRecord, password?: string): void {
+    const pwd = password || 'Welcome@123';
+    const textToCopy = `User: ${user.fullName}\nID / Username: ${user.employee_Id || user.personalNo}\nPassword: ${pwd}`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      this.toastService.success('Copied', 'User credentials copied to clipboard!');
+    }).catch(() => {
+      this.toastService.info('Copy Failed', 'Please manually select and copy credentials.');
+    });
   }
 
   // Bulk Upload Modal Handlers

@@ -348,6 +348,18 @@
   border-color: #93c5fd;
 }
 
+.btn-reset-pw {
+  background: #ffffff;
+  color: #d97706;
+  border-color: #cbd5e1;
+}
+
+.btn-reset-pw:hover {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fcd34d;
+}
+
 .btn-toggle-inactive {
   background: #fee2e2;
   color: #dc2626;
