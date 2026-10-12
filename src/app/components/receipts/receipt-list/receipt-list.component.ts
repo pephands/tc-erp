@@ -323,6 +323,7 @@ export class ReceiptListComponent implements OnInit {
 
         const exportData = items.map(rec => ({
           'Date': this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at,
+          'Payment Date': rec.payment_date || '-',
           'Receipt ID': rec.receipt_id || '-',
           'Receipt Url': rec.generated_receipt_url || '-',
           'Branch': rec.branch_name || '-',

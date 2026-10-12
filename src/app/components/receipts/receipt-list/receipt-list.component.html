@@ -123,6 +123,7 @@
         <thead>
           <tr>
             <th>Date</th>
+            <th>Payment Date</th>
             <th>Receipt ID</th>
             <th>Branch</th>
             <th>EMP Name & EMP ID</th>
@@ -139,7 +140,7 @@
         <tbody>
           @if (isLoading()) {
           <tr>
-            <td colspan="12" class="loading-state">
+            <td colspan="13" class="loading-state">
               <span class="material-symbols-outlined spin-icon">progress_activity</span>
               <p>Loading receipts...</p>
             </td>
@@ -148,6 +149,7 @@
           @for (rec of filteredRecords(); track rec.id) {
           <tr>
             <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
+            <td class="col-date">{{ rec.payment_date || '-' }}</td>
             <td class="col-ref"><code>{{ rec.receipt_id || '-' }}</code></td>
             <td><strong>{{ rec.branch_name || '-' }}</strong></td>
             <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id ||
@@ -213,7 +215,7 @@
           </tr>
           } @empty {
           <tr>
-            <td colspan="9" class="empty-state">
+            <td colspan="13" class="empty-state">
               <span class="material-symbols-outlined empty-icon">receipt_long</span>
               <p class="empty-title">No Receipts Found</p>
               <p class="empty-sub">No receipt records match your filters.</p>
