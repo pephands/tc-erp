@@ -27,6 +27,7 @@ export class BatchReportsComponent implements OnInit {
   
   // Data & State for Batches
   batches = signal<any[]>([]);
+  pendingBatches = signal<any[]>([]);
 
   // Batch branch stats mapping: batch_id -> stats[]
   batchBranchStats = signal<Record<number, any[]>>({});
@@ -110,7 +111,8 @@ export class BatchReportsComponent implements OnInit {
     this.expandedBatchId.set(null);
     const tab = this.activeTab();
     if (tab === 'PENDING_BATCHES') {
-      this.fetchBatches('PENDING');
+      this.fetchPendingBatchRecords();
+      this.fetchPendingBatchesList();
     } else if (tab === 'COMPLETED_BATCHES') {
       this.fetchBatches('COMPLETED');
     } else if (tab === 'OVERALL_BATCHES' || tab === 'BATCHES') {
@@ -118,6 +120,70 @@ export class BatchReportsComponent implements OnInit {
     } else if (tab === 'RECORDS') {
       this.fetchRecords();
     }
+  }
+
+  fetchPendingBatchRecords(): void {
+    this.isLoading.set(true);
+    const search = this.searchQuery().trim();
+    const page = this.currentPage();
+    const pageSize = this.pageSize();
+
+    this.paymentService.getRecords(
+      '',
+      search,
+      '',
+      '',
+      page,
+      '',
+      false,
+      '',
+      false,
+      '',
+      '',
+      pageSize,
+      'PENDING'
+    ).subscribe({
+      next: (res: any) => {
+        let items: OnlinePaymentRecord[] = [];
+        let count = 0;
+
+        if (res && res.results) {
+          items = res.results;
+          count = res.count || items.length;
+        } else if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+          count = items.length;
+        } else if (Array.isArray(res)) {
+          items = res;
+          count = items.length;
+        }
+
+        this.records.set(items);
+        this.totalCount.set(count);
+        this.isLoading.set(false);
+      },
+      error: (err: any) => {
+        console.error('Error fetching pending batch records:', err);
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  fetchPendingBatchesList(): void {
+    this.paymentService.getBatchReports('', '', 'PENDING', 1, 100).subscribe({
+      next: (res: any) => {
+        let items: any[] = [];
+        if (res && res.results) {
+          items = res.results;
+        } else if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+        this.pendingBatches.set(items);
+      },
+      error: () => {}
+    });
   }
 
   fetchRecords(): void {
@@ -303,9 +369,9 @@ export class BatchReportsComponent implements OnInit {
   onSearchChange(val: string): void {
     this.searchQuery.set(val);
     this.updateFilterState();
-    if (this.activeTab() === 'RECORDS') {
+    if (this.activeTab() === 'RECORDS' || this.activeTab() === 'PENDING_BATCHES') {
       this.currentPage.set(1);
-      this.fetchRecords();
+      this.fetchDataForActiveTab();
     }
   }
 

@@ -64,14 +64,14 @@
   }
 
   <!-- TABS -->
-  <div class="tabs-container" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
+  <div class="tabs-container" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-color, #e5e7eb);">
     @if (isAdmin()) {
       <button 
         class="tab-btn" 
         (click)="setTab('PENDING_BATCHES')"
         style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
-        [style.border-bottom-color]="activeTab() === 'PENDING_BATCHES' ? '#f97316' : 'transparent'"
-        [style.color]="activeTab() === 'PENDING_BATCHES' ? '#f97316' : '#6b7280'">
+        [style.border-bottom-color]="activeTab() === 'PENDING_BATCHES' ? 'var(--primary)' : 'transparent'"
+        [style.color]="activeTab() === 'PENDING_BATCHES' ? 'var(--primary)' : 'var(--text-muted)'">
         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">hourglass_top</span>
         Pending Batches
       </button>
@@ -79,8 +79,8 @@
         class="tab-btn" 
         (click)="setTab('COMPLETED_BATCHES')"
         style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
-        [style.border-bottom-color]="activeTab() === 'COMPLETED_BATCHES' ? '#10b981' : 'transparent'"
-        [style.color]="activeTab() === 'COMPLETED_BATCHES' ? '#10b981' : '#6b7280'">
+        [style.border-bottom-color]="activeTab() === 'COMPLETED_BATCHES' ? 'var(--primary)' : 'transparent'"
+        [style.color]="activeTab() === 'COMPLETED_BATCHES' ? 'var(--primary)' : 'var(--text-muted)'">
         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">task_alt</span>
         Completed Batches
       </button>
@@ -88,8 +88,8 @@
         class="tab-btn" 
         (click)="setTab('OVERALL_BATCHES')"
         style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
-        [style.border-bottom-color]="activeTab() === 'OVERALL_BATCHES' ? '#3b82f6' : 'transparent'"
-        [style.color]="activeTab() === 'OVERALL_BATCHES' ? '#3b82f6' : '#6b7280'">
+        [style.border-bottom-color]="activeTab() === 'OVERALL_BATCHES' ? 'var(--primary)' : 'transparent'"
+        [style.color]="activeTab() === 'OVERALL_BATCHES' ? 'var(--primary)' : 'var(--text-muted)'">
         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">analytics</span>
         Overall Batch Details
       </button>
@@ -100,8 +100,8 @@
           class="tab-btn" 
           (click)="setTab('RECORDS')"
           style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
-          [style.border-bottom-color]="activeTab() === 'RECORDS' ? '#f97316' : 'transparent'"
-          [style.color]="activeTab() === 'RECORDS' ? '#f97316' : '#6b7280'">
+          [style.border-bottom-color]="activeTab() === 'RECORDS' ? 'var(--primary)' : 'transparent'"
+          [style.color]="activeTab() === 'RECORDS' ? 'var(--primary)' : 'var(--text-muted)'">
           <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">receipt_long</span>
           TC Submit Details
         </button>
@@ -110,25 +110,71 @@
         class="tab-btn" 
         (click)="setTab('BATCHES')"
         style="padding: 0.75rem 1.5rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1rem;"
-        [style.border-bottom-color]="activeTab() === 'BATCHES' ? '#3b82f6' : 'transparent'"
-        [style.color]="activeTab() === 'BATCHES' ? '#3b82f6' : '#6b7280'">
+        [style.border-bottom-color]="activeTab() === 'BATCHES' ? 'var(--primary)' : 'transparent'"
+        [style.color]="activeTab() === 'BATCHES' ? 'var(--primary)' : 'var(--text-muted)'">
         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">folder_zip</span>
         Generated Batches
       </button>
     }
   </div>
 
+  <!-- Generated Pending Batches Download List -->
+  @if (activeTab() === 'PENDING_BATCHES') {
+    <div class="table-card shadow-card">
+      <div style="padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color, #e5e7eb);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-symbols-outlined" style="color: var(--primary); font-size: 1.4rem;">folder_zip</span>
+          <h3 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--text-main, #1e293b);">Pending Batches Download</h3>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>Batch Date</th>
+              <th>Batch Name</th>
+              <th>Overall Records</th>
+              <th style="text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (batch of pendingBatches(); track batch.id) {
+              <tr>
+                <td class="col-date">{{ batch.date | date:'yyyy-MM-dd' }}</td>
+                <td><strong>{{ batch.name }}</strong></td>
+                <td><span class="tag-pill">{{ batch.record_count }}</span></td>
+                <td style="text-align: center;">
+                  <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)">
+                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
+                    <span>Download File</span>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-state">
+                  <span class="material-symbols-outlined empty-icon">folder_off</span>
+                  <p class="empty-title">No Pending Batches Available</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
   <!-- Filter Card -->
   <div class="filter-card shadow-card">
     <div class="filter-controls-grid">
-      @if (activeTab() === 'RECORDS') {
+      @if (activeTab() === 'PENDING_BATCHES' || activeTab() === 'RECORDS') {
         <div class="filter-field search-field">
-          <label>Search Donor, Mobile, Ref ID</label>
+          <label>Search Donor Name, Number, Ref ID</label>
           <div class="input-wrapper">
             <span class="material-symbols-outlined input-icon">search</span>
             <input
               type="text"
-              placeholder="Search donor name, mobile..."
+              placeholder="Search donor name, number, ref ID..."
               [ngModel]="searchQuery()"
               (ngModelChange)="onSearchChange($event)"
             />
@@ -136,21 +182,23 @@
         </div>
       }
 
-      <div class="filter-field">
-        <label>Start Date</label>
-        <div class="input-wrapper">
-          <span class="material-symbols-outlined input-icon">calendar_today</span>
-          <input type="date" [ngModel]="startDate()" (ngModelChange)="onStartDateChange($event)"/>
+      @if (activeTab() !== 'PENDING_BATCHES') {
+        <div class="filter-field">
+          <label>Start Date</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">calendar_today</span>
+            <input type="date" [ngModel]="startDate()" (ngModelChange)="onStartDateChange($event)"/>
+          </div>
         </div>
-      </div>
 
-      <div class="filter-field">
-        <label>End Date</label>
-        <div class="input-wrapper">
-          <span class="material-symbols-outlined input-icon">event</span>
-          <input type="date" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)"/>
+        <div class="filter-field">
+          <label>End Date</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">event</span>
+            <input type="date" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)"/>
+          </div>
         </div>
-      </div>
+      }
 
       <div class="filter-field action-field">
         <label class="invisible-label">Reset</label>
@@ -162,8 +210,99 @@
     </div>
   </div>
 
-  <!-- Batches Table (Shared for both roles, just distinct data behavior) -->
-  @if (activeTab() !== 'RECORDS') {
+  <!-- Generated Pending Batch Records Table (Admin Tab 1) -->
+  @if (activeTab() === 'PENDING_BATCHES') {
+    <div class="table-card shadow-card">
+      <div class="table-responsive">
+        <table class="payment-table">
+          <thead>
+            <tr>
+              <th>Donor Name</th>
+              <th>Donor Number</th>
+              <th>Donated Date</th>
+              <th>Reference Id</th>
+              <th>Payment Proof</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoading()) {
+              <tr>
+                <td colspan="5" class="loading-state">
+                  <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                  <p>Loading records...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (rec of records(); track rec.id) {
+                <tr>
+                  <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+                  <td class="col-mobile">{{ rec.mobile_number }}</td>
+                  <td class="col-date">{{ rec.payment_date ? (rec.payment_date | date:'yyyy-MM-dd') : '-' }}</td>
+                  <td class="col-ref"><code>{{ rec.reference_id || '-' }}</code></td>
+                  <td class="col-file">
+                    @if (rec.payment_proof_url) {
+                      <a [href]="rec.payment_proof_url" target="_blank" class="btn-file-link" title="View payment proof">
+                        <span class="material-symbols-outlined">image</span>
+                        <span>Proof</span>
+                      </a>
+                    } @else {
+                      <span class="no-file-text">No File</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="empty-state">
+                    <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
+                    <p class="empty-title">No Pending Batch Records Found</p>
+                    <p class="empty-sub">There are no records in the generated pending batch.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (records().length > 0) {
+        <div class="pagination-bar">
+          <div class="pagination-info">
+            Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} records)
+            <span style="margin-left: 15px;">
+              Per page: 
+              <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+              </select>
+            </span>
+          </div>
+          <div class="pagination-controls">
+            <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+              Prev
+            </button>
+            
+            @for (p of pageNumbers(); track p) {
+              <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+                {{ p }}
+              </button>
+            }
+
+            <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+              Next
+            </button>
+            
+            <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(totalPages())">
+              Last
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Batches Table (Completed Batches & Overall Batch Details) -->
+  @if (activeTab() === 'COMPLETED_BATCHES' || activeTab() === 'OVERALL_BATCHES' || activeTab() === 'BATCHES') {
     <div class="table-card shadow-card">
       <div class="table-responsive">
         <table class="payment-table">
@@ -221,9 +360,9 @@
                   
                   @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || (!isAdmin() && !isManager() && activeTab() === 'BATCHES')) {
                     <td>
-                      <button type="button" class="btn-action-blue" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" style="padding: 0.4rem 0.8rem; border: none; border-radius: 4px; background: #0284c7; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.85rem;">
+                      <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)">
                         <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
-                        Download
+                        <span>Download</span>
                       </button>
                     </td>
                   }
@@ -377,9 +516,9 @@
                     }
                   </td>
                   <td class="col-action">
-                    <button type="button" class="btn-action-blue" (click)="openEditModal(rec)" style="padding: 0.4rem 0.6rem; border: none; border-radius: 4px; background: #3b82f6; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                    <button type="button" class="btn-action-primary" (click)="openEditModal(rec)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
                       <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span>
-                      Edit
+                      <span>Edit</span>
                     </button>
                   </td>
                 </tr>

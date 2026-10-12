@@ -34,7 +34,8 @@ export class PaymentService extends BaseHttpService {
     isExport: boolean = false,
     panStatus: string = '',
     donationType: string = '',
-    pageSize: number = 10
+    pageSize: number = 10,
+    batchStatus: string = ''
   ): Observable<any> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
@@ -49,6 +50,7 @@ export class PaymentService extends BaseHttpService {
     if (panStatus) params = params.set('pan_status', panStatus);
     if (donationType) params = params.set('donation_type', donationType);
     if (pageSize) params = params.set('page_size', pageSize.toString());
+    if (batchStatus) params = params.set('batch_status', batchStatus);
 
     return this.httpClient.get<any>(this.endPoint.paymentRecords, {
       headers: this.headers,
@@ -87,12 +89,13 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
-  getBatchReports(startDate: string, endDate: string, status: string, page: number = 1): Observable<any> {
+  getBatchReports(startDate: string, endDate: string, status: string, page: number = 1, pageSize: number = 10): Observable<any> {
     let params = new HttpParams();
     if (startDate) params = params.set('start_date', startDate);
     if (endDate) params = params.set('end_date', endDate);
     if (status) params = params.set('batch_status', status);
     params = params.set('page', page.toString());
+    if (pageSize) params = params.set('page_size', pageSize.toString());
 
     return this.httpClient.get<any>(this.endPoint.paymentBatchReport, {
       headers: this.headers,
