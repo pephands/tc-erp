@@ -266,6 +266,17 @@
   border-radius: 4px;
   font-weight: 600;
   font-size: 0.75rem;
+  display: inline-block;
+}
+
+.designation-pill {
+  background: #f1f5f9;
+  color: #334155;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  display: inline-block;
 }
 
 .col-phone {

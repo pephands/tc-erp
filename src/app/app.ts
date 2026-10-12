@@ -16,8 +16,15 @@ import { DevToolsProtectionService } from './services/devtools-protection.servic
 export class App implements OnInit {
   private devToolsProtection = inject(DevToolsProtectionService);
 
+  // Set to true to enable debugger & devtools anti-inspection protection.
+  // Set to false to disable debugger protection for development/debugging.
+  public enableDebuggerProtection: boolean = true;
+
   ngOnInit(): void {
-    this.devToolsProtection.init();
+    DevToolsProtectionService.isEnabled = this.enableDebuggerProtection;
+    if (this.enableDebuggerProtection) {
+      this.devToolsProtection.init();
+    }
   }
 }
 

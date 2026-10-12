@@ -71,8 +71,28 @@
         </div>
       </div>
 
-      <!-- Designation Filter (Trust Users view) -->
-      @if (roleCode === 'TRUST_USERS') {
+      <!-- Role Filter (Shown on All Users page) -->
+      @if (roleCode === 'ALL') {
+        <div class="filter-field">
+          <label for="roleSelectInput">Role</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">manage_accounts</span>
+            <select
+              id="roleSelectInput"
+              [ngModel]="selectedRole()"
+              (ngModelChange)="onRoleChange($event)"
+            >
+              <option value="">All Roles</option>
+              @for (r of systemRolesList; track r.code) {
+                <option [value]="r.code">{{ r.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Designation Filter -->
+      @if (roleCode === 'TRUST_USERS' || roleCode === 'ALL') {
         <div class="filter-field">
           <label for="designationSelectInput">Designation</label>
           <div class="input-wrapper">
@@ -83,8 +103,14 @@
               (ngModelChange)="onDesignationChange($event)"
             >
               <option value="">All Designations</option>
-              @for (des of trustDesignations(); track des.id) {
-                <option [value]="des.name">{{ des.name }}</option>
+              @if (roleCode === 'TRUST_USERS') {
+                @for (des of trustDesignations(); track des.id) {
+                  <option [value]="des.name">{{ des.name }}</option>
+                }
+              } @else {
+                @for (des of allDesignations(); track des.id) {
+                  <option [value]="des.name">{{ des.name }}</option>
+                }
               }
             </select>
           </div>
@@ -130,6 +156,7 @@
             <th>Gender</th>
             <th>Branch</th>
             <th>Designation</th>
+            <th>Role</th>
             <th>Personal Phone</th>
             <th>Office Phone</th>
             <th>Shift Time</th>
@@ -143,7 +170,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td [attr.colspan]="canEditOrDelete ? 11 : 10" class="loading-state">
+              <td [attr.colspan]="canEditOrDelete ? 12 : 11" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading {{ roleTitle }} records...</p>
               </td>
@@ -162,7 +189,8 @@
                 </td>
                 <td><span class="gender-tag">{{ user.gender }}</span></td>
                 <td><span class="branch-tag">{{ user.branch || 'Global' }}</span></td>
-                <td><span class="role-pill">{{ user.designation || user.role }}</span></td>
+                <td><span class="designation-pill">{{ user.designation || '-' }}</span></td>
+                <td><span class="role-pill">{{ user.role || '-' }}</span></td>
                 <td class="col-phone">{{ user.personalNo }}</td>
                 <td class="col-phone">{{ user.officialNo || '-' }}</td>
                 <td class="col-shift">{{ user.loginTime }} - {{ user.logOffTime }}</td>
@@ -224,7 +252,7 @@
               </tr>
             } @empty {
               <tr>
-                <td [attr.colspan]="canEditOrDelete ? 11 : 10" class="empty-state">
+                <td [attr.colspan]="canEditOrDelete ? 12 : 11" class="empty-state">
                   <span class="material-symbols-outlined empty-icon">{{ roleIcon }}</span>
                   <p class="empty-title">No {{ roleTitle }} Users Found</p>
                   <p class="empty-sub">{{ canEditOrDelete ? 'Click "+ Add ' + roleTitle + '" to add a new user record.' : 'No ' + roleTitle + ' records found matching filters.' }}</p>
@@ -241,6 +269,20 @@
       <div class="pagination-bar">
         <div class="pagination-info">
           Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total {{ roleTitle }} users)
+        </div>
+
+        <div class="pagination-per-page">
+          <label for="userPerPageSelect">Per page:</label>
+          <select
+            id="userPerPageSelect"
+            [ngModel]="pageSize()"
+            (ngModelChange)="onPageSizeChange($event)"
+            class="per-page-select"
+          >
+            @for (opt of pageSizeOptions; track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
         </div>
 
         <div class="pagination-controls">

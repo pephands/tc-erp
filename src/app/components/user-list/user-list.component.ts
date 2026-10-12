@@ -129,9 +129,16 @@ export class UserListComponent implements OnInit {
   selectedStatus = signal<string>('');
   searchQuery = signal<string>('');
   selectedDesignation = signal<string>('');
+  selectedRole = signal<string>('');
 
   // Pagination
   currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+  pageSizeOptions: number[] = [10, 25, 50, 100];
+  totalCount = signal<number>(0);
+
+  totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
+
   pageNumbers = computed(() => {
     const pages = [];
     const maxPages = 5;
@@ -141,9 +148,6 @@ export class UserListComponent implements OnInit {
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
   });
-
-  pageSize = signal<number>(10);
-  totalCount = signal<number>(0);
 
   // Modals state
   isAddModalOpen = signal<boolean>(false);
@@ -300,7 +304,8 @@ export class UserListComponent implements OnInit {
 
     const status = this.selectedStatus();
     const designation = this.selectedDesignation();
-    this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search, status, designation).subscribe({
+    const role = this.selectedRole();
+    this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search, status, designation, role).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         let count = 0;
@@ -406,6 +411,19 @@ export class UserListComponent implements OnInit {
     this.fetchUsers();
   }
 
+  onRoleChange(val: string): void {
+    this.selectedRole.set(val);
+    this.currentPage.set(1);
+    this.fetchUsers();
+  }
+
+  onPageSizeChange(val: any): void {
+    const size = Number(val) || 10;
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.fetchUsers();
+  }
+
   onResetFilters(): void {
     if (this.isAdminUser || this.isManagerUser) {
       this.selectedBranch.set('');
@@ -413,13 +431,12 @@ export class UserListComponent implements OnInit {
     this.selectedStatus.set('');
     this.searchQuery.set('');
     this.selectedDesignation.set('');
+    this.selectedRole.set('');
     this.currentPage.set(1);
     this.fetchUsers();
   }
 
   // Pagination Handlers
-  totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
-
   setPage(page: number): void {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);

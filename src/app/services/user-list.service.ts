@@ -49,9 +49,15 @@ export class UserListService extends BaseHttpService {
     limit?: number,
     search?: string,
     isActive?: string,
-    designation?: string
+    designation?: string,
+    roleFilter?: string
   ): Observable<any> {
-    let url = `${this.endpoint}?role=${encodeURIComponent(roleCode)}&`;
+    let url = `${this.endpoint}?`;
+    if (roleCode && roleCode.toUpperCase() !== 'ALL') {
+      url += `role=${encodeURIComponent(roleCode)}&`;
+    } else if (roleFilter) {
+      url += `role=${encodeURIComponent(roleFilter)}&`;
+    }
     if (isActive) {
       if (isActive.toLowerCase() === 'active') url += 'is_active=true&';
       else if (isActive.toLowerCase() === 'inactive') url += 'is_active=false&';

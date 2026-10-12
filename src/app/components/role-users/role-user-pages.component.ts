@@ -2,6 +2,21 @@ import { Component } from '@angular/core';
 import { UserListComponent } from '../user-list/user-list.component';
 
 @Component({
+  selector: 'app-all-users-page',
+  standalone: true,
+  imports: [UserListComponent],
+  template: `
+    <app-user-list
+      roleCode="ALL"
+      roleTitle="All Staff"
+      roleIcon="group"
+      roleDescription="Manage, view, and filter all registered users across all branches, roles, and designations."
+    ></app-user-list>
+  `
+})
+export class AllUsersPageComponent {}
+
+@Component({
   selector: 'app-telecallers-page',
   standalone: true,
   imports: [UserListComponent],

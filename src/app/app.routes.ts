@@ -38,6 +38,7 @@ import { ReceiptCreateComponent } from './components/receipts/receipt-create/rec
 import { BatchReceiptsComponent } from './components/receipts/batch-receipts/batch-receipts.component';
 
 import {
+  AllUsersPageComponent,
   TelecallersPageComponent,
   TeamLeadersPageComponent,
   ManagersPageComponent,
@@ -96,6 +97,11 @@ export const routes: Routes = [
       {
         path: 'users/admin',
         component: AdminsPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/all',
+        component: AllUsersPageComponent,
         canActivate: [deviceAuthGuard],
       },
       {

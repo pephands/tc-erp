@@ -135,7 +135,13 @@ export class SidebarComponent implements OnInit {
       category: 'Team',
       allowedRoles: ['ADMIN', 'MANAGER', 'TL'],
       submenus: [
-        
+        {
+          id: 'all_users',
+          label: 'All Users',
+          icon: 'manage_accounts',
+          allowedRoles: ['ADMIN', 'MANAGER'],
+          route: '/users/all',
+        },
         {
           id: 'telecaller',
           label: 'Telecaller',
