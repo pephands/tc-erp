@@ -217,9 +217,9 @@
         <table class="payment-table">
           <thead>
             <tr>
+              <th>Donated Date</th>
               <th>Donor Name</th>
               <th>Donor Number</th>
-              <th>Donated Date</th>
               <th>Reference Id</th>
               <th>Payment Proof</th>
             </tr>
@@ -235,9 +235,9 @@
             } @else {
               @for (rec of records(); track rec.id) {
                 <tr>
+                  <td class="col-date">{{ rec.payment_date ? (rec.payment_date | date:'yyyy-MM-dd') : '-' }}</td>
                   <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
                   <td class="col-mobile">{{ rec.mobile_number }}</td>
-                  <td class="col-date">{{ rec.payment_date ? (rec.payment_date | date:'yyyy-MM-dd') : '-' }}</td>
                   <td class="col-ref"><code>{{ rec.reference_id || '-' }}</code></td>
                   <td class="col-file">
                     @if (rec.payment_proof_url) {
