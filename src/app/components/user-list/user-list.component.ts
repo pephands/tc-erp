@@ -62,6 +62,16 @@ export class UserListComponent implements OnInit {
   @Input() roleTitle: string = 'User';
   @Input() roleIcon: string = 'group';
   @Input() roleDescription: string = 'Manage and view all registered users.';
+  @Input() allowAdd: boolean = true;
+  @Input() allowUpload: boolean = true;
+
+  get canAdd(): boolean {
+    return this.canEditOrDelete && this.roleCode !== 'ALL' && this.allowAdd;
+  }
+
+  get canUpload(): boolean {
+    return this.canEditOrDelete && this.roleCode !== 'ALL' && this.allowUpload;
+  }
 
   get isTlUser(): boolean {
     const roles = this.authService.userRoles();
@@ -460,7 +470,7 @@ export class UserListComponent implements OnInit {
 
   // Add User Modal Handlers
   openAddModal(): void {
-    if (!this.canEditOrDelete) return;
+    if (!this.canAdd) return;
     this.resetForm();
     this.isAddModalOpen.set(true);
   }
@@ -506,9 +516,9 @@ export class UserListComponent implements OnInit {
     this.formDateOfJoining = user.dateOfJoining;
     this.formDateOfRelieving = user.dateOfRelieving;
     this.formDateOfRejoining = user.dateOfRejoining;
-    this.formBankAccountNumber = user.bankAccountNumber;
-    this.formBankHolderName = user.bankHolderName;
-    this.formBankIfscCode = user.bankIfscCode;
+    this.formBankAccountNumber = user.bankAccountNumber || '';
+    this.formBankHolderName = user.bankHolderName || '';
+    this.formBankIfscCode = user.bankIfscCode || '';
     this.formCurrentAddress = user.currentAddress || '';
     this.formPermanentAddress = user.permanentAddress || '';
     
@@ -1004,7 +1014,7 @@ export class UserListComponent implements OnInit {
 
   // Bulk Upload Modal Handlers
   openUploadModal(): void {
-    if (!this.canEditOrDelete) return;
+    if (!this.canUpload) return;
     this.selectedExcelFile = null;
     this.isUploadModalOpen.set(true);
   }

@@ -11,6 +11,8 @@ import { UserListComponent } from '../user-list/user-list.component';
       roleTitle="All Staff"
       roleIcon="group"
       roleDescription="Manage, view, and filter all registered users across all branches, roles, and designations."
+      [allowAdd]="false"
+      [allowUpload]="false"
     ></app-user-list>
   `
 })
