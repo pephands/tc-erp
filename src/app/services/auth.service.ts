@@ -198,6 +198,10 @@ export class AuthService {
           codes.push('TCT');
           codes.push('THANKS CALLING TEAM');
         }
+        if (upper === 'ONLINE PAYMENT TEAM' || upper === 'OT') {
+          codes.push('OT');
+          codes.push('ONLINE PAYMENT TEAM');
+        }
       } else if (r && typeof r === 'object') {
         const code = (r.code || '').trim().toUpperCase();
         const name = (r.name || '').trim().toUpperCase();
@@ -209,6 +213,10 @@ export class AuthService {
         if (name === 'THANKS CALLING TEAM' || code === 'TCT') {
           codes.push('TCT');
           codes.push('THANKS CALLING TEAM');
+        }
+        if (name === 'ONLINE PAYMENT TEAM' || code === 'OT') {
+          codes.push('OT');
+          codes.push('ONLINE PAYMENT TEAM');
         }
       }
     }

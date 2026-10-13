@@ -84,6 +84,7 @@ export class SidebarComponent implements OnInit {
     if (roles.includes('MANAGER')) return 'MANAGER';
     if (roles.includes('SUPERINTENDENT')) return 'SUPERINTENDENT';
     if (roles.includes('TL')) return 'TL';
+    if (roles.includes('OT') || roles.includes('ONLINE PAYMENT TEAM')) return 'OT';
     if (roles.includes('TCT')) return 'TCT';
     if (roles.includes('TC')) return 'TC';
     return roles.length > 0 ? roles[0] : '';
@@ -263,7 +264,7 @@ export class SidebarComponent implements OnInit {
       label: 'Payment Batches',
       icon: 'sync_alt',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT', 'ONLINE PAYMENT TEAM'],
       submenus: [
         {
           id: 'live_batch',
@@ -276,42 +277,42 @@ export class SidebarComponent implements OnInit {
           id: 'batch_reports',
           label: 'Batch Details',
           icon: 'receipt_long',
-          allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT'],
+          allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/batch-reports',
         },
         {
           id: 'approved_records_admin',
           label: 'Approved Records',
           icon: 'verified',
-          allowedRoles: ['ADMIN', 'TL', 'OT'],
+          allowedRoles: ['ADMIN', 'TL', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/approved-records',
         },
         {
           id: 'online_history',
           label: 'Payment History',
           icon: 'history_toggle_off',
-          allowedRoles: ['ADMIN', 'TL', 'OT'],
+          allowedRoles: ['ADMIN', 'TL', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/online-history',
         },
         {
           id: 'verified_donors',
           label: 'Verified Donors',
           icon: 'how_to_reg',
-          allowedRoles: ['ADMIN', 'OT'],
+          allowedRoles: ['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/verified-donors',
         },
-                {
+        {
           id: 'unclaimed_records',
           label: 'Unclaimed Records',
           icon: 'receipt',
-          allowedRoles: ['ADMIN'],
+          allowedRoles: ['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/unclaimed-records',
         },
         {
           id: 'batch_settings',
           label: 'Batch Setting',
           icon: 'settings',
-          allowedRoles: ['ADMIN'],
+          allowedRoles: ['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/batch-settings',
         },
 

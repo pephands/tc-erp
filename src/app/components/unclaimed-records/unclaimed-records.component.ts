@@ -64,9 +64,9 @@ export class UnclaimedRecordsComponent implements OnInit, OnDestroy {
   showUploadResultModal = signal<boolean>(false);
 
   ngOnInit(): void {
-    // Check ADMIN access
-    if (!this.authService.hasRole(['ADMIN'])) {
-      this.toastService.error('Unauthorized', 'Only ADMIN can access Unclaimed Records');
+    // Check ADMIN or OT access
+    if (!this.authService.hasRole(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'])) {
+      this.toastService.error('Unauthorized', 'Only ADMIN or Online Payment Team (OT) can access Unclaimed Records');
       this.router.navigate(['/dashboard']);
       return;
     }
