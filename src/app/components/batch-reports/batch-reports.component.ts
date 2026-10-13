@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import * as XLSX from 'xlsx';
 import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
@@ -37,6 +38,7 @@ export class BatchReportsComponent implements OnInit {
   expandedBatchId = signal<number | null>(null);
 
   isLoading = signal<boolean>(false);
+  isExporting = signal<boolean>(false);
   isUploading = signal<boolean>(false);
   uploadMessage = signal<string>('');
   uploadError = signal<string>('');
@@ -95,8 +97,8 @@ export class BatchReportsComponent implements OnInit {
     this.endDate.set('');
     this.isFilterApplied.set(false);
     
-    // Default to today's date for completed batches or TL generated batches if no date is set
-    if (tab === 'COMPLETED_BATCHES' || tab === 'BATCHES') {
+    // Default to today's date for completed batches if no date is set
+    if (tab === 'COMPLETED_BATCHES') {
       const today = new Date();
       const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
       this.startDate.set(localDate);
@@ -216,6 +218,99 @@ export class BatchReportsComponent implements OnInit {
       error: (err: any) => {
         console.error('Error fetching records:', err);
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  exportTcSubmitDetails(): void {
+    if (this.isExporting()) return;
+    this.isExporting.set(true);
+
+    const search = this.searchQuery().trim();
+    const start = this.startDate();
+    const end = this.endDate();
+
+    this.paymentService.getRecords(
+      'EMPTY,RESEND,NEW',
+      search,
+      start,
+      end,
+      1,
+      '',
+      true,
+      '',
+      true,
+      '',
+      '',
+      10000
+    ).subscribe({
+      next: (res: any) => {
+        let items: any[] = [];
+        if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+        } else if (res && res.results) {
+          items = res.results;
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+
+        if (items.length === 0) {
+          this.showToast('No records found to export.', true);
+          this.isExporting.set(false);
+          return;
+        }
+
+        const exportData = items.map((rec: any) => {
+          let submittedDateStr = '';
+          if (rec.created_at) {
+            try {
+              const d = new Date(rec.created_at);
+              submittedDateStr = !isNaN(d.getTime()) ? d.toISOString().replace('T', ' ').substring(0, 16) : rec.created_at;
+            } catch {
+              submittedDateStr = rec.created_at;
+            }
+          }
+
+          return {
+            'Task ID': rec.task_id || '-',
+            'Submitted Date': submittedDateStr || '-',
+            'Payment Date': rec.payment_date || '-',
+            'Donor Name': rec.donor_name || '-',
+            'Donor Mobile': rec.mobile_number || '-',
+            'Alt Mobile': rec.alt_mobile_number || '-',
+            'PAN Number': rec.pan_number || '-',
+            'Amount': rec.amount != null ? Number(rec.amount) : 0,
+            'Reference ID': rec.reference_id || '-',
+            'Payment Mode': rec.mode_of_payment || '-',
+            'Donor Type': rec.donor_type || '-',
+            'Slab': rec.slab || '-',
+            'Status': rec.status || 'NEW',
+            'Telecaller Name': rec.telecaller_name || (rec.telecaller?.full_name || '-'),
+            'TC Employee ID': rec.telecaller_employee_Id || (rec.telecaller?.employee_Id || '-'),
+            'Branch Name': rec.branch_name || (rec.branch?.name || '-'),
+            'Remarks': rec.remarks || '-',
+            'Receipt ID': rec.receipt_id || '-',
+            'Correction Name': rec.correction_name || '-',
+            'Address': rec.address || '-'
+          };
+        });
+
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'TC Submitted Records');
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const branchName = items[0]?.branch_name ? items[0].branch_name.replace(/\s+/g, '_') : 'Branch';
+        const filename = `TC_Submitted_Records_${branchName}_${todayStr}.xlsx`;
+
+        XLSX.writeFile(wb, filename);
+        this.showToast(`Successfully exported ${items.length} records.`, false);
+        this.isExporting.set(false);
+      },
+      error: (err: any) => {
+        console.error('Error exporting TC submit details:', err);
+        this.showToast('Failed to export records.', true);
+        this.isExporting.set(false);
       }
     });
   }

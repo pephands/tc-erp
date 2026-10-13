@@ -130,6 +130,35 @@
   transform: none;
 }
 
+.btn-export-excel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.15rem;
+  background: var(--primary-gradient, linear-gradient(135deg, #ea580c 0%, #d97706 100%));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
+}
+
+.btn-export-excel:hover:not(:disabled) {
+  background: var(--primary, #ea580c);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow, 0 10px 25px -5px rgba(234, 88, 12, 0.25));
+}
+
+.btn-export-excel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Filter Card */
 .filter-card {
   background: var(--bg-card, #ffffff);

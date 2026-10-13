@@ -200,12 +200,28 @@
         </div>
       }
 
-      <div class="filter-field action-field">
-        <label class="invisible-label">Reset</label>
-        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
-          <span class="material-symbols-outlined">restart_alt</span>
-          <span>Reset</span>
-        </button>
+      <div class="filter-field action-field" style="display: flex; gap: 8px; align-items: flex-end;">
+        <div style="display: flex; flex-direction: column;">
+          <label class="invisible-label">Reset</label>
+          <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+            <span class="material-symbols-outlined">restart_alt</span>
+            <span>Reset</span>
+          </button>
+        </div>
+        @if (activeTab() === 'RECORDS') {
+          <div style="display: flex; flex-direction: column;">
+            <label class="invisible-label">Export</label>
+            <button type="button" class="btn-export-excel" (click)="exportTcSubmitDetails()" [disabled]="isExporting() || records().length === 0" title="Export TC Submit Details to Excel">
+              @if (isExporting()) {
+                <span class="material-symbols-outlined spin-icon" style="animation: spin 1s linear infinite; font-size: 1.1rem;">progress_activity</span>
+                <span>Exporting...</span>
+              } @else {
+                <span class="material-symbols-outlined" style="font-size: 1.1rem;">file_download</span>
+                <span>Export Excel</span>
+              }
+            </button>
+          </div>
+        }
       </div>
     </div>
   </div>
@@ -317,7 +333,7 @@
               <th>OK</th>
               <th>RESEND</th>
               <th>OTHER</th>
-              @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || (!isAdmin() && !isManager() && activeTab() === 'BATCHES')) {
+              @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || activeTab() === 'BATCHES') {
                 <th>Action</th>
               }
             </tr>
@@ -358,7 +374,7 @@
                   <td><span class="status-badge" style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;">{{ batch.resend_count }}</span></td>
                   <td><span class="status-badge" style="background: #e5e7eb; color: #374151; border: 1px solid #d1d5db;">{{ batch.other_count }}</span></td>
                   
-                  @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || (!isAdmin() && !isManager() && activeTab() === 'BATCHES')) {
+                  @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || activeTab() === 'BATCHES') {
                     <td>
                       <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)">
                         <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
@@ -462,11 +478,29 @@
   <!-- Pending Records Table (Only for TL Tab 1) -->
   @if (activeTab() === 'RECORDS') {
     <div class="table-card shadow-card">
+      <div style="padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color, #e5e7eb);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-symbols-outlined" style="color: var(--primary); font-size: 1.4rem;">receipt_long</span>
+          <h3 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--text-main, #1e293b);">TC Submitted Records</h3>
+          <span class="tag-pill" style="margin-left: 6px;">{{ totalCount() }} Records</span>
+        </div>
+        <button type="button" class="btn-export-excel" (click)="exportTcSubmitDetails()" [disabled]="isExporting() || records().length === 0" title="Export TC Submit Details to Excel">
+          @if (isExporting()) {
+            <span class="material-symbols-outlined spin-icon" style="animation: spin 1s linear infinite; font-size: 1.1rem;">progress_activity</span>
+            <span>Exporting...</span>
+          } @else {
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">file_download</span>
+            <span>Export Excel</span>
+          }
+        </button>
+      </div>
       <div class="table-responsive">
         <table class="payment-table">
           <thead>
             <tr>
               <th>Submitted Date</th>
+              <th>TC Employee ID</th>
+              <th>Branch</th>
               <th>Donor Number</th>
               <th>Donor Name</th>
               <th>Amount</th>
@@ -481,7 +515,7 @@
           <tbody>
             @if (isLoading()) {
               <tr>
-                <td colspan="9" class="loading-state">
+                <td colspan="12" class="loading-state">
                   <span class="material-symbols-outlined spin-icon">progress_activity</span>
                   <p>Loading records...</p>
                 </td>
@@ -490,6 +524,13 @@
               @for (rec of records(); track rec.id) {
                 <tr>
                   <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                  <td>
+                    <strong>{{ rec.telecaller_employee_Id || '-' }}</strong>
+                    @if (rec.telecaller_name) {
+                      <br><small style="color: #64748b;">{{ rec.telecaller_name }}</small>
+                    }
+                  </td>
+                  <td><strong>{{ rec.branch_name || '-' }}</strong></td>
                   <td class="col-mobile">{{ rec.mobile_number }}</td>
                   <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
                   <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
@@ -524,7 +565,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="9" class="empty-state">
+                  <td colspan="12" class="empty-state">
                     <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
                     <p class="empty-title">No Pending Records Found</p>
                     <p class="empty-sub">There are no NEW or RESEND records awaiting verification.</p>
