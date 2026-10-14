@@ -556,7 +556,7 @@
 
           <div class="form-group">
             <label>Date of Rejoining</label>
-            <input type="date" [(ngModel)]="formDateOfRejoining" />
+            <input type="date" [ngModel]="formDateOfRejoining" (ngModelChange)="onDateOfRejoiningChange($event)" />
           </div>
 
           <div class="form-group">
@@ -836,7 +836,7 @@
 
           <div class="form-group">
             <label>Date of Rejoining</label>
-            <input type="date" [(ngModel)]="formDateOfRejoining" />
+            <input type="date" [ngModel]="formDateOfRejoining" (ngModelChange)="onDateOfRejoiningChange($event)" />
           </div>
 
           <div class="form-group">

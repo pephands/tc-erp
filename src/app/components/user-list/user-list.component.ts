@@ -531,13 +531,24 @@ export class UserListComponent implements OnInit {
     } else {
       this.formManagedBranchIds = [];
     }
-    this.formStatus = user.status;
+    if (user.dateOfRejoining && (!user.dateOfRelieving || user.dateOfRejoining >= user.dateOfRelieving)) {
+      this.formStatus = 'Active';
+    } else {
+      this.formStatus = user.status;
+    }
     this.isManagedBranchDropdownOpen.set(false);
     this.branchSearchText.set('');
     this.isHomeBranchDropdownOpen.set(false);
     this.homeBranchSearchText.set('');
     this.selectedAadharFile = null;
     this.isEditModalOpen.set(true);
+  }
+
+  onDateOfRejoiningChange(val: string): void {
+    this.formDateOfRejoining = val;
+    if (val) {
+      this.formStatus = 'Active';
+    }
   }
 
   closeEditModal(): void {
