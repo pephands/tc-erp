@@ -105,6 +105,10 @@ export class MainLayoutComponent {
       this.pageTitle.set('Batch Receipts');
       this.pageIcon.set('inventory_2');
       this.parentTitle.set('Receipts');
+    } else if (url.includes('/users/outreach-team')) {
+      this.pageTitle.set('Outreach Team');
+      this.pageIcon.set('groups');
+      this.parentTitle.set('Users');
     } else {
       this.pageTitle.set('Dashboard');
       this.pageIcon.set('dashboard');

@@ -16,7 +16,7 @@
       @if (canAdd) {
         <button type="button" class="btn-action btn-add-orange" (click)="openAddModal()">
           <span class="material-symbols-outlined">person_add</span>
-          <span>Add {{ roleTitle }}</span>
+          <span>Add {{ roleCode === 'ALL' ? 'New User' : roleTitle }}</span>
         </button>
       }
 
@@ -94,7 +94,7 @@
       }
 
       <!-- Designation Filter -->
-      @if (roleCode === 'TRUST_USERS' || roleCode === 'ALL') {
+      @if ((roleCode === 'TRUST_USERS' || roleCode === 'ALL') && !fixedDesignation) {
         <div class="filter-field">
           <label for="designationSelectInput">Designation</label>
           <div class="input-wrapper">
@@ -317,7 +317,7 @@
         <div class="modal-header">
           <h3>
             <span class="material-symbols-outlined">person_add</span>
-            <span>Add New {{ roleTitle }}</span>
+            <span>Add New {{ roleCode === 'ALL' ? 'User' : roleTitle }}</span>
           </h3>
           <button type="button" class="btn-close-modal" (click)="closeAddModal()">
             <span class="material-symbols-outlined">close</span>
@@ -325,7 +325,7 @@
         </div>
 
         <div class="modal-body grid-2-col">
-          <div class="form-section-title">Enter {{ roleTitle }} Details</div>
+          <div class="form-section-title">Enter {{ roleCode === 'ALL' ? 'User' : roleTitle }} Details</div>
           <div class="form-group">
             <label>ID Card Number</label>
             <input type="text" [ngModel]="formEmployeeId" (ngModelChange)="formEmployeeId = $event.toUpperCase()" placeholder="e.g. 1234" style="text-transform: uppercase;" />
@@ -355,9 +355,9 @@
           </div>
 
           <div class="form-group">
-            <label>System Role</label>
+            <label>System Role @if (roleCode === 'ALL') { <span class="req">*</span> }</label>
             <select [(ngModel)]="formRoleCode">
-              <option value="">-- Select Role (Optional) --</option>
+              <option value="">-- Select Role {{ roleCode === 'ALL' ? '' : '(Optional)' }} --</option>
               @for (r of systemRolesList; track r.code) {
                 <option [value]="r.code">{{ r.name }}</option>
               }
@@ -428,7 +428,7 @@
             }
           </div>
 
-          @if (roleCode === 'MANAGER') {
+          @if (roleCode === 'MANAGER' || formRoleCode === 'MANAGER') {
             <div class="form-group full-width multi-select-wrapper">
               <label>Managed Branches (Incharge Of)</label>
 
@@ -514,7 +514,7 @@
             <input type="text" [(ngModel)]="formSalary" placeholder="₹ Amount" />
           </div>
 
-          @if (roleCode === 'TC') {
+          @if (roleCode === 'TC' || formRoleCode === 'TC' || (formDesignation && formDesignation.toLowerCase() === 'telecaller')) {
             <div class="form-group">
               <label>Slab / Category</label>
               <select [(ngModel)]="formSlab">
@@ -718,7 +718,7 @@
             }
           </div>
 
-          @if (roleCode === 'MANAGER' || editingUser()?.roleCode === 'MANAGER') {
+          @if (roleCode === 'MANAGER' || editingUser()?.roleCode === 'MANAGER' || formRoleCode === 'MANAGER') {
             <div class="form-group full-width multi-select-wrapper">
               <label>Managed Branches (Incharge Of)</label>
 
@@ -812,7 +812,7 @@
             <input type="text" [(ngModel)]="formSalary" />
           </div>
 
-          @if (roleCode === 'TC') {
+          @if (roleCode === 'TC' || formRoleCode === 'TC' || editingUser()?.roleCode === 'TC' || (formDesignation && formDesignation.toLowerCase() === 'telecaller')) {
             <div class="form-group">
               <label>Slab / Category</label>
               <select [(ngModel)]="formSlab">

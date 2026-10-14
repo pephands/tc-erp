@@ -133,10 +133,36 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
   }
 
-  exportRoleUsersExcel(roleCode: string, branch?: string, search?: string): Observable<Blob> {
-    let url = `${this.endpoint}export/?role=${encodeURIComponent(roleCode)}&`;
+  exportRoleUsersExcel(
+    roleCode: string,
+    branch?: string,
+    search?: string,
+    designation?: string,
+    isActive?: string,
+    roleFilter?: string
+  ): Observable<Blob> {
+    let url = `${this.endpoint}export/?`;
+    if (roleCode && roleCode.toUpperCase() !== 'ALL') {
+      url += `role=${encodeURIComponent(roleCode)}&`;
+    } else if (roleFilter) {
+      url += `role=${encodeURIComponent(roleFilter)}&`;
+    } else {
+      url += `role=ALL&`;
+    }
+
+    if (isActive) {
+      if (isActive.toLowerCase() === 'active') url += 'is_active=true&status=Active&';
+      else if (isActive.toLowerCase() === 'inactive') url += 'is_active=false&status=Inactive&';
+      else url += 'is_active=all&';
+    } else {
+      url += 'is_active=all&';
+    }
+
     if (branch) url += `branch=${encodeURIComponent(branch)}&`;
     if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (designation) url += `designation=${encodeURIComponent(designation)}&`;
+    if (roleFilter) url += `role_filter=${encodeURIComponent(roleFilter)}&`;
+
     url = url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url;
     return this.httpClient.get(url, { headers: this.headers, responseType: 'blob' });
   }

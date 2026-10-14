@@ -11,7 +11,7 @@ import { UserListComponent } from '../user-list/user-list.component';
       roleTitle="All Staff"
       roleIcon="group"
       roleDescription="Manage, view, and filter all registered users across all branches, roles, and designations."
-      [allowAdd]="false"
+      [allowAdd]="true"
       [allowUpload]="false"
     ></app-user-list>
   `
@@ -197,3 +197,21 @@ export class AdminsPageComponent {}
   `
 })
 export class TrustUsersPageComponent {}
+
+@Component({
+  selector: 'app-outreach-team-page',
+  standalone: true,
+  imports: [UserListComponent],
+  template: `
+    <app-user-list
+      roleCode="OUTREACH_TEAM"
+      roleTitle="Outreach Team"
+      roleIcon="groups"
+      roleDescription="Manage and view District Coordinator outreach team members."
+      fixedDesignation="District Coordinator"
+      [allowAdd]="true"
+      [allowUpload]="false"
+    ></app-user-list>
+  `
+})
+export class OutreachTeamPageComponent {}

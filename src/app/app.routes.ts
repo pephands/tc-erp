@@ -51,6 +51,7 @@ import {
   SuperintendentsPageComponent,
   AdminsPageComponent,
   TrustUsersPageComponent,
+  OutreachTeamPageComponent,
 } from './components/role-users/role-user-pages.component';
 
 import { UserSettingsComponent } from './components/user-settings/user-settings.component';
@@ -157,6 +158,11 @@ export const routes: Routes = [
       {
         path: 'users/trust-users',
         component: TrustUsersPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/outreach-team',
+        component: OutreachTeamPageComponent,
         canActivate: [deviceAuthGuard],
       },
       {

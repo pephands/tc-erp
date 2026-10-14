@@ -179,6 +179,13 @@ export class SidebarComponent implements OnInit {
           route: '/users/admin',
         },
         {
+          id: 'outreach_team',
+          label: 'Outreach Team',
+          icon: 'groups',
+          allowedRoles: ['ADMIN', 'MANAGER'],
+          route: '/users/outreach-team',
+        },
+        {
           id: 'user_setting',
           label: 'User Setting',
           icon: 'settings',

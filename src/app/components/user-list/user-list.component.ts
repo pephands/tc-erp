@@ -62,11 +62,12 @@ export class UserListComponent implements OnInit {
   @Input() roleTitle: string = 'User';
   @Input() roleIcon: string = 'group';
   @Input() roleDescription: string = 'Manage and view all registered users.';
+  @Input() fixedDesignation: string = '';
   @Input() allowAdd: boolean = true;
   @Input() allowUpload: boolean = true;
 
   get canAdd(): boolean {
-    return this.canEditOrDelete && this.roleCode !== 'ALL' && this.allowAdd;
+    return this.canEditOrDelete && this.allowAdd;
   }
 
   get canUpload(): boolean {
@@ -129,6 +130,8 @@ export class UserListComponent implements OnInit {
   formDesignationOptions = computed(() => {
     if (this.roleCode === 'TRUST_USERS') {
       return this.allDesignations().filter(d => d.is_trust === true);
+    } else if (this.roleCode === 'ALL' || this.fixedDesignation) {
+      return this.allDesignations();
     } else {
       return this.allDesignations().filter(d => d.is_trust === false);
     }
@@ -247,6 +250,10 @@ export class UserListComponent implements OnInit {
       this.loadTrustDesignations();
     }
     
+    if (this.fixedDesignation) {
+      this.selectedDesignation.set(this.fixedDesignation);
+    }
+    
     this.loadAllDesignations();
     this.fetchUsers();
   }
@@ -293,7 +300,9 @@ export class UserListComponent implements OnInit {
     this.branchService.getData(1, 1000).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.data || res.results || []);
-        if (this.roleCode === 'TRUST_USERS') {
+        if (this.fixedDesignation || this.roleCode === 'OUTREACH_TEAM' || this.roleCode === 'ALL') {
+          this.branches.set(data);
+        } else if (this.roleCode === 'TRUST_USERS') {
           this.branches.set(data.filter((b: any) => b.is_trust === true));
         } else {
           this.branches.set(data.filter((b: any) => b.is_trust !== true));
@@ -313,7 +322,7 @@ export class UserListComponent implements OnInit {
     const page = this.currentPage();
 
     const status = this.selectedStatus();
-    const designation = this.selectedDesignation();
+    const designation = this.fixedDesignation || this.selectedDesignation();
     const role = this.selectedRole();
     this.userListService.getRoleUsers(this.roleCode, branch, null, null, page, this.pageSize(), search, status, designation, role).subscribe({
       next: (res: any) => {
@@ -440,7 +449,7 @@ export class UserListComponent implements OnInit {
     }
     this.selectedStatus.set('');
     this.searchQuery.set('');
-    this.selectedDesignation.set('');
+    this.selectedDesignation.set(this.fixedDesignation || '');
     this.selectedRole.set('');
     this.currentPage.set(1);
     this.fetchUsers();
@@ -567,12 +576,19 @@ export class UserListComponent implements OnInit {
     this.formGender = 'Male';
     
     // Default Designation logic
-    const fallbackTitle = this.roleTitle === 'Backend Staff' ? 'Backend' : this.roleTitle;
-    const matchedDesig = this.allDesignations().find(d => d.name && d.name.toUpperCase() === fallbackTitle.toUpperCase());
-    this.formDesignation = matchedDesig ? matchedDesig.name : fallbackTitle.toUpperCase();
-
-    // Default System Role logic
-    this.formRoleCode = (this.roleCode && this.roleCode !== 'TRUST_USERS') ? this.roleCode : '';
+    if (this.fixedDesignation) {
+      const matchedDesig = this.allDesignations().find(d => d.name && d.name.toUpperCase() === this.fixedDesignation.toUpperCase());
+      this.formDesignation = matchedDesig ? matchedDesig.name : this.fixedDesignation;
+      this.formRoleCode = '';
+    } else if (this.roleCode === 'ALL') {
+      this.formDesignation = '';
+      this.formRoleCode = '';
+    } else {
+      const fallbackTitle = this.roleTitle === 'Backend Staff' ? 'Backend' : this.roleTitle;
+      const matchedDesig = this.allDesignations().find(d => d.name && d.name.toUpperCase() === fallbackTitle.toUpperCase());
+      this.formDesignation = matchedDesig ? matchedDesig.name : fallbackTitle.toUpperCase();
+      this.formRoleCode = (this.roleCode && this.roleCode !== 'TRUST_USERS') ? this.roleCode : '';
+    }
     
     this.formSlab = '';
     this.formSalary = '0';
@@ -713,7 +729,11 @@ export class UserListComponent implements OnInit {
       this.toastService.error('Validation Error', 'Mobile number is required.');
       return;
     }
-    if ((this.formDesignation.trim().toLowerCase() === 'telecaller' || this.roleCode === 'TC') && !this.formSlab.trim()) {
+    if (this.roleCode === 'ALL' && !this.formRoleCode) {
+      this.toastService.error('Validation Error', 'System Role is required.');
+      return;
+    }
+    if ((this.formDesignation.trim().toLowerCase() === 'telecaller' || this.roleCode === 'TC' || this.formRoleCode === 'TC') && !this.formSlab.trim()) {
       this.toastService.error('Validation Error', 'Slab is required for Telecaller designation.');
       return;
     }
@@ -732,7 +752,7 @@ export class UserListComponent implements OnInit {
     
     if (this.formRoleCode) {
       formData.append('target_role', this.formRoleCode);
-    } else if (this.roleCode !== 'TRUST_USERS') {
+    } else if (this.roleCode !== 'TRUST_USERS' && this.roleCode !== 'ALL' && this.roleCode !== 'OUTREACH_TEAM') {
       formData.append('target_role', this.roleCode);
     }
 
@@ -750,7 +770,7 @@ export class UserListComponent implements OnInit {
     if (this.formCurrentAddress.trim()) formData.append('current_address', this.formCurrentAddress.trim());
     if (this.formPermanentAddress.trim()) formData.append('permanent_address', this.formPermanentAddress.trim());
     if (this.selectedAadharFile) formData.append('aadhar_image', this.selectedAadharFile);
-    if (this.roleCode === 'MANAGER') {
+    if (this.roleCode === 'MANAGER' || this.formRoleCode === 'MANAGER') {
       if (this.formManagedBranchIds.length > 0) {
         this.formManagedBranchIds.forEach(id => formData.append('managed_branch_ids', id.toString()));
       }
@@ -759,7 +779,8 @@ export class UserListComponent implements OnInit {
     this.userListService.addUser(formData).subscribe({
       next: (res: any) => {
         this.isSubmittingForm.set(false);
-        this.toastService.success('Success', `${this.roleTitle} user created successfully!`);
+        const title = this.roleCode === 'ALL' ? 'User' : this.roleTitle;
+        this.toastService.success('Success', `${title} created successfully!`);
         this.closeAddModal();
         this.fetchUsers();
       },
@@ -1117,16 +1138,30 @@ export class UserListComponent implements OnInit {
 
   // Export Excel Handler
   onExportExcel(): void {
-    const branch = this.selectedBranch();
+    let branch = this.selectedBranch();
+    if (!this.isAdminUser && !this.isManagerUser && !branch) {
+      branch = this.userBranchName;
+    }
     const search = this.searchQuery().trim();
+    const designation = this.fixedDesignation || this.selectedDesignation();
+    const status = this.selectedStatus();
+    const role = this.selectedRole();
 
     this.toastService.info('Generating Export', `Preparing Excel spreadsheet for ${this.roleTitle} users...`);
-    this.userListService.exportRoleUsersExcel(this.roleCode, branch, search).subscribe({
+    this.userListService.exportRoleUsersExcel(
+      this.roleCode,
+      branch,
+      search,
+      designation,
+      status,
+      role
+    ).subscribe({
       next: (blob: Blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${this.roleCode.toLowerCase()}_users_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const statusSuffix = status ? `_${status.toLowerCase()}` : '';
+        a.download = `${this.roleCode.toLowerCase()}${statusSuffix}_users_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
