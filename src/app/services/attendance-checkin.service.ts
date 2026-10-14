@@ -139,6 +139,7 @@ export class AttendanceCheckInService extends BaseHttpService {
   setAttendanceMarked(attendanceId?: number, timeStr?: string, isWfh?: boolean): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('tc_erp_last_checkin_date', new Date().toDateString());
+      localStorage.removeItem('tc_erp_has_checked_out_date');
       if (attendanceId) {
         localStorage.setItem('tc_erp_attendance_id', attendanceId.toString());
       }

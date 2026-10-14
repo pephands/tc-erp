@@ -261,13 +261,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
           if (res.data.attendance) {
             if (res.data.attendance.in_time) {
               this.checkInTime.set(this.formatTimeString(res.data.attendance.in_time));
+            } else {
+              this.checkInTime.set(null);
             }
             if (res.data.attendance.out_time) {
               this.checkOutTime.set(this.formatTimeString(res.data.attendance.out_time));
+            } else {
+              this.checkOutTime.set(null);
             }
             if (res.data.attendance.is_wfh) {
               this.isWfhMarked.set(true);
+            } else {
+              this.isWfhMarked.set(false);
             }
+          } else {
+            this.checkInTime.set(null);
+            this.checkOutTime.set(null);
+            this.isWfhMarked.set(false);
           }
 
           if (res.data.has_checked_out) {
@@ -275,6 +285,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.checkInService.clearAttendanceMarked();
           } else if (res.data.has_checked_in) {
             this.statusState.set('MARKED');
+            this.checkOutTime.set(null);
             
             // Re-populate localStorage so guards pass
             if (res.data.attendance) {
@@ -413,6 +424,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.checkInService.setAttendanceMarked(res?.data?.id, timeStr, isWfh);
         this.statusState.set('MARKED');
         this.checkInTime.set(timeStr);
+        this.checkOutTime.set(null);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('tc_erp_has_checked_out_date');
+        }
         if (isWfh) {
           this.isWfhMarked.set(true);
         }
@@ -420,6 +435,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           isWfh ? 'WFH Attendance Marked' : 'Attendance Marked Successfully',
           `Verified and recorded at ${timeStr}. ERP device session active.`
         );
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
       },
       error: (err) => {
         this.statusState.set('IDLE');
@@ -489,6 +507,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.checkInService.clearAttendanceMarked();
           this.statusState.set('COMPLETED');
           this.toastService.info('Check-Out Recorded', `Check-out recorded at ${timeStr}. Device authorization session cleared.`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 800);
         },
         error: (err: any) => {
           let errorMsg = 'Failed to record checkout on the server.';
