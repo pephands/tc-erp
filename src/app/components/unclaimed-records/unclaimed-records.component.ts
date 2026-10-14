@@ -34,6 +34,10 @@ export class UnclaimedRecordsComponent implements OnInit, OnDestroy {
   // Actions state
   sendingWhatsApp = signal<Set<number>>(new Set());
 
+  isOT = computed(() => {
+    return this.authService.hasRole(['OT', 'ONLINE PAYMENT TEAM']) && !this.authService.hasRole(['ADMIN']);
+  });
+
   // Stats / Metrics
   totalRecords = signal<number>(0);
   totalAmount = computed(() => {
@@ -295,6 +299,10 @@ export class UnclaimedRecordsComponent implements OnInit, OnDestroy {
   }
 
   onSendWhatsApp(record: any): void {
+    if (this.isOT()) {
+      this.toastService.error('Permission Denied', 'Online Payment Team members are not permitted to send WhatsApp receipts.');
+      return;
+    }
     if (!record.id) return;
     this.sendingWhatsApp.update((s) => new Set(s).add(record.id));
     this.paymentService.sendWhatsappReceipt(record.id).subscribe({

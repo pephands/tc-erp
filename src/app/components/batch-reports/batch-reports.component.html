@@ -236,6 +236,7 @@
               <th>Donated Date</th>
               <th>Donor Name</th>
               <th>Donor Number</th>
+              <th>Amount</th>
               <th>Reference Id</th>
               <th>Payment Proof</th>
             </tr>
@@ -243,7 +244,7 @@
           <tbody>
             @if (isLoading()) {
               <tr>
-                <td colspan="5" class="loading-state">
+                <td colspan="6" class="loading-state">
                   <span class="material-symbols-outlined spin-icon">progress_activity</span>
                   <p>Loading records...</p>
                 </td>
@@ -254,6 +255,7 @@
                   <td class="col-date">{{ rec.payment_date ? (rec.payment_date | date:'yyyy-MM-dd') : '-' }}</td>
                   <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
                   <td class="col-mobile">{{ rec.mobile_number }}</td>
+                  <td class="col-amount">₹{{ (rec.amount || 0) | number:'1.2-2' }}</td>
                   <td class="col-ref"><code>{{ rec.reference_id || '-' }}</code></td>
                   <td class="col-file">
                     @if (rec.payment_proof_url) {
@@ -268,7 +270,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="5" class="empty-state">
+                  <td colspan="6" class="empty-state">
                     <span class="material-symbols-outlined empty-icon">hourglass_empty</span>
                     <p class="empty-title">No Pending Batch Records Found</p>
                     <p class="empty-sub">There are no records in the generated pending batch.</p>
