@@ -93,7 +93,7 @@ export class ReceiptListComponent implements OnInit {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR', 'TCT']));
     this.isTCT.set(this.authService.hasRole(['TCT']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
-    this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER']));
+    this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER', 'TEAM LEAD']) && !this.isAdmin());
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
     this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS']));
     this.isTC.set(this.authService.hasRole(['TC', 'TELECALLER', 'TELE CALLER']) || (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR()));
@@ -534,6 +534,10 @@ export class ReceiptListComponent implements OnInit {
   sendingWhatsApp = signal<Set<number>>(new Set());
 
   onSendWhatsApp(record: OnlinePaymentRecord) {
+    if (this.isTL() || this.isTC()) {
+      this.toastService.error('Permission Denied', 'Team Leaders are not permitted to send WhatsApp receipts.');
+      return;
+    }
     this.sendingWhatsApp.update(s => new Set(s).add(record.id));
     this.selectedRecordForReceipt = record;
     
