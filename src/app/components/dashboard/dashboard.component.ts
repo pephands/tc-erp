@@ -178,9 +178,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onRequestWfh(): void {
-    this.wfhService.requestPasscode().subscribe({
+    const user = this.currentUser();
+    const payload = {
+      user_id: user?.id,
+      employee_Id: user?.employee_Id,
+      date: new Date().toLocaleDateString('en-CA')
+    };
+
+    this.wfhService.requestPasscode(payload).subscribe({
       next: (res: any) => {
-        this.toastService.success('WFH Requested', res.message || 'Passcode requested successfully.');
+        this.wfhPasscode.set('');
+        this.toastService.success('WFH Requested', res.message || 'WFH Passcode requested successfully. Please contact your Team Leader to receive your code.');
         this.isWfhMode.set(true);
       },
       error: (err: any) => {

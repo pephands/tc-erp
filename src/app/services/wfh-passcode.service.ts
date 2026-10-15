@@ -57,7 +57,7 @@ export class WFHPasscodeService extends BaseHttpService {
     return this.httpPostMethod(payload);
   }
 
-  requestPasscode(): Observable<any> {
-    return this.httpClient.post(this.endPoint.wfhRequest, {}, { headers: this.headers });
+  requestPasscode(payload: any = {}): Observable<any> {
+    return this.httpClient.post(this.endPoint.wfhRequest, payload, { headers: this.headers });
   }
 }
