@@ -146,6 +146,9 @@ export class ReceiptCreateComponent implements OnInit {
             this.donorType.set('OLD');
             if (res.length === 1 && res[0].name) {
               this.selectMatchedDonor(res[0]);
+            } else {
+              this.donorName.set('');
+              this.panNumber.set('');
             }
           } else {
             this.donorType.set('NEW');
@@ -171,12 +174,10 @@ export class ReceiptCreateComponent implements OnInit {
   selectMatchedDonor(donorOrValue: any): void {
     if (donorOrValue === 'new') {
       this.donorName.set('');
-      this.correctionName.set('');
       this.panNumber.set('');
       this.donorType.set('OLD');
     } else if (donorOrValue) {
       this.donorName.set(donorOrValue.name);
-      this.correctionName.set(donorOrValue.name);
       this.panNumber.set(donorOrValue.pan_number || '');
       this.donorType.set('OLD');
     }

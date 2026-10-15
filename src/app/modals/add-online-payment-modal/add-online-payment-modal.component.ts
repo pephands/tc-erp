@@ -119,9 +119,13 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
           if (res && res.length > 0) {
             this.matchedDonors.set(res);
             this.donorType.set('OLD');
-            // If there's exactly one match, auto-select it
+            // If there's exactly one match, directly show that name in Donor Name
             if (res.length === 1 && res[0].name) {
               this.selectMatchedDonor(res[0]);
+            } else {
+              // If multiple matches, user must first select from dropdown
+              this.donorName.set('');
+              this.panNumber.set('');
             }
           } else {
             this.donorType.set('NEW');
@@ -146,7 +150,6 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   selectMatchedDonor(donorOrValue: any): void {
     if (donorOrValue === 'new') {
       this.donorName.set('');
-      this.correctionName.set('');
       this.panNumber.set('');
       this.donorType.set('OLD');
       setTimeout(() => {
@@ -154,7 +157,6 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       }, 0);
     } else if (donorOrValue) {
       this.donorName.set(donorOrValue.name);
-      this.correctionName.set(donorOrValue.name);
       this.panNumber.set(donorOrValue.pan_number || '');
       this.donorType.set('OLD');
     }
