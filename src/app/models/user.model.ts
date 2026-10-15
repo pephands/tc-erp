@@ -25,6 +25,7 @@ export interface User {
   is_password_reset_required?: boolean;
   is_active: boolean;
   is_staff: boolean;
+  is_superuser?: boolean;
   date_joined?: string;
   slab?: string;
   current_address?: string;

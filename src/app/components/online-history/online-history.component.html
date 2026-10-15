@@ -1,4 +1,25 @@
 <main class="page-container">
+  <!-- Export XLSX Loader Overlay -->
+  @if (isExporting()) {
+    <div class="export-loader-overlay">
+      <div class="export-loader-card">
+        <div class="export-spinner-container">
+          <div class="export-spinner-ring"></div>
+          <span class="material-symbols-outlined export-spinner-icon">downloading</span>
+        </div>
+        <h3 class="export-loader-title">Exporting Payment History</h3>
+        <p class="export-loader-desc">{{ exportLoaderMessage() }}</p>
+        <div class="export-progress-bar-container">
+          <div class="export-progress-bar-indeterminate"></div>
+        </div>
+        <p class="export-loader-note">
+          <span class="material-symbols-outlined note-icon">info</span>
+          Please do not refresh or close this page
+        </p>
+      </div>
+    </div>
+  }
+
   <!-- Header Bar -->
   <div class="page-header-bar">
     <div class="page-title-group">
@@ -8,6 +29,19 @@
         <p class="page-sub">View all your verified and approved online donation receipts.</p>
       </div>
     </div>
+    @if (canExportXLSX()) {
+    <div class="header-actions">
+      <button type="button" class="btn-export-green" (click)="exportToXLSX()" [disabled]="isExporting()" title="Download Excel Format">
+        @if (isExporting()) {
+          <span class="material-symbols-outlined spin-icon">progress_activity</span>
+          <span>Exporting...</span>
+        } @else {
+          <span class="material-symbols-outlined">download</span>
+          <span>Export XLSX</span>
+        }
+      </button>
+    </div>
+    }
   </div>
 
   <!-- Filter Card -->
@@ -58,14 +92,16 @@
         </div>
       </div>
 
-      <!-- Branch Filter (Only for Admin/Manager/OT) -->
-      @if (isAdmin() || isManager() || isOT()) {
+      <!-- Branch Filter (Only for Admin/Manager/OT/TL) -->
+      @if (isAdmin() || isManager() || isOT() || isTL()) {
       <div class="filter-field">
         <label>Branch</label>
         <div class="input-wrapper">
           <span class="material-symbols-outlined input-icon">store</span>
           <select [ngModel]="branchFilter()" (ngModelChange)="onBranchChange($event)" class="branch-select">
+            @if (!isTL() || isAdmin() || isManager() || isOT()) {
             <option value="">All Branches</option>
+            }
             @for (b of branches(); track b.id) {
             <option [value]="b.id">{{ b.name }}</option>
             }

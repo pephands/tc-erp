@@ -28,6 +28,49 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-export-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-export-green:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+.btn-export-green:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-export-green:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-export-green .material-symbols-outlined {
+  font-size: 1.25rem;
 }
 
 .page-title-group {
@@ -312,7 +355,7 @@
 .spin-icon {
   animation: spin 0.8s linear infinite;
   font-size: 1.8rem;
-  color: #d97706;
+  color: var(--primary, #ea580c);
 }
 
 @keyframes spin {
@@ -330,6 +373,156 @@
   font-weight: 700;
   color: #334155;
   margin-top: 0.5rem;
+}
+
+.btn-export-green .spin-icon {
+  font-size: 1.25rem;
+  color: #ffffff;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+/* Export Loader Overlay */
+.export-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.export-loader-card {
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-md, 16px);
+  padding: 2.25rem 2rem;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--shadow-card, 0 25px 50px -12px rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.export-spinner-container {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.export-spinner-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 4px solid var(--primary-light, rgba(234, 88, 12, 0.15));
+  border-top-color: var(--primary, #ea580c);
+  animation: spin 0.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.export-spinner-icon {
+  font-size: 2rem;
+  color: var(--primary, #ea580c);
+  animation: pulseIcon 1.8s ease-in-out infinite;
+}
+
+.export-loader-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main, #1c1917);
+  margin: 0 0 0.5rem 0;
+}
+
+.export-loader-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted, #57534e);
+  line-height: 1.45;
+  margin: 0 0 1.5rem 0;
+  min-height: 2.5rem;
+}
+
+.export-progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-card-subtle, #f5f5f4);
+  border-radius: var(--radius-full, 999px);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.export-progress-bar-indeterminate {
+  position: absolute;
+  height: 100%;
+  background: var(--primary-gradient, linear-gradient(135deg, #ea580c 0%, #d97706 100%));
+  border-radius: var(--radius-full, 999px);
+  animation: indeterminateBar 1.5s infinite ease-in-out;
+}
+
+.export-loader-note {
+  font-size: 0.8rem;
+  color: var(--text-dim, #78716c);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.export-loader-note .note-icon {
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+@keyframes indeterminateBar {
+  0% {
+    left: -35%;
+    right: 100%;
+  }
+  60% {
+    left: 100%;
+    right: -90%;
+  }
+  100% {
+    left: 100%;
+    right: -90%;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 
