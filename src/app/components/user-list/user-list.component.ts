@@ -565,6 +565,14 @@ export class UserListComponent implements OnInit {
     this.editingUser.set(null);
   }
 
+  onMobileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input) {
+      input.value = input.value.replace(/\D/g, '').slice(0, 10);
+      this.formMobile = input.value;
+    }
+  }
+
   resetForm(): void {
     this.formEmployeeId = '';
     this.formFullName = '';
@@ -729,6 +737,11 @@ export class UserListComponent implements OnInit {
       this.toastService.error('Validation Error', 'Mobile number is required.');
       return;
     }
+    const cleanMobile = this.formMobile.replace(/\D/g, '');
+    if (cleanMobile.length !== 10) {
+      this.toastService.error('Validation Error', 'Personal mobile number must be exactly 10 digits.');
+      return;
+    }
     if (this.roleCode === 'ALL' && !this.formRoleCode) {
       this.toastService.error('Validation Error', 'System Role is required.');
       return;
@@ -807,6 +820,14 @@ export class UserListComponent implements OnInit {
     if ((this.formDesignation.trim().toLowerCase() === 'telecaller' || this.roleCode === 'TC') && !this.formSlab.trim()) {
       this.toastService.error('Validation Error', 'Slab is required for Telecaller designation.');
       return;
+    }
+
+    if (this.formMobile.trim()) {
+      const cleanMobile = this.formMobile.replace(/\D/g, '');
+      if (cleanMobile.length !== 10) {
+        this.toastService.error('Validation Error', 'Personal mobile number must be exactly 10 digits.');
+        return;
+      }
     }
 
     this.isSubmittingForm.set(true);
