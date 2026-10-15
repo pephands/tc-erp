@@ -105,6 +105,14 @@ export class MainLayoutComponent {
       this.pageTitle.set('Batch Receipts');
       this.pageIcon.set('inventory_2');
       this.parentTitle.set('Receipts');
+    } else if (url.includes('/users/outreach-team/district-coordinator')) {
+      this.pageTitle.set('District Coordinator');
+      this.pageIcon.set('badge');
+      this.parentTitle.set('Outreach Team');
+    } else if (url.includes('/users/outreach-team/tuition-teacher')) {
+      this.pageTitle.set('Tuition Teacher');
+      this.pageIcon.set('school');
+      this.parentTitle.set('Outreach Team');
     } else if (url.includes('/users/outreach-team')) {
       this.pageTitle.set('Outreach Team');
       this.pageIcon.set('groups');

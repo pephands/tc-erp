@@ -152,10 +152,9 @@
         <div class="form-group">
           <label>Donor Type <span class="required-star">*</span></label>
           <select
-            class="form-control"
+            class="form-control readonly-select"
+            [disabled]="true"
             [ngModel]="donorType()"
-            (ngModelChange)="donorType.set($event)"
-            
           >
             <option value="NEW">New</option>
             <option value="OLD">Old</option>

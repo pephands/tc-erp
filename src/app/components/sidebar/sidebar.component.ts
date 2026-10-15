@@ -23,6 +23,7 @@ export interface SubMenuItem {
   icon?: string;
   allowedRoles?: string[];
   route?: string;
+  submenus?: SubMenuItem[];
 }
 
 export interface MenuItem {
@@ -183,7 +184,22 @@ export class SidebarComponent implements OnInit {
           label: 'Outreach Team',
           icon: 'groups',
           allowedRoles: ['ADMIN', 'MANAGER'],
-          route: '/users/outreach-team',
+          submenus: [
+            {
+              id: 'district_coordinator',
+              label: 'District Coordinator',
+              icon: 'badge',
+              allowedRoles: ['ADMIN', 'MANAGER'],
+              route: '/users/outreach-team/district-coordinator',
+            },
+            {
+              id: 'tuition_teacher',
+              label: 'Tuition Teacher',
+              icon: 'school',
+              allowedRoles: ['ADMIN', 'MANAGER'],
+              route: '/users/outreach-team/tuition-teacher',
+            },
+          ],
         },
         {
           id: 'user_setting',
@@ -624,7 +640,14 @@ export class SidebarComponent implements OnInit {
       .filter((item) => hasRoleAccess(item.allowedRoles))
       .map((item) => {
         const validSubmenus = item.submenus
-          ? item.submenus.filter((sub) => hasRoleAccess(sub.allowedRoles))
+          ? item.submenus
+              .filter((sub) => hasRoleAccess(sub.allowedRoles))
+              .map((sub) => ({
+                ...sub,
+                submenus: sub.submenus
+                  ? sub.submenus.filter((nested) => hasRoleAccess(nested.allowedRoles))
+                  : undefined,
+              }))
           : undefined;
 
         return {
@@ -638,7 +661,11 @@ export class SidebarComponent implements OnInit {
         const matchesLabel = item.label.toLowerCase().includes(query);
         const matchesCategory = item.category ? item.category.toLowerCase().includes(query) : false;
         const matchesSubmenu = item.submenus
-          ? item.submenus.some((sub) => sub.label.toLowerCase().includes(query))
+          ? item.submenus.some(
+              (sub) =>
+                sub.label.toLowerCase().includes(query) ||
+                (sub.submenus && sub.submenus.some((nested) => nested.label.toLowerCase().includes(query)))
+            )
           : false;
 
         return matchesLabel || matchesCategory || matchesSubmenu;
@@ -668,10 +695,18 @@ export class SidebarComponent implements OnInit {
       return 'receipts_view';
     }
 
-    // 2. Check submenus first (so child routes take precedence over parents)
+    // 2. Check submenus first (including nested submenus)
     for (const item of this.menuItems) {
       if (item.submenus) {
         for (const sub of item.submenus) {
+          if (sub.submenus) {
+            for (const nested of sub.submenus) {
+              if (nested.route && url.includes(nested.route)) {
+                this.expandedMenuIds.update((set) => new Set(set).add(item.id).add(sub.id));
+                return nested.id;
+              }
+            }
+          }
           if (sub.route && url.includes(sub.route)) {
             // Auto-expand parent menu when child is active
             this.expandedMenuIds.update((set) => new Set(set).add(item.id));
@@ -753,11 +788,42 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  selectSubmenu(parentMenuId: string, subItemId: string, event?: Event): void {
-    if (parentMenuId !== 'dashboard' && !this.checkInService.hasCheckedInToday()) {
-      const parent = this.menuItems.find((m) => m.id === parentMenuId);
-      const sub = parent?.submenus?.find((s) => s.id === subItemId);
+  isSubmenuActive(sub: SubMenuItem): boolean {
+    if (this.activeMenuId() === sub.id) return true;
+    if (sub.submenus) {
+      return sub.submenus.some((nested) => nested.id === this.activeMenuId());
+    }
+    return false;
+  }
 
+  selectSubmenu(parentMenuId: string, subItemId: string, event?: Event, customSub?: SubMenuItem): void {
+    const parent = this.menuItems.find((m) => m.id === parentMenuId);
+    let sub = customSub;
+    let effectiveParentLabel = parent?.label;
+
+    if (!sub) {
+      for (const s of parent?.submenus || []) {
+        if (s.id === subItemId) {
+          sub = s;
+          break;
+        }
+        const nested = s.submenus?.find((n) => n.id === subItemId);
+        if (nested) {
+          sub = nested;
+          effectiveParentLabel = s.label;
+          break;
+        }
+      }
+    } else {
+      for (const s of parent?.submenus || []) {
+        if (s.submenus?.some((n) => n.id === subItemId)) {
+          effectiveParentLabel = s.label;
+          break;
+        }
+      }
+    }
+
+    if (parentMenuId !== 'dashboard' && !this.checkInService.hasCheckedInToday()) {
       let title = 'Device Authorization Required';
       let message =
         'To access ERP modules and data, you must first complete your attendance check-in to authorize this device.';
@@ -780,8 +846,7 @@ export class SidebarComponent implements OnInit {
       event.stopPropagation();
     }
     this.activeMenuId.set(subItemId);
-    const parent = this.menuItems.find((m) => m.id === parentMenuId);
-    const sub = parent?.submenus?.find((s) => s.id === subItemId);
+
     if (sub && parent) {
       if (sub.route) {
         this.router.navigateByUrl(sub.route);
@@ -789,7 +854,7 @@ export class SidebarComponent implements OnInit {
       this.menuSelect.emit({
         id: sub.id,
         label: sub.label,
-        parentLabel: parent.label,
+        parentLabel: effectiveParentLabel,
         icon: sub.icon || parent.icon,
       });
     }

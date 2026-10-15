@@ -52,6 +52,8 @@ import {
   AdminsPageComponent,
   TrustUsersPageComponent,
   OutreachTeamPageComponent,
+  DistrictCoordinatorPageComponent,
+  TuitionTeacherPageComponent,
 } from './components/role-users/role-user-pages.component';
 
 import { UserSettingsComponent } from './components/user-settings/user-settings.component';
@@ -161,9 +163,19 @@ export const routes: Routes = [
         canActivate: [deviceAuthGuard],
       },
       {
-        path: 'users/outreach-team',
-        component: OutreachTeamPageComponent,
+        path: 'users/outreach-team/district-coordinator',
+        component: DistrictCoordinatorPageComponent,
         canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/outreach-team/tuition-teacher',
+        component: TuitionTeacherPageComponent,
+        canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'users/outreach-team',
+        redirectTo: 'users/outreach-team/district-coordinator',
+        pathMatch: 'full',
       },
       {
         path: 'users/settings',

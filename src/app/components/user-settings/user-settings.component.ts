@@ -97,7 +97,7 @@ export class UserSettingsComponent implements OnInit {
     if (designation) {
       this.isEditDesignation = true;
       this.editingDesignationId = designation.id;
-      this.formDesignationName = designation.name;
+      this.formDesignationName = designation.name ? designation.name.toUpperCase() : '';
       this.formDesignationIsTrust = designation.is_trust;
     } else {
       this.isEditDesignation = false;
@@ -129,7 +129,7 @@ export class UserSettingsComponent implements OnInit {
     this.cdr.detectChanges();
 
     const data = {
-      name: this.toTitleCase(this.formDesignationName.trim()),
+      name: this.formDesignationName.trim().toUpperCase(),
       is_trust: this.formDesignationIsTrust
     };
 

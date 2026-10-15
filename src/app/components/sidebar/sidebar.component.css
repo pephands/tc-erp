@@ -433,6 +433,47 @@
   box-shadow: 0 0 6px var(--primary);
 }
 
+.sub-label-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nested-arrow {
+  font-size: 16px !important;
+  margin-left: auto;
+}
+
+.nested-submenu-list {
+  list-style: none;
+  margin: 0.15rem 0 0.35rem 0.65rem;
+  padding-left: 0.65rem;
+  border-left: 1.5px dashed var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  animation: slideDown 0.2s ease-out;
+}
+
+.nested-submenu-link {
+  font-size: 0.76rem;
+  padding: 0.35rem 0.55rem;
+}
+
+.flyout-group-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.45rem 0.6rem 0.2rem;
+}
+
+.nested-flyout-link {
+  padding-left: 1.25rem !important;
+  font-size: 0.78rem !important;
+}
+
 /* Floating Flyout Submenu (Collapsed Mode - Fixed Overlay) */
 .flyout-menu {
   position: fixed;

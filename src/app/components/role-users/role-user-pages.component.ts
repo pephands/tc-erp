@@ -207,11 +207,47 @@ export class TrustUsersPageComponent {}
       roleCode="OUTREACH_TEAM"
       roleTitle="Outreach Team"
       roleIcon="groups"
-      roleDescription="Manage and view District Coordinator outreach team members."
-      fixedDesignation="District Coordinator"
+      roleDescription="Manage and view all outreach team members."
       [allowAdd]="true"
       [allowUpload]="false"
     ></app-user-list>
   `
 })
 export class OutreachTeamPageComponent {}
+
+@Component({
+  selector: 'app-district-coordinator-page',
+  standalone: true,
+  imports: [UserListComponent],
+  template: `
+    <app-user-list
+      roleCode="OUTREACH_TEAM"
+      roleTitle="District Coordinator"
+      roleIcon="badge"
+      roleDescription="Manage and view District Coordinator outreach team members."
+      fixedDesignation="DISTRICT COORDINATOR"
+      [allowAdd]="true"
+      [allowUpload]="false"
+    ></app-user-list>
+  `
+})
+export class DistrictCoordinatorPageComponent {}
+
+@Component({
+  selector: 'app-tuition-teacher-page',
+  standalone: true,
+  imports: [UserListComponent],
+  template: `
+    <app-user-list
+      roleCode="OUTREACH_TEAM"
+      roleTitle="Tuition Teacher"
+      roleIcon="school"
+      roleDescription="Manage and view Tuition Teacher outreach team members."
+      fixedDesignation="TUITION TEACHER"
+      [allowAdd]="true"
+      [allowUpload]="false"
+    ></app-user-list>
+  `
+})
+export class TuitionTeacherPageComponent {}
+

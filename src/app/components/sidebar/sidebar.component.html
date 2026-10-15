@@ -111,20 +111,65 @@
           ) {
             <ul class="submenu-list">
               @for (sub of item.submenus; track sub.id) {
-                <li class="submenu-item">
-                  <button
-                    type="button"
-                    class="submenu-link"
-                    [class.active]="activeMenuId() === sub.id"
-                    (click)="selectSubmenu(item.id, sub.id, $event)"
-                  >
-                    @if (sub.icon) {
-                      <span class="material-symbols-outlined sub-icon">{{ sub.icon }}</span>
-                    } @else {
-                      <span class="sub-dot"></span>
+                <li class="submenu-item" [class.has-nested-sub]="sub.submenus?.length">
+                  @if (sub.submenus?.length) {
+                    <button
+                      type="button"
+                      class="submenu-link"
+                      [class.active]="isSubmenuActive(sub)"
+                      [class.expanded]="isMenuExpanded(sub.id)"
+                      (click)="toggleSubmenu(sub.id, $event)"
+                    >
+                      @if (sub.icon) {
+                        <span class="material-symbols-outlined sub-icon">{{ sub.icon }}</span>
+                      } @else {
+                        <span class="sub-dot"></span>
+                      }
+                      <span class="sub-label-text">{{ sub.label }}</span>
+                      <span
+                        class="material-symbols-outlined submenu-arrow nested-arrow"
+                        [class.rotated]="isMenuExpanded(sub.id)"
+                      >
+                        expand_more
+                      </span>
+                    </button>
+
+                    @if (isMenuExpanded(sub.id) || searchQuery()) {
+                      <ul class="nested-submenu-list">
+                        @for (nested of sub.submenus; track nested.id) {
+                          <li class="nested-submenu-item">
+                            <button
+                              type="button"
+                              class="submenu-link nested-submenu-link"
+                              [class.active]="activeMenuId() === nested.id"
+                              (click)="selectSubmenu(item.id, nested.id, $event, nested)"
+                            >
+                              @if (nested.icon) {
+                                <span class="material-symbols-outlined sub-icon">{{ nested.icon }}</span>
+                              } @else {
+                                <span class="sub-dot"></span>
+                              }
+                              <span>{{ nested.label }}</span>
+                            </button>
+                          </li>
+                        }
+                      </ul>
                     }
-                    <span>{{ sub.label }}</span>
-                  </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="submenu-link"
+                      [class.active]="activeMenuId() === sub.id"
+                      (click)="selectSubmenu(item.id, sub.id, $event)"
+                    >
+                      @if (sub.icon) {
+                        <span class="material-symbols-outlined sub-icon">{{ sub.icon }}</span>
+                      } @else {
+                        <span class="sub-dot"></span>
+                      }
+                      <span>{{ sub.label }}</span>
+                    </button>
+                  }
                 </li>
               }
             </ul>
@@ -140,17 +185,34 @@
               <ul class="flyout-list">
                 @for (sub of item.submenus; track sub.id) {
                   <li>
-                    <button
-                      type="button"
-                      class="flyout-link"
-                      [class.active]="activeMenuId() === sub.id"
-                      (click)="selectSubmenu(item.id, sub.id, $event)"
-                    >
-                      @if (sub.icon) {
-                        <span class="material-symbols-outlined fly-icon">{{ sub.icon }}</span>
+                    @if (sub.submenus?.length) {
+                      <div class="flyout-group-title">{{ sub.label }}</div>
+                      @for (nested of sub.submenus; track nested.id) {
+                        <button
+                          type="button"
+                          class="flyout-link nested-flyout-link"
+                          [class.active]="activeMenuId() === nested.id"
+                          (click)="selectSubmenu(item.id, nested.id, $event, nested)"
+                        >
+                          @if (nested.icon) {
+                            <span class="material-symbols-outlined fly-icon">{{ nested.icon }}</span>
+                          }
+                          <span>{{ nested.label }}</span>
+                        </button>
                       }
-                      <span>{{ sub.label }}</span>
-                    </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="flyout-link"
+                        [class.active]="activeMenuId() === sub.id"
+                        (click)="selectSubmenu(item.id, sub.id, $event)"
+                      >
+                        @if (sub.icon) {
+                          <span class="material-symbols-outlined fly-icon">{{ sub.icon }}</span>
+                        }
+                        <span>{{ sub.label }}</span>
+                      </button>
+                    }
                   </li>
                 }
               </ul>

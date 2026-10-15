@@ -133,3 +133,15 @@ textarea.form-control {
   color: #64748b;
   margin-bottom: 0.15rem;
 }
+
+select.form-control:disabled,
+.readonly-select {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  -webkit-text-fill-color: #1e293b !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  border-color: #cbd5e1 !important;
+  font-weight: 600;
+}

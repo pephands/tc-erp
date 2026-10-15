@@ -143,13 +143,23 @@ export class ReceiptCreateComponent implements OnInit {
         next: (res: any[]) => {
           if (res && res.length > 0) {
             this.matchedDonors.set(res);
-            this.selectMatchedDonor(res[0]);
+            this.donorType.set('OLD');
+            if (res.length === 1 && res[0].name) {
+              this.selectMatchedDonor(res[0]);
+            }
+          } else {
+            this.donorType.set('NEW');
+            this.matchedDonors.set([]);
           }
         },
         error: (err: any) => {
-          // Do nothing, skip if not matched
+          this.donorType.set('NEW');
+          this.matchedDonors.set([]);
         }
       });
+    } else {
+      this.donorType.set('NEW');
+      this.matchedDonors.set([]);
     }
   }
 

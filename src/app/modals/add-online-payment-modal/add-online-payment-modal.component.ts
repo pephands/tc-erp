@@ -118,16 +118,24 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
         next: (res: any[]) => {
           if (res && res.length > 0) {
             this.matchedDonors.set(res);
+            this.donorType.set('OLD');
             // If there's exactly one match, auto-select it
-            if (res.length === 1) {
+            if (res.length === 1 && res[0].name) {
               this.selectMatchedDonor(res[0]);
             }
+          } else {
+            this.donorType.set('NEW');
+            this.matchedDonors.set([]);
           }
         },
         error: (err: any) => {
-          // Do nothing, skip if not matched
+          this.donorType.set('NEW');
+          this.matchedDonors.set([]);
         }
       });
+    } else {
+      this.donorType.set('NEW');
+      this.matchedDonors.set([]);
     }
   }
 

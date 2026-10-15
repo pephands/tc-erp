@@ -147,7 +147,7 @@
     <div class="modal-body">
       <div class="form-group">
         <label>Designation Name <span class="req">*</span></label>
-        <input type="text" [ngModel]="formDesignationName" (ngModelChange)="formDesignationName = toTitleCase($event)" placeholder="e.g. Senior Telecaller" />
+        <input type="text" [ngModel]="formDesignationName" (ngModelChange)="formDesignationName = $event ? $event.toUpperCase() : ''" style="text-transform: uppercase;" placeholder="e.g. SENIOR TELECALLER" />
       </div>
       <div class="form-group checkbox-group">
         <label>
