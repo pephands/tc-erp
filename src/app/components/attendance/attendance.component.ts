@@ -51,8 +51,8 @@ export class AttendanceComponent implements OnInit {
 
   // Filter selections
   selectedBranch = signal<string>('');
-  startDate = signal<string>('');
-  endDate = signal<string>('');
+  startDate = signal<string>(new Date().toLocaleDateString('en-CA'));
+  endDate = signal<string>(new Date().toLocaleDateString('en-CA'));
   selectedStatus = signal<string>('');
   isFilterApplied = signal<boolean>(false);
   isLoading = signal<boolean>(false);
@@ -186,6 +186,10 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
+  get todayDateStr(): string {
+    return new Date().toLocaleDateString('en-CA');
+  }
+
   get currentMonthStart(): string {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1, 12).toISOString().split('T')[0];
@@ -203,6 +207,9 @@ export class AttendanceComponent implements OnInit {
     if (this.isTcUser) {
       this.startDate.set(this.currentMonthStart);
       this.endDate.set(this.currentMonthEnd);
+    } else {
+      this.startDate.set(this.todayDateStr);
+      this.endDate.set(this.todayDateStr);
     }
     this.fetchAttendanceFromApi();
   }
@@ -345,8 +352,10 @@ export class AttendanceComponent implements OnInit {
   onDownloadAttendanceData(): void {
     this.isExporting.set(true);
     const branch = this.isTlUser ? (this.userBranchName || this.selectedBranch()) : (this.isAdminOrManager ? this.selectedBranch() : '');
-    const start = this.startDate();
-    const end = this.endDate();
+    const defaultStart = this.isTcUser ? this.currentMonthStart : this.todayDateStr;
+    const defaultEnd = this.isTcUser ? this.currentMonthEnd : this.todayDateStr;
+    const start = this.startDate() || defaultStart;
+    const end = this.endDate() || defaultEnd;
     const search = this.searchQuery().trim();
     const status = this.selectedStatus();
 
@@ -355,7 +364,8 @@ export class AttendanceComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Attendance_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const dateSuffix = start && end ? (start === end ? start : `${start}_to_${end}`) : (start || end || this.todayDateStr);
+        a.download = `attendance_report_${dateSuffix}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -408,13 +418,21 @@ export class AttendanceComponent implements OnInit {
 
   private updateFilterAppliedState(): void {
     const isBranchFiltered = this.isAdminOrManager ? !!this.selectedBranch() : false;
-    this.isFilterApplied.set(!!(isBranchFiltered || this.startDate() || this.endDate() || this.searchQuery() || this.selectedStatus()));
+    const defaultStart = this.isTcUser ? this.currentMonthStart : this.todayDateStr;
+    const defaultEnd = this.isTcUser ? this.currentMonthEnd : this.todayDateStr;
+    const isDateFiltered = (!!this.startDate() && this.startDate() !== defaultStart) || (!!this.endDate() && this.endDate() !== defaultEnd);
+    this.isFilterApplied.set(!!(isBranchFiltered || isDateFiltered || this.searchQuery() || this.selectedStatus()));
   }
 
   onResetFilters(): void {
     this.selectedBranch.set(this.isTlUser ? this.userBranchName : '');
-    this.startDate.set('');
-    this.endDate.set('');
+    if (this.isTcUser) {
+      this.startDate.set(this.currentMonthStart);
+      this.endDate.set(this.currentMonthEnd);
+    } else {
+      this.startDate.set(this.todayDateStr);
+      this.endDate.set(this.todayDateStr);
+    }
     this.searchQuery.set('');
     this.selectedStatus.set('');
     this.isFilterApplied.set(false);

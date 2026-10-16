@@ -300,7 +300,7 @@ export class SidebarComponent implements OnInit {
           id: 'batch_reports',
           label: 'Batch Details',
           icon: 'receipt_long',
-          allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'OT', 'ONLINE PAYMENT TEAM'],
+          allowedRoles: ['ADMIN','TL', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/batch-reports',
         },
         {
