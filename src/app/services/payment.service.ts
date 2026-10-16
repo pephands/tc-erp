@@ -115,10 +115,9 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
-  downloadBatchReport(runId: number): Observable<Blob> {
-    return this.httpClient.get(`${this.endPoint.paymentBatchReport}?export=true&run_id=${runId}`, {
+  downloadBatchReport(runId: number): Observable<any> {
+    return this.httpClient.get<any>(`${this.endPoint.paymentBatchReport}?export=true&run_id=${runId}`, {
       headers: this.headers,
-      responseType: 'blob'
     });
   }
 

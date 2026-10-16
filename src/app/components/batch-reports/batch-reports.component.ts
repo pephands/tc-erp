@@ -40,6 +40,9 @@ export class BatchReportsComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isExporting = signal<boolean>(false);
   isUploading = signal<boolean>(false);
+  isDownloading = signal<boolean>(false);
+  downloadingBatchId = signal<number | null>(null);
+  downloadingBatchName = signal<string>('');
   uploadMessage = signal<string>('');
   uploadError = signal<string>('');
 
@@ -382,23 +385,87 @@ export class BatchReportsComponent implements OnInit {
 
   downloadBatch(runId: number, configName: string, date: string, event: Event): void {
     event.stopPropagation();
-    this.isLoading.set(true);
+    this.downloadingBatchId.set(runId);
+    this.downloadingBatchName.set(configName || 'Batch');
+    this.isDownloading.set(true);
+
     this.paymentService.downloadBatchReport(runId).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${configName}_${date}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        this.isLoading.set(false);
+      next: (res: any) => {
+        let items: any[] = [];
+        if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+
+        if (items.length === 0) {
+          this.showToast('No records found in this batch.', true);
+          this.isDownloading.set(false);
+          this.downloadingBatchId.set(null);
+          return;
+        }
+
+        const formatDmy = (dateVal: any, sep: string = '-', monthName: boolean = true) => {
+          if (!dateVal) return '';
+          try {
+            const d = new Date(dateVal);
+            if (isNaN(d.getTime())) return dateVal;
+            const day = String(d.getDate()).padStart(2, '0');
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const month = monthName ? monthNames[d.getMonth()] : String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}${sep}${month}${sep}${year}`;
+          } catch {
+            return dateVal;
+          }
+        };
+
+        const exportData = items.map((rec: any) => {
+          const empId = rec.telecaller_employee_Id || rec.telecaller_id_card_number || '';
+          const empName = rec.telecaller_name || empId || '';
+
+          return {
+            'Task Id': rec.task_id || '',
+            'Payment date': formatDmy(rec.payment_date, '-', true),
+            'Customer Name': rec.donor_name || '',
+            'PAN Number': rec.pan_number || '',
+            'Customer Number': rec.mobile_number || '',
+            'Alternate Number': rec.alt_mobile_number || '',
+            'Payment Details': rec.amount != null ? Number(rec.amount) : 0,
+            'Reference Id': rec.reference_id || '',
+            'Payment Mode': rec.mode_of_payment || '',
+            'Employee ID': empId,
+            'Employee Name': empName,
+            'Branch Name': rec.branch_name || '',
+            'Donor Type': rec.donor_type || '',
+            'Slab': rec.slab || '',
+            'Status': rec.status || '',
+            'Created Date': formatDmy(rec.created_at, '-', true),
+            'Batch': rec.batch_name || configName || '',
+            'Remarks': rec.remarks || '',
+            'Receipt Id': rec.receipt_id || '',
+            'Correction Name': rec.correction_name || '',
+            'DOB': formatDmy(rec.dob, '-', false),
+            'Address': rec.address || ''
+          };
+        });
+
+        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+        const wb: XLSX.WorkBook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Batch Data');
+
+        const runFilenamePrefix = (configName || 'Batch').replace(/\s+/g, '_');
+        const filename = `${runFilenamePrefix}_${date || 'export'}.xlsx`;
+
+        XLSX.writeFile(wb, filename);
+        this.isDownloading.set(false);
+        this.downloadingBatchId.set(null);
       },
       error: (err: any) => {
         console.error('Error downloading batch:', err);
-        this.uploadError.set('Error downloading the batch file.');
-        this.isLoading.set(false);
+        this.showToast('Error downloading the batch file.', true);
+        this.isDownloading.set(false);
+        this.downloadingBatchId.set(null);
       }
     });
   }

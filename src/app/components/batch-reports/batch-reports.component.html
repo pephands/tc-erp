@@ -1,20 +1,43 @@
 <main class="page-container">
   <!-- Upload Processing Loader Overlay -->
   @if (isUploading()) {
-    <div class="upload-loader-overlay">
-      <div class="upload-loader-card">
-        <div class="upload-spinner-container">
-          <div class="upload-spinner-ring"></div>
-          <span class="material-symbols-outlined upload-spinner-icon">upload_file</span>
+    <div class="batch-loader-overlay">
+      <div class="batch-loader-card">
+        <div class="batch-spinner-container">
+          <div class="batch-spinner-ring"></div>
+          <span class="material-symbols-outlined batch-spinner-icon">upload_file</span>
         </div>
-        <h3 class="upload-loader-title">Processing Excel File</h3>
-        <p class="upload-loader-desc">
+        <h3 class="batch-loader-title">Processing Excel File</h3>
+        <p class="batch-loader-desc">
           Uploading and updating batch records... Please wait, this may take a few moments.
         </p>
-        <div class="upload-progress-bar-container">
-          <div class="upload-progress-bar-indeterminate"></div>
+        <div class="batch-progress-bar-container">
+          <div class="batch-progress-bar-indeterminate"></div>
         </div>
-        <p class="upload-loader-note">
+        <p class="batch-loader-note">
+          <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">info</span>
+          Please do not refresh or close this page
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- Download Processing Loader Overlay -->
+  @if (isDownloading()) {
+    <div class="batch-loader-overlay">
+      <div class="batch-loader-card">
+        <div class="batch-spinner-container">
+          <div class="batch-spinner-ring"></div>
+          <span class="material-symbols-outlined batch-spinner-icon">download</span>
+        </div>
+        <h3 class="batch-loader-title">Downloading {{ downloadingBatchName() }}</h3>
+        <p class="batch-loader-desc">
+          Fetching batch records and generating Excel file... Please wait.
+        </p>
+        <div class="batch-progress-bar-container">
+          <div class="batch-progress-bar-indeterminate"></div>
+        </div>
+        <p class="batch-loader-note">
           <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">info</span>
           Please do not refresh or close this page
         </p>
@@ -31,13 +54,13 @@
         <p class="page-sub">{{ isAdmin() ? 'Manage batches, download and upload processed excel files.' : 'View newly submitted records and batch status.' }}</p>
       </div>
     </div>
-    @if (isAdmin() && activeTab() === 'PENDING_BATCHES') {
+    @if (isAdmin()) {
       <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx" style="display: none;">
-        <button type="button" class="btn-add-payment-orange" (click)="fileInput.click()" [disabled]="isUploading()">
+        <button type="button" class="btn-add-payment-orange" (click)="fileInput.click()" [disabled]="isUploading() || isDownloading()">
           @if (isUploading()) {
-            <span class="material-symbols-outlined spin-icon" style="animation: spin 1s linear infinite;">progress_activity</span>
-            <span>Processing...</span>
+            <span class="material-symbols-outlined spin-icon" style="font-size: 1.1rem;">progress_activity</span>
+            <span>Processing Upload...</span>
           } @else {
             <span class="material-symbols-outlined">upload_file</span>
             <span>Upload Processed Excel</span>
@@ -144,9 +167,14 @@
                 <td><strong>{{ batch.name }}</strong></td>
                 <td><span class="tag-pill">{{ batch.record_count }}</span></td>
                 <td style="text-align: center;">
-                  <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)">
-                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
-                    <span>Download File</span>
+                  <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" [disabled]="isDownloading() || isUploading()">
+                    @if (downloadingBatchId() === batch.id) {
+                      <span class="material-symbols-outlined spin-icon" style="font-size: 1.1rem;">progress_activity</span>
+                      <span>Downloading...</span>
+                    } @else {
+                      <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
+                      <span>Download File</span>
+                    }
                   </button>
                 </td>
               </tr>
@@ -378,9 +406,14 @@
                   
                   @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || activeTab() === 'BATCHES') {
                     <td>
-                      <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)">
-                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
-                        <span>Download</span>
+                      <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" [disabled]="isDownloading() || isUploading()">
+                        @if (downloadingBatchId() === batch.id) {
+                          <span class="material-symbols-outlined spin-icon" style="font-size: 1.1rem;">progress_activity</span>
+                          <span>Downloading...</span>
+                        } @else {
+                          <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span>
+                          <span>Download</span>
+                        }
                       </button>
                     </td>
                   }

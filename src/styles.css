@@ -358,3 +358,170 @@ html, body {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
 }
+
+/* ==========================================================================
+   GLOBAL LOADER OVERLAYS & SPINNERS (DOWNLOAD & UPLOAD)
+   Using Theme Color Codes (--primary, --primary-gradient, --primary-light)
+   ========================================================================== */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes indeterminateBar {
+  0% {
+    left: -35%;
+    width: 30%;
+  }
+  50% {
+    left: 35%;
+    width: 55%;
+  }
+  100% {
+    left: 100%;
+    width: 30%;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.spin-icon {
+  animation: spin 0.85s linear infinite !important;
+  display: inline-block;
+}
+
+/* Full-Screen Blur Loader Overlay */
+.batch-loader-overlay,
+.upload-loader-overlay,
+.download-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.batch-loader-card,
+.upload-loader-card,
+.download-loader-card {
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-lg, 20px);
+  padding: 2.25rem 2rem;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.28), var(--shadow-glow, 0 10px 25px -5px rgba(234, 88, 12, 0.25));
+  border: 1px solid var(--border-color, rgba(214, 211, 209, 0.5));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInScale 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.batch-spinner-container,
+.upload-spinner-container,
+.download-spinner-container {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.batch-spinner-ring,
+.upload-spinner-ring,
+.download-spinner-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 4px solid var(--primary-light, rgba(234, 88, 12, 0.15));
+  border-top-color: var(--primary, #ea580c);
+  animation: spin 0.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.batch-spinner-icon,
+.upload-spinner-icon,
+.download-spinner-icon {
+  font-size: 2.25rem;
+  color: var(--primary, #ea580c);
+  animation: pulseIcon 1.8s ease-in-out infinite;
+}
+
+.batch-loader-title,
+.upload-loader-title,
+.download-loader-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main, #1c1917);
+  margin: 0 0 0.5rem 0;
+}
+
+.batch-loader-desc,
+.upload-loader-desc,
+.download-loader-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted, #57534e);
+  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+}
+
+.batch-progress-bar-container,
+.upload-progress-bar-container,
+.download-progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-card-subtle, #f5f5f4);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.batch-progress-bar-indeterminate,
+.upload-progress-bar-indeterminate,
+.download-progress-bar-indeterminate {
+  position: absolute;
+  height: 100%;
+  background: var(--primary-gradient, linear-gradient(90deg, #ea580c 0%, #d97706 100%));
+  border-radius: 999px;
+  animation: indeterminateBar 1.5s infinite ease-in-out;
+}
+
+.batch-loader-note,
+.upload-loader-note,
+.download-loader-note {
+  font-size: 0.8rem;
+  color: var(--text-dim, #78716c);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+

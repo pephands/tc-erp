@@ -434,94 +434,105 @@
   margin-top: 0.5rem;
 }
 
-/* Upload Modal Loader Overlay */
+/* Download & Upload Modal Loader Overlay */
+.batch-loader-overlay,
 .upload-loader-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  z-index: 9999;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.25s ease-out;
 }
 
+.batch-loader-card,
 .upload-loader-card {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-lg, 20px);
   padding: 2.25rem 2rem;
   max-width: 440px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.28), var(--shadow-glow, 0 10px 25px -5px rgba(234, 88, 12, 0.25));
+  border: 1px solid var(--border-color, rgba(214, 211, 209, 0.5));
   display: flex;
   flex-direction: column;
   align-items: center;
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.batch-spinner-container,
 .upload-spinner-container {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.25rem;
 }
 
+.batch-spinner-ring,
 .upload-spinner-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #fef3c7;
-  border-top-color: #d97706;
+  border: 4px solid var(--primary-light, rgba(234, 88, 12, 0.15));
+  border-top-color: var(--primary, #ea580c);
   animation: spin 0.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
+.batch-spinner-icon,
 .upload-spinner-icon {
-  font-size: 2rem;
-  color: #d97706;
+  font-size: 2.25rem;
+  color: var(--primary, #ea580c);
   animation: pulseIcon 1.8s ease-in-out infinite;
 }
 
+.batch-loader-title,
 .upload-loader-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-main, #1c1917);
   margin: 0 0 0.5rem 0;
 }
 
+.batch-loader-desc,
 .upload-loader-desc {
   font-size: 0.875rem;
-  color: #64748b;
-  line-height: 1.45;
+  color: var(--text-muted, #57534e);
+  line-height: 1.5;
   margin: 0 0 1.5rem 0;
 }
 
+.batch-progress-bar-container,
 .upload-progress-bar-container {
   width: 100%;
   height: 6px;
-  background-color: #f1f5f9;
+  background-color: var(--bg-card-subtle, #f5f5f4);
   border-radius: 999px;
   overflow: hidden;
   position: relative;
   margin-bottom: 1rem;
 }
 
+.batch-progress-bar-indeterminate,
 .upload-progress-bar-indeterminate {
   position: absolute;
   height: 100%;
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: var(--primary-gradient, linear-gradient(90deg, #ea580c 0%, #d97706 100%));
   border-radius: 999px;
   animation: indeterminateBar 1.5s infinite ease-in-out;
 }
 
+.batch-loader-note,
 .upload-loader-note {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-dim, #78716c);
   display: flex;
   align-items: center;
   gap: 0.35rem;
