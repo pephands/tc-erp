@@ -22,6 +22,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
   // Form Fields
   paymentDate = signal<string>(new Date().toISOString().slice(0, 10));
+  receiptId = signal<string>('');
   mobileNumber = signal<string>('');
   altMobileNumber = signal<string>('');
   donorName = signal<string>('');
@@ -74,6 +75,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['editRecord'] && this.editRecord) {
       this.paymentDate.set(this.editRecord.payment_date || new Date().toISOString().slice(0, 10));
+      this.receiptId.set(this.editRecord.receipt_id || '');
       this.mobileNumber.set(this.editRecord.mobile_number || '');
       this.altMobileNumber.set(this.editRecord.alt_mobile_number || '');
       this.donorName.set(this.editRecord.donor_name || '');
@@ -164,6 +166,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
   onReset(): void {
     this.paymentDate.set(new Date().toISOString().slice(0, 10));
+    this.receiptId.set(this.editRecord ? (this.editRecord.receipt_id || '') : '');
     this.mobileNumber.set('');
     this.altMobileNumber.set('');
     this.donorName.set('');
@@ -248,6 +251,9 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
     const formData = new FormData();
     formData.append('payment_date', this.paymentDate());
+    if (this.editRecord) {
+      formData.append('receipt_id', this.receiptId().trim());
+    }
     formData.append('mobile_number', this.mobileNumber().trim());
     formData.append('alt_mobile_number', this.altMobileNumber().trim());
     formData.append('donor_name', this.donorName().trim().toUpperCase());

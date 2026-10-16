@@ -1,0 +1,259 @@
+<main class="page-container">
+  <!-- Header Bar -->
+  <div class="page-header-bar">
+    <div class="page-title-group">
+      <span class="material-symbols-outlined header-icon">verified_user</span>
+      <div>
+        <h2 class="page-title">Trust Receipts</h2>
+        <p class="page-sub">View and manage receipts for trust branches.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      @if (!isTC() || isOT()) {
+      <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()" [disabled]="isExporting()">
+        <span class="material-symbols-outlined">{{ isExporting() ? 'hourglass_empty' : 'download' }}</span>
+        <span>{{ isExporting() ? 'Exporting...' : 'Export to Excel' }}</span>
+      </button>
+      }
+
+      @if (isAdmin() || isManager() || isOT()) {
+      <button type="button" class="btn-action btn-zip-rose" (click)="onExportPDFZip()" [disabled]="isZipping()">
+        <span class="material-symbols-outlined">{{ isZipping() ? 'hourglass_empty' : 'folder_zip' }}</span>
+        <span>{{ isZipping() ? (zipProgress() || 'Zipping...') : 'Download PDF Zip' }}</span>
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="filter-card shadow-card">
+    <div class="filter-controls-grid">
+      <!-- Search Input -->
+      <div class="filter-field search-field">
+        <label>Search Records</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">search</span>
+          <input type="text" placeholder="Search by Donor, Mobile, Ref ID, Receipt ID..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)" />
+        </div>
+      </div>
+
+      <!-- Trust Branch Filter -->
+      @if (isAdmin() || isManager() || isPR() || isOT()) {
+      <div class="filter-field">
+        <label>Trust Branch</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">domain</span>
+          <select [ngModel]="branchFilter()" (ngModelChange)="onBranchChange($event)">
+            <option value="">All Trust Branches</option>
+            @for (b of branches(); track b.id || b.name) {
+            <option [value]="b.id">{{ b.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      }
+
+      <!-- Donation Type Filter -->
+      <div class="filter-field">
+        <label>Donation Type</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">category</span>
+          <select [ngModel]="donationTypeFilter()" (ngModelChange)="onDonationTypeChange($event)">
+            <option value="All">All Receipts</option>
+            <option value="Amount">Amount Donation</option>
+            <option value="Goodies">Goodies Donation</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PAN Status Filter -->
+      <div class="filter-field">
+        <label>PAN Status</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">badge</span>
+          <select [ngModel]="panStatusFilter()" (ngModelChange)="onPanStatusChange($event)">
+            <option value="">All</option>
+            <option value="with_pan">With PAN</option>
+            <option value="without_pan">Without PAN</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Date Filters -->
+      <div class="filter-field">
+        <label>Start Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">calendar_today</span>
+          <input type="date" [ngModel]="startDate()" (ngModelChange)="onStartDateChange($event)" />
+        </div>
+      </div>
+      <div class="filter-field">
+        <label>End Date</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">event</span>
+          <input type="date" [ngModel]="endDate()" (ngModelChange)="onEndDateChange($event)" />
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="filter-field action-field">
+        <label class="invisible-label">Reset</label>
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="table-card shadow-card">
+    <div class="table-responsive">
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Payment Date</th>
+            <th>Receipt ID</th>
+            <th>Branch</th>
+            <th>EMP Name & EMP ID</th>
+            <th>Donor Number</th>
+            <th>Donor Name</th>
+            <th>Donation Type</th>
+            <th>Amount</th>
+            <th>Ref Id</th>
+            <th>Remarks</th>
+            <th class="col-status-header">Status</th>
+            <th class="col-actions-header">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+          <tr>
+            <td colspan="13" class="loading-state">
+              <span class="material-symbols-outlined spin-icon">progress_activity</span>
+              <p>Loading trust receipts...</p>
+            </td>
+          </tr>
+          } @else {
+          @for (rec of records(); track rec.id) {
+          <tr>
+            <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
+            <td class="col-date">{{ rec.payment_date || '-' }}</td>
+            <td class="col-ref">
+              <code>{{ rec.receipt_id || '-' }}</code>
+            </td>
+            <td><strong>{{ rec.branch_name || '-' }}</strong></td>
+            <td>
+              {{ rec.telecaller_name || '-' }}<br />
+              <small style="color: var(--text-dim, #6b7280);">({{ rec.telecaller_employee_Id || 'N/A' }})</small>
+            </td>
+            <td class="col-mobile">{{ rec.mobile_number }}</td>
+            <td class="col-name"><strong>{{ rec.donor_name }}</strong></td>
+            <td class="col-type">
+              @if ((rec.donation_type || 'Amount') === 'Amount') {
+              <span class="status-badge badge-amount">
+                Amount
+              </span>
+              } @else {
+              <span class="status-badge badge-goodies">
+                Goodies
+              </span>
+              }
+            </td>
+            <td class="col-amount">₹{{ rec.amount | number:'1.2-2' }}</td>
+            <td class="col-ref"><code>{{ rec.reference_id || '-' }}</code></td>
+            <td class="col-remarks">{{ rec.remarks || '-' }}</td>
+            <td class="col-status">
+              <span class="status-badge badge-ok">
+                {{ rec.status || 'OK' }}
+              </span>
+            </td>
+            <td class="col-actions">
+              <div class="actions-wrapper">
+                @if ((rec.donation_type || 'Amount') === 'Amount') {
+                <button type="button" class="btn-action-aesthetic btn-view" title="View Receipt" (click)="onView(rec)">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button type="button" class="btn-action-aesthetic btn-download" title="Download Receipt" (click)="onDownload(rec)">
+                  <span class="material-symbols-outlined">download</span>
+                </button>
+                } @else {
+                <span class="no-receipt-label">No Receipt</span>
+                }
+
+                @if (canEdit(rec)) {
+                <button type="button" class="btn-action-aesthetic btn-edit" title="Edit Receipt" (click)="onEdit(rec)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                }
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="13" class="empty-state">
+              <span class="material-symbols-outlined empty-icon">receipt_long</span>
+              <p class="empty-title">No Trust Receipts Found</p>
+              <p class="empty-sub">No receipt records match your filters.</p>
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Bar -->
+    @if (records().length > 0) {
+    <div class="pagination-bar">
+      <div class="pagination-info">
+        Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalCount() }} total receipts)
+      </div>
+      <div class="pagination-controls">
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === 1"
+          (click)="setPage(currentPage() - 1)">
+          Prev
+        </button>
+
+        @for (p of pageNumbers(); track p) {
+        <button type="button" class="page-btn" [class.active]="currentPage() === p" (click)="setPage(p)">
+          {{ p }}
+        </button>
+        }
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()"
+          (click)="setPage(currentPage() + 1)">
+          Next
+        </button>
+
+        <button type="button" class="page-btn nav-btn" [disabled]="currentPage() === totalPages()"
+          (click)="setPage(totalPages())">
+          Last
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+</main>
+
+<!-- Packaging Progress Modal -->
+@if (isZipping()) {
+<div class="loader-overlay">
+  <div class="loader-card">
+    <span class="material-symbols-outlined spin-icon loader-spinner">progress_activity</span>
+    <h3 class="loader-title">Packaging Trust Receipts</h3>
+    <p class="loader-status">{{ zipProgress() }}</p>
+    <div class="loader-timer">
+      <span class="material-symbols-outlined" style="font-size: 1.1rem;">timer</span>
+      {{ formatZipTime(zipElapsedTime()) }} Elapsed
+    </div>
+  </div>
+</div>
+}
+
+@if (showEditModal()) {
+<app-add-online-payment-modal [editRecord]="editRecord()" (close)="onModalClose()"
+  (submitted)="onModalSubmit()"></app-add-online-payment-modal>
+}

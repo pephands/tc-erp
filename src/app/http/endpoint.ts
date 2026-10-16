@@ -236,6 +236,14 @@ export class Endpoint {
     return this.baseUrl + 'payments/batch-receipts/';
   }
 
+  get trustReceipts(): string {
+    return this.baseUrl + 'payments/trust-receipts/';
+  }
+
+  trustReceiptDownload(id: number | string): string {
+    return this.baseUrl + `payments/trust-receipts/${id}/receipt/`;
+  }
+
   get verifiedDonorsUpload(): string {
     return this.baseUrl + 'payments/verified-donors/upload/';
   }

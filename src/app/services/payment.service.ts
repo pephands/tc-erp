@@ -226,6 +226,41 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  getTrustReceipts(
+    search: string = '',
+    startDate: string = '',
+    endDate: string = '',
+    page: number = 1,
+    branch: string = '',
+    isExport: boolean = false,
+    panStatus: string = '',
+    donationType: string = '',
+    pageSize: number = 10
+  ): Observable<any> {
+    let params = new HttpParams();
+    if (search) params = params.set('search', search);
+    if (startDate) params = params.set('start_date', startDate);
+    if (endDate) params = params.set('end_date', endDate);
+    if (page && !isExport) params = params.set('page', page.toString());
+    if (branch) params = params.set('branch', branch);
+    if (isExport) params = params.set('export', 'true');
+    if (panStatus) params = params.set('pan_status', panStatus);
+    if (donationType) params = params.set('donation_type', donationType);
+    if (pageSize) params = params.set('page_size', pageSize.toString());
+
+    return this.httpClient.get<any>(this.endPoint.trustReceipts, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  downloadTrustReceipt(id: number | string): Observable<Blob> {
+    return this.httpClient.get(this.endPoint.trustReceiptDownload(Number(id)), {
+      headers: this.headers,
+      responseType: 'blob',
+    });
+  }
+
   // --- Unclaimed Records APIs ---
   getUnclaimedRecords(page: number = 1, search: string = '', status: string = '', pageSize: number = 10): Observable<any> {
     let params = new HttpParams()

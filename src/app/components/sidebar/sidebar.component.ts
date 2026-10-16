@@ -398,13 +398,21 @@ export class SidebarComponent implements OnInit {
       label: 'Receipts',
       icon: 'receipt_long',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'TCT'],
+      allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'TCT', 'OT','ONLINE PAYMENT TEAM'],
       submenus: [
         {
           id: 'receipts_view',
           label: 'Receipt List',
           icon: 'receipt',
           route: '/receipts/view',
+           allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'TCT'],
+        },
+        {
+          id: 'trust_receipts',
+          label: 'Trust Receipts',
+          icon: 'verified_user',
+          route: '/receipts/trust-receipts',
+           allowedRoles: ['ADMIN', 'OT','ONLINE PAYMENT TEAM'],
         },
         {
           id: 'batch_receipts',

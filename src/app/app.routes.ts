@@ -34,6 +34,7 @@ import { FeedbackDetailsComponent } from './components/feedback-details/feedback
 import { VerifiedDonorsComponent } from './components/verified-donors/verified-donors.component';
 import { UnclaimedRecordsComponent } from './components/unclaimed-records/unclaimed-records.component';
 import { ReceiptListComponent } from './components/receipts/receipt-list/receipt-list.component';
+import { TrustReceiptsComponent } from './components/receipts/trust-receipts/trust-receipts.component';
 import { ReceiptCreateComponent } from './components/receipts/receipt-create/receipt-create.component';
 import { BatchReceiptsComponent } from './components/receipts/batch-receipts/batch-receipts.component';
 
@@ -335,6 +336,11 @@ export const routes: Routes = [
         path: 'receipts/view',
         component: ReceiptListComponent,
         canActivate: [deviceAuthGuard],
+      },
+      {
+        path: 'receipts/trust-receipts',
+        component: TrustReceiptsComponent,
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'receipts/batch-receipts',
