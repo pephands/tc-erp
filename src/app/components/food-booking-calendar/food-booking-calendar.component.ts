@@ -766,6 +766,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     formData.append('occasion_name', this.bookingForm.occasion_name);
     formData.append('total_amount', this.bookingForm.total_amount);
     if (this.bookingForm.branch) formData.append('branch', this.bookingForm.branch);
+    formData.append('remarks', this.bookingForm.remarks || '');
     let finalStatus = 'RESERVED';
     if (this.bookingForm.booking_status === 'CANCELLED') {
       finalStatus = 'CANCELLED';
