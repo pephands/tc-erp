@@ -47,6 +47,13 @@ export class LiveBatchComponent implements OnInit {
 
   // Tab 1 state
   stats = signal<LiveBatchStat[]>([]);
+  liveAmount = signal<number>(0);
+  liveRecords = signal<number>(0);
+  liveDonors = signal<number>(0);
+  liveOldAmount = signal<number>(0);
+  liveNewAmount = signal<number>(0);
+  liveOldCount = signal<number>(0);
+  liveNewCount = signal<number>(0);
   isLoading1 = signal<boolean>(false);
   
   // Tab 2 state
@@ -109,7 +116,14 @@ export class LiveBatchComponent implements OnInit {
     this.http.get<any>(`${this.endpoint.baseUrl}payments/batch/live/`, { headers, params }).subscribe({
       next: (res) => {
         if (res.status === 'success') {
-          this.stats.set(res.data);
+          this.stats.set(res.data || []);
+          this.liveAmount.set(res.overall_amount || 0);
+          this.liveRecords.set(res.overall_records || 0);
+          this.liveDonors.set(res.overall_donors || 0);
+          this.liveOldAmount.set(res.overall_old_amount || 0);
+          this.liveNewAmount.set(res.overall_new_amount || 0);
+          this.liveOldCount.set(res.overall_old_count || 0);
+          this.liveNewCount.set(res.overall_new_count || 0);
         }
         this.isLoading1.set(false);
       },
