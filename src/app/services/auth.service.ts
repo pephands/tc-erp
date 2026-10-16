@@ -191,7 +191,8 @@ export class AuthService {
       if (typeof r === 'string') {
         const upper = r.trim().toUpperCase();
         codes.push(upper);
-        if (upper === 'TEAM LEAD' || upper === 'MANAGER' || upper === 'TL') codes.push('TL');
+        if (upper === 'TEAM LEAD' || upper === 'TL') codes.push('TL');
+        if (upper === 'MANAGER') codes.push('MANAGER');
         if (upper === 'TELE CALLER' || upper === 'TELECALLER' || upper === 'TC') codes.push('TC');
         if (upper === 'ADMINISTRATOR' || upper === 'ADMIN') codes.push('ADMIN');
         if (upper === 'THANKS CALLING TEAM' || upper === 'TCT') {
@@ -207,7 +208,8 @@ export class AuthService {
         const name = (r.name || '').trim().toUpperCase();
         if (code) codes.push(code);
         if (name) codes.push(name);
-        if (name === 'TEAM LEAD' || name === 'MANAGER' || code === 'TL') codes.push('TL');
+        if (name === 'TEAM LEAD' || code === 'TL') codes.push('TL');
+        if (name === 'MANAGER' || code === 'MANAGER') codes.push('MANAGER');
         if (name === 'TELE CALLER' || name === 'TELECALLER' || code === 'TC') codes.push('TC');
         if (name === 'ADMINISTRATOR' || code === 'ADMIN') codes.push('ADMIN');
         if (name === 'THANKS CALLING TEAM' || code === 'TCT') {

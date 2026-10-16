@@ -141,7 +141,7 @@ export class SidebarComponent implements OnInit {
           id: 'all_users',
           label: 'All Users',
           icon: 'manage_accounts',
-          allowedRoles: ['ADMIN', 'MANAGER'],
+          allowedRoles: ['ADMIN'],
           route: '/users/all',
         },
         {
@@ -183,20 +183,20 @@ export class SidebarComponent implements OnInit {
           id: 'outreach_team',
           label: 'Outreach Team',
           icon: 'groups',
-          allowedRoles: ['ADMIN', 'MANAGER'],
+          allowedRoles: ['ADMIN'],
           submenus: [
             {
               id: 'district_coordinator',
               label: 'District Coordinator',
               icon: 'badge',
-              allowedRoles: ['ADMIN', 'MANAGER'],
+              allowedRoles: ['ADMIN'],
               route: '/users/outreach-team/district-coordinator',
             },
             {
               id: 'tuition_teacher',
               label: 'Tuition Teacher',
               icon: 'school',
-              allowedRoles: ['ADMIN', 'MANAGER'],
+              allowedRoles: ['ADMIN'],
               route: '/users/outreach-team/tuition-teacher',
             },
           ],
@@ -348,12 +348,6 @@ export class SidebarComponent implements OnInit {
       category: 'Communication',
       allowedRoles: ['ADMIN', 'TL', 'TC'],
       submenus: [
-        // {
-        //   id: 'whatsapp_greentick',
-        //   label: 'Whatsapp GreenTick',
-        //   icon: 'verified',
-        //   allowedRoles: ['ADMIN', 'TL', 'TC'],
-        // },
         
         {
           id: 'whatsapp_accounts',
@@ -429,7 +423,7 @@ export class SidebarComponent implements OnInit {
       label: 'Branch Details',
       icon: 'location_city',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'TL', 'PUBLIC_RELATIONS','SUPERINTENDENT'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'PUBLIC_RELATIONS','SUPERINTENDENT'],
       submenus: [
         {
           id: 'branch_documents',
@@ -475,86 +469,6 @@ export class SidebarComponent implements OnInit {
         },
       ],
     },
-    // {
-    //   id: 'reports',
-    //   label: 'Reports',
-    //   icon: 'insights',
-    //   category: 'Analytics',
-    //   allowedRoles: ['ADMIN', 'TL'],
-    //   submenus: [
-    //     {
-    //       id: 'received_status',
-    //       label: 'Received Status',
-    //       icon: 'dataset',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //       route: '/received-status',
-    //     },
-    //     {
-    //       id: 'live_report',
-    //       label: 'Live Report',
-    //       icon: 'monitoring',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'report',
-    //       label: 'Report',
-    //       icon: 'analytics',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'base_task_report',
-    //       label: 'Base Task Report',
-    //       icon: 'task_alt',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'attendance_report',
-    //       label: 'Attendance Report',
-    //       icon: 'co_present',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //   ],
-    // },
-    // {
-    //   id: 'history',
-    //   label: 'History',
-    //   icon: 'history',
-    //   category: 'Analytics',
-    //   allowedRoles: ['ADMIN', 'TL'],
-    //   submenus: [
-    //     {
-    //       id: 'main_history',
-    //       label: 'History',
-    //       icon: 'manage_history',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'pickup_history',
-    //       label: 'Pickup History',
-    //       icon: 'package_2',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'base_history',
-    //       label: 'Base History',
-    //       icon: 'database',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'trust_history',
-    //       label: 'Trust History',
-    //       icon: 'verified_user',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //     {
-    //       id: 'dob_history',
-    //       label: 'DOB History',
-    //       icon: 'cake',
-    //       allowedRoles: ['ADMIN', 'TL'],
-    //     },
-    //   ],
-    // },
-
     {
       id: 'food_bookings',
       label: 'Food Bookings',
@@ -578,21 +492,6 @@ export class SidebarComponent implements OnInit {
         }
       ]
     },
-    // {
-    //   id: 'upload_pan',
-    //   label: 'Upload PAN Details',
-    //   icon: 'badge',
-    //   category: 'Compliance',
-    //   allowedRoles: ['ADMIN'],
-    // },
-    
-    // {
-    //   id: 'website_activities',
-    //   label: 'Website Activities',
-    //   icon: 'web',
-    //   category: 'Analytics',
-    //   allowedRoles: ['ADMIN'],
-    // },
     {
       id: 'feedback_details',
       label: 'Feedback Details',
@@ -609,14 +508,6 @@ export class SidebarComponent implements OnInit {
       allowedRoles: ['TC'],
       route: '/feedbacks',
     },
-    // {
-    //   id: 'work_details',
-    //   label: 'Work Details',
-    //   icon: 'work_history',
-    //   category: 'Operations',
-    //   allowedRoles: ['ADMIN', 'TL'],
-    //   route: '/work-details',
-    // },
   ];
 
   constructor() {
@@ -640,6 +531,9 @@ export class SidebarComponent implements OnInit {
 
     const hasRoleAccess = (allowedRoles?: string[]) => {
       if (!allowedRoles || allowedRoles.length === 0) return true;
+      if (activeRole === 'MANAGER') {
+        return allowedRoles.includes('MANAGER');
+      }
       if (activeRole && allowedRoles.includes(activeRole)) return true;
       return allowedRoles.some((r) => userRoles.includes(r));
     };
@@ -650,12 +544,16 @@ export class SidebarComponent implements OnInit {
         const validSubmenus = item.submenus
           ? item.submenus
               .filter((sub) => hasRoleAccess(sub.allowedRoles))
-              .map((sub) => ({
-                ...sub,
-                submenus: sub.submenus
+              .map((sub) => {
+                const validNested = sub.submenus
                   ? sub.submenus.filter((nested) => hasRoleAccess(nested.allowedRoles))
-                  : undefined,
-              }))
+                  : undefined;
+                return {
+                  ...sub,
+                  submenus: validNested && validNested.length > 0 ? validNested : undefined,
+                };
+              })
+              .filter((sub) => !sub.submenus || (sub.submenus && sub.submenus.length > 0))
           : undefined;
 
         return {
@@ -663,6 +561,7 @@ export class SidebarComponent implements OnInit {
           submenus: validSubmenus,
         };
       })
+      .filter((item) => !item.submenus || (item.submenus && item.submenus.length > 0))
       .filter((item) => {
         if (!query) return true;
 
@@ -681,26 +580,51 @@ export class SidebarComponent implements OnInit {
   });
 
   private determineActiveMenuFromUrl(targetUrl?: string): string {
-    const url = targetUrl || this.router.url;
+    const rawUrl = targetUrl || this.router.url || '';
+    const cleanUrl = rawUrl.split('?')[0].split('#')[0];
 
     // 1. Role-dependent & alias routes that don't match standard item.route
-    if (url.includes('/approved-records')) return this.primaryRole === 'TC' ? 'approved-records' : 'approved_records_admin';
-    if (url.includes('/online-history')) return this.primaryRole === 'TC' ? 'online_history_tc' : 'online_history';
-    if (url.includes('/admins')) {
+    if (cleanUrl.includes('/approved-records')) {
+      if (this.primaryRole === 'TC') {
+        return 'approved-records';
+      }
+      this.expandedMenuIds.update((set) => new Set(set).add('online_status'));
+      return 'approved_records_admin';
+    }
+
+    if (cleanUrl.includes('/online-history')) {
+      if (this.primaryRole === 'TC') {
+        return 'online_history_tc';
+      }
+      this.expandedMenuIds.update((set) => new Set(set).add('online_status'));
+      return 'online_history';
+    }
+
+    if (cleanUrl.includes('/admins')) {
       this.expandedMenuIds.update((set) => new Set(set).add('users'));
       return 'admin';
     }
-    if (url.includes('/telecallers')) {
+
+    if (cleanUrl.includes('/telecallers')) {
       this.expandedMenuIds.update((set) => new Set(set).add('users'));
       return 'telecaller';
     }
-    if (url.includes('/managers')) {
+
+    if (cleanUrl.includes('/managers')) {
       this.expandedMenuIds.update((set) => new Set(set).add('users'));
       return 'manager';
     }
-    if (url.includes('/receipts/create')) {
+
+    if (cleanUrl.includes('/receipts/create') || cleanUrl === '/receipts' || cleanUrl === '/receipts/') {
       this.expandedMenuIds.update((set) => new Set(set).add('receipts'));
-      return 'receipts_view';
+      return this.primaryRole === 'OT' || this.primaryRole === 'ONLINE PAYMENT TEAM'
+        ? 'trust_receipts'
+        : 'receipts_view';
+    }
+
+    if (cleanUrl === '/users' || cleanUrl === '/users/') {
+      this.expandedMenuIds.update((set) => new Set(set).add('users'));
+      return 'all_users';
     }
 
     // 2. Check submenus first (including nested submenus)
@@ -709,13 +633,13 @@ export class SidebarComponent implements OnInit {
         for (const sub of item.submenus) {
           if (sub.submenus) {
             for (const nested of sub.submenus) {
-              if (nested.route && url.includes(nested.route)) {
+              if (nested.route && cleanUrl.includes(nested.route)) {
                 this.expandedMenuIds.update((set) => new Set(set).add(item.id).add(sub.id));
                 return nested.id;
               }
             }
           }
-          if (sub.route && url.includes(sub.route)) {
+          if (sub.route && cleanUrl.includes(sub.route)) {
             // Auto-expand parent menu when child is active
             this.expandedMenuIds.update((set) => new Set(set).add(item.id));
             return sub.id;
@@ -726,7 +650,7 @@ export class SidebarComponent implements OnInit {
 
     // 3. Check top-level items with matching route
     for (const item of this.menuItems) {
-      if (item.route && url.includes(item.route)) {
+      if (item.route && cleanUrl.includes(item.route)) {
         return item.id;
       }
     }
