@@ -46,9 +46,7 @@
           <label>Trust Filter</label>
           <select class="custom-select" [(ngModel)]="listFilters.trust_name" (change)="applyListFilters()">
             <option [ngValue]="null" *ngIf="!isPR()">All Trusts</option>
-            <ng-container *ngFor="let branch of branchesList()">
-              <option *ngIf="branch.is_trust" [value]="branch.id">{{ branch.name }}</option>
-            </ng-container>
+            <option *ngFor="let branch of trustBranchesList()" [ngValue]="branch.id">{{ branch.name }}</option>
           </select>
         </div>
         <div class="form-group" style="margin: 0; min-width: 180px;" *ngIf="isManager() || isPR() || !isTL()">
@@ -233,11 +231,9 @@
           <div class="menus-filters">
             <select class="custom-select" [ngModel]="menuFilterTrust()" (ngModelChange)="menuFilterTrust.set($event)">
               <option [ngValue]="null">All Trusts</option>
-              <ng-container *ngFor="let branch of branchesList()">
-                <option *ngIf="branch.is_trust" [value]="branch.id">
-                  {{ branch.name }}
-                </option>
-              </ng-container>
+              <option *ngFor="let branch of trustBranchesList()" [ngValue]="branch.id">
+                {{ branch.name }}
+              </option>
             </select>
             <select class="custom-select" [ngModel]="menuFilterSlot()" (ngModelChange)="menuFilterSlot.set($event)">
               <option value="">All Slots</option>
@@ -299,11 +295,9 @@
             <label>Select Trust *</label>
             <select class="custom-select" name="trust_id" [(ngModel)]="newMenu.trust_name" required style="width: 100%;">
               <option [ngValue]="null">-- Select Trust --</option>
-              <ng-container *ngFor="let branch of branchesList()">
-                <option *ngIf="branch.is_trust" [value]="branch.id">
-                  {{ branch.name }}
-                </option>
-              </ng-container>
+              <option *ngFor="let branch of trustBranchesList()" [ngValue]="branch.id">
+                {{ branch.name }}
+              </option>
             </select>
           </div>
           <div class="form-group">

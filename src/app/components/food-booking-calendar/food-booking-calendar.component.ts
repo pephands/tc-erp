@@ -547,6 +547,7 @@ export class FoodBookingCalendarComponent implements OnInit {
     if (menusForSlot.length === 0) return 'NONE';
     if (bookingsForSlot.length === 0) return 'OPEN';
     
+    if (bookingsForSlot.some((b: any) => b.booking_status === 'COMPLETED')) return 'COMPLETED';
     if (bookingsForSlot.some((b: any) => b.booking_status === 'BOOKED')) return 'BOOKED';
     return 'RESERVED';
   }

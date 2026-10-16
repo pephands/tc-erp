@@ -711,3 +711,10 @@
   color: #047857;
 }
 .micro-slot.booked .slot-status-dot { background: #10b981; }
+
+.micro-slot.completed {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.micro-slot.completed .slot-status-dot { background: #0284c7; }
+
