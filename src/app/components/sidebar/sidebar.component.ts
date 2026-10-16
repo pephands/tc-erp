@@ -247,7 +247,7 @@ export class SidebarComponent implements OnInit {
       label: 'Send Records',
       icon: 'payments',
       category: 'Operations',
-      allowedRoles: ['TC'],
+      allowedRoles: ['TC','TL'],
       route: '/send-records',
     },
     {
