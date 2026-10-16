@@ -71,6 +71,33 @@
         </div>
       </div>
 
+      <!-- Branch Filter -->
+      <div class="filter-field">
+        <label>Branch</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">domain</span>
+          <select [ngModel]="selectedBranch()" (ngModelChange)="onBranchChange($event)">
+            <option value="">All Branches</option>
+            @for (b of branches(); track b.id) {
+              <option [value]="b.id">{{ b.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Donor Type Filter -->
+      <div class="filter-field">
+        <label>Donor Type</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">person</span>
+          <select [ngModel]="donorTypeFilter()" (ngModelChange)="onDonorTypeChange($event)">
+            <option value="">All Donor Types</option>
+            <option value="NEW">NEW</option>
+            <option value="OLD">OLD</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Batch Generated Date Filter -->
       <div class="filter-field">
         <label>Batch Generated Date</label>
@@ -148,9 +175,11 @@
             <th style="width: 50px">S.No</th>
             <th>Batch Name</th>
             <th>Batch Date</th>
+            <th>Branch</th>
             <th>Task ID</th>
             <th>Payment Date</th>
             <th>Donor Name</th>
+            <th>Donor Type</th>
             <th>Mobile Number</th>
             <th>Amount (₹)</th>
             <th>Payment Mode</th>
@@ -164,14 +193,14 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="14" class="loading-state">
+              <td colspan="16" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading batch receipt records...</p>
               </td>
             </tr>
           } @else if (records().length === 0) {
             <tr>
-              <td colspan="14" class="empty-state">
+              <td colspan="16" class="empty-state">
                 <span class="material-symbols-outlined empty-icon">task_alt</span>
                 <p class="empty-title">All Caught Up!</p>
                 <p class="empty-subtitle">
@@ -203,9 +232,19 @@
                     <span class="text-dim">-</span>
                   }
                 </td>
+                <td class="col-branch font-medium">{{ rec.branch_name || '-' }}</td>
                 <td class="col-task font-medium">{{ rec.task_id || '-' }}</td>
                 <td class="col-date">{{ rec.payment_date || '-' }}</td>
                 <td class="col-name font-semibold">{{ rec.donor_name }}</td>
+                <td>
+                  <span
+                    class="donor-type-tag"
+                    [class.donor-type-new]="(rec.donor_type || 'NEW') === 'NEW'"
+                    [class.donor-type-old]="rec.donor_type === 'OLD'"
+                  >
+                    {{ rec.donor_type || 'NEW' }}
+                  </span>
+                </td>
                 <td class="col-phone">{{ rec.mobile_number }}</td>
                 <td class="col-amount font-bold">₹{{ rec.amount | number:'1.2-2' }}</td>
                 <td>

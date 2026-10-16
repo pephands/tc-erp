@@ -335,7 +335,8 @@ export class ReceiptListComponent implements OnInit {
           'Amount': rec.amount,
           'Ref Id': rec.reference_id,
           'Remarks': rec.remarks || '-',
-          'Status': rec.status || 'OK'
+          'Status': rec.status || 'OK',
+          'Payment Proof': rec.payment_proof_url || rec.payment_proof || '-'
         }));
 
         const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);

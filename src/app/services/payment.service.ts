@@ -309,9 +309,11 @@ export class PaymentService extends BaseHttpService {
   }
 
   // --- Batch Receipts ---
-  getBatchReceiptRuns(batchDate: string = ''): Observable<any> {
+  getBatchReceiptRuns(batchDate: string = '', branch: string = '', donorType: string = ''): Observable<any> {
     let params = new HttpParams();
     if (batchDate) params = params.set('batch_date', batchDate);
+    if (branch) params = params.set('branch', branch);
+    if (donorType) params = params.set('donor_type', donorType);
     return this.httpClient.get<any>(this.endPoint.batchReceiptRuns, {
       headers: this.headers,
       params,
@@ -326,7 +328,9 @@ export class PaymentService extends BaseHttpService {
     pageSize: number = 10,
     startDate: string = '',
     endDate: string = '',
-    batchDate: string = ''
+    batchDate: string = '',
+    branch: string = '',
+    donorType: string = ''
   ): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
@@ -338,6 +342,8 @@ export class PaymentService extends BaseHttpService {
     if (search) params = params.set('search', search);
     if (startDate) params = params.set('start_date', startDate);
     if (endDate) params = params.set('end_date', endDate);
+    if (branch) params = params.set('branch', branch);
+    if (donorType) params = params.set('donor_type', donorType);
 
     return this.httpClient.get<any>(this.endPoint.batchReceipts, {
       headers: this.headers,

@@ -142,21 +142,55 @@
 
 .filter-controls-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1.1fr 1.3fr 1.1fr auto;
+  grid-template-columns: 1.3fr 1fr 0.95fr 1fr 1.2fr 1fr auto;
   gap: 14px;
   align-items: flex-end;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .filter-controls-grid {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .filter-controls-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
   .filter-controls-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.col-branch {
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-main, #1c1917);
+}
+
+.donor-type-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.donor-type-new {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.donor-type-old {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .filter-field {

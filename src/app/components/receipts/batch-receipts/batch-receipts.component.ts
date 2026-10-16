@@ -7,6 +7,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { PaymentService } from '../../../services/payment.service';
 import { ToastService } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
+import { BranchListService } from '../../../services/branch-list.service';
 import { AddOnlinePaymentModalComponent } from '../../../modals/add-online-payment-modal/add-online-payment-modal.component';
 
 @Component({
@@ -20,9 +21,14 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
   paymentService = inject(PaymentService);
   toastService = inject(ToastService);
   authService = inject(AuthService);
+  branchService = inject(BranchListService);
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
+
+  // Branches state
+  branches = signal<any[]>([]);
+  selectedBranch = signal<string>('');
 
   // Batches state
   batchRuns = signal<any[]>([]);
@@ -37,6 +43,7 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
 
   // Filters
   searchQuery = signal<string>('');
+  donorTypeFilter = signal<string>(''); // '' (All), 'NEW', 'OLD'
   selectedBatchDate = signal<string>(''); // particular date batch was generated
   whatsappFilter = signal<string>('false'); // default is false: only un-sent
   startDate = signal<string>('');
@@ -64,6 +71,7 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    this.loadBranches();
     // Default: list overall batch records where status == 'OK' and WhatsApp receipt unsent
     // Do NOT fetch all historical runs on page load
     this.fetchRecords();
@@ -84,6 +92,26 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadBranches(): void {
+    this.branchService.getData(1, 100).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 'success' && res.data) {
+          const list = Array.isArray(res.data) ? res.data : (res.data.results || []);
+          this.branches.set(list.filter((b: any) => !b.is_trust));
+        } else if (res && res.results) {
+          this.branches.set(res.results.filter((b: any) => !b.is_trust));
+        } else if (res && res.data) {
+          this.branches.set(res.data.filter((b: any) => !b.is_trust));
+        } else if (Array.isArray(res)) {
+          this.branches.set(res.filter((b: any) => !b.is_trust));
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching branches for batch receipts:', err);
+      }
+    });
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -94,13 +122,31 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
     this.searchSubject.next(value);
   }
 
+  onBranchChange(branchId: string): void {
+    this.selectedBranch.set(branchId || '');
+    this.currentPage.set(1);
+    if (this.selectedBatchDate()) {
+      this.fetchBatchRunsForDate(this.selectedBatchDate());
+    }
+    this.fetchRecords();
+  }
+
+  onDonorTypeChange(type: string): void {
+    this.donorTypeFilter.set(type || '');
+    this.currentPage.set(1);
+    if (this.selectedBatchDate()) {
+      this.fetchBatchRunsForDate(this.selectedBatchDate());
+    }
+    this.fetchRecords();
+  }
+
   fetchBatchRunsForDate(batchDate: string): void {
     if (!batchDate) {
       this.batchRuns.set([]);
       return;
     }
     this.isLoadingBatches.set(true);
-    this.paymentService.getBatchReceiptRuns(batchDate).subscribe({
+    this.paymentService.getBatchReceiptRuns(batchDate, this.selectedBranch(), this.donorTypeFilter()).subscribe({
       next: (res: any) => {
         this.isLoadingBatches.set(false);
         if (res && res.data) {
@@ -127,7 +173,9 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
         this.pageSize(),
         this.startDate(),
         this.endDate(),
-        this.selectedBatchDate()
+        this.selectedBatchDate(),
+        this.selectedBranch(),
+        this.donorTypeFilter()
       )
       .subscribe({
         next: (res: any) => {
@@ -186,6 +234,8 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.searchQuery.set('');
+    this.selectedBranch.set('');
+    this.donorTypeFilter.set('');
     this.selectedBatchDate.set('');
     this.selectedBatchId.set('');
     this.batchRuns.set([]);

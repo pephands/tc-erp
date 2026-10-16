@@ -192,6 +192,10 @@ export class Endpoint {
     return this.baseUrl + `payments/receipts/${id}/edit/`;
   }
 
+  get paymentReceiptSync(): string {
+    return this.baseUrl + 'payments/receipts/sync/';
+  }
+
   get paymentModes(): string {
     return this.baseUrl + 'payments/modes/';
   }
