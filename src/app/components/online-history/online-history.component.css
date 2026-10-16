@@ -321,10 +321,44 @@
   justify-content: center;
 }
 
+.col-actions-header,
 .col-actions {
-  display: flex;
-  gap: 0.5rem;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.actions-wrapper {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-action-aesthetic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-action-aesthetic .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+.btn-edit {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.btn-edit:hover {
+  background: #d97706;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-action-icon {

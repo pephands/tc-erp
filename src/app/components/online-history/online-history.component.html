@@ -145,12 +145,15 @@
             <th>Remarks</th>
             <th>Status</th>
             <th>Proof File</th>
+            @if (canEdit()) {
+            <th class="col-actions-header">Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
           @if (isLoading()) {
           <tr>
-            <td colspan="18" class="loading-state">
+            <td [attr.colspan]="canEdit() ? 19 : 18" class="loading-state">
               <span class="material-symbols-outlined spin-icon">progress_activity</span>
               <p>Loading approved records...</p>
             </td>
@@ -194,10 +197,19 @@
               <span class="no-file-text">No File</span>
               }
             </td>
+            @if (canEdit()) {
+            <td class="col-actions">
+              <div class="actions-wrapper">
+                <button type="button" class="btn-action-aesthetic btn-edit" title="Edit Record" (click)="onEdit(rec)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+              </div>
+            </td>
+            }
           </tr>
           } @empty {
           <tr>
-            <td colspan="17" class="empty-state">
+            <td [attr.colspan]="canEdit() ? 19 : 18" class="empty-state">
               <span class="material-symbols-outlined empty-icon">verified_user</span>
               <p class="empty-title">No Online History Found</p>
               <p class="empty-sub">Once TL verifies your submitted records, they will appear here.</p>
@@ -242,3 +254,11 @@
     }
   </div>
 </main>
+
+@if (showEditModal()) {
+<app-add-online-payment-modal
+  [editRecord]="editRecord()"
+  (close)="onModalClose()"
+  (submitted)="onModalSubmit()">
+</app-add-online-payment-modal>
+}

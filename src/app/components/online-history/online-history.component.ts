@@ -7,11 +7,12 @@ import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
 import * as XLSX from 'xlsx';
+import { AddOnlinePaymentModalComponent } from '../../modals/add-online-payment-modal/add-online-payment-modal.component';
 
 @Component({
   selector: 'app-online-history',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddOnlinePaymentModalComponent],
   providers: [DatePipe],
   templateUrl: './online-history.component.html',
   styleUrl: './online-history.component.css'
@@ -47,6 +48,11 @@ export class OnlineHistoryComponent implements OnInit {
   branches = signal<any[]>([]);
 
   canExportXLSX = computed(() => this.isAdmin() || this.isTL() || this.isOT());
+  canEdit = computed(() => this.isAdmin() || this.isOT());
+
+  // Edit modal state (Admin & Online Payment Team only)
+  showEditModal = signal<boolean>(false);
+  editRecord = signal<OnlinePaymentRecord | null>(null);
 
   // Pagination
   currentPage = signal<number>(1);
@@ -258,6 +264,28 @@ export class OnlineHistoryComponent implements OnInit {
       this.currentPage.update(p => p + 1);
       this.fetchApprovedRecords();
     }
+  }
+
+  // Edit Handlers (Restricted to Admin and Online Payment Team)
+  onEdit(rec: OnlinePaymentRecord): void {
+    if (!this.canEdit()) {
+      this.toastService.warning('Unauthorized', 'Only Admin and Online Payment Team can edit records.');
+      return;
+    }
+    this.editRecord.set(rec);
+    this.showEditModal.set(true);
+  }
+
+  onModalClose(): void {
+    this.showEditModal.set(false);
+    this.editRecord.set(null);
+  }
+
+  onModalSubmit(): void {
+    this.showEditModal.set(false);
+    this.editRecord.set(null);
+    this.toastService.success('Record Updated', 'Payment record updated successfully.');
+    this.fetchApprovedRecords();
   }
 
   exportToXLSX(): void {
