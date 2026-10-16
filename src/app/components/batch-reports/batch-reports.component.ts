@@ -6,6 +6,7 @@ import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
 
+import { ToastService } from '../../services/toast.service';
 import { AddOnlinePaymentModalComponent } from '../../modals/add-online-payment-modal/add-online-payment-modal.component';
 
 @Component({
@@ -18,9 +19,12 @@ import { AddOnlinePaymentModalComponent } from '../../modals/add-online-payment-
 export class BatchReportsComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
 
   isAdmin = signal<boolean>(false);
   isManager = signal<boolean>(false);
+  isTL = signal<boolean>(false);
+  deletingRecordId = signal<number | null>(null);
   activeTab = signal<string>('');
 
   // Data & State for Records
@@ -76,6 +80,7 @@ export class BatchReportsComponent implements OnInit {
   ngOnInit(): void {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR', 'OT']));
     this.isManager.set(this.authService.hasRole(['MANAGER']) && !this.isAdmin());
+    this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEAD', 'TEAM LEADER']));
     
     // Set default tab based on role
     if (this.isAdmin()) {
@@ -603,5 +608,41 @@ export class BatchReportsComponent implements OnInit {
   onEditSubmitted(): void {
     this.closeEditModal();
     this.fetchDataForActiveTab();
+  }
+
+  // Delete Handler (Restricted to TL role only)
+  onDeleteRecord(rec: OnlinePaymentRecord): void {
+    if (!this.isTL()) {
+      this.toastService.warning('Unauthorized', 'Only Team Leaders are authorized to delete submitted records.');
+      return;
+    }
+
+    const donorName = rec.donor_name || 'this record';
+    const amountStr = rec.amount ? ` ₹${rec.amount}` : '';
+    const refStr = rec.reference_id ? ` (Ref: ${rec.reference_id})` : '';
+
+    if (!confirm(`Are you sure you want to permanently delete record for ${donorName}${amountStr}${refStr}?\n\nThis will permanently delete the record. This action cannot be undone.`)) {
+      return;
+    }
+
+    this.deletingRecordId.set(rec.id);
+    this.paymentService.deletePaymentRecord(rec.id).subscribe({
+      next: (res: any) => {
+        this.deletingRecordId.set(null);
+        const msg = res?.message || 'Record permanently deleted successfully.';
+        this.uploadMessage.set(msg);
+        this.toastService.success('Record Deleted', msg);
+        setTimeout(() => this.uploadMessage.set(''), 5000);
+        this.fetchRecords();
+      },
+      error: (err: any) => {
+        this.deletingRecordId.set(null);
+        console.error('Error deleting record:', err);
+        const errorMsg = err?.error?.message || 'Failed to delete record. Please try again.';
+        this.uploadError.set(errorMsg);
+        this.toastService.error('Delete Failed', errorMsg);
+        setTimeout(() => this.uploadError.set(''), 5000);
+      }
+    });
   }
 }

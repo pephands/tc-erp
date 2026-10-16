@@ -83,6 +83,12 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  deletePaymentRecord(id: number | string): Observable<any> {
+    return this.httpClient.delete<any>(`${this.endpoint}${id}/`, {
+      headers: this.headers,
+    });
+  }
+
   sendWhatsappReceipt(id: number | string): Observable<any> {
     return this.httpClient.post<any>(this.endPoint.paymentRecordSendWhatsappReceipt(id), {}, {
       headers: this.headers,

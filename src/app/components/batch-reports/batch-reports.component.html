@@ -544,7 +544,7 @@
               <th>Donor Type</th>
               <th>Status</th>
               <th>Proof File</th>
-              <th>Action</th>
+              <th style="min-width: 170px;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -592,10 +592,24 @@
                     }
                   </td>
                   <td class="col-action">
-                    <button type="button" class="btn-action-primary" (click)="openEditModal(rec)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
-                      <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span>
-                      <span>Edit</span>
-                    </button>
+                    <div class="actions-wrapper">
+                      <button type="button" class="btn-action-primary" (click)="openEditModal(rec)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                        <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span>
+                        <span>Edit</span>
+                      </button>
+
+                      @if (isTL()) {
+                        <button type="button" class="btn-action-delete" (click)="onDeleteRecord(rec)" [disabled]="deletingRecordId() === rec.id" title="Permanently Delete Record">
+                          @if (deletingRecordId() === rec.id) {
+                            <span class="material-symbols-outlined spin-icon" style="font-size: 1rem;">progress_activity</span>
+                            <span>Deleting...</span>
+                          } @else {
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">delete</span>
+                            <span>Delete</span>
+                          }
+                        </button>
+                      }
+                    </div>
                   </td>
                 </tr>
               } @empty {
