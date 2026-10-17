@@ -555,6 +555,12 @@ export class ReceiptListComponent implements OnInit {
     this.router.navigate(['/receipts/create']);
   }
 
+  hasReceiptId(record: any): boolean {
+    if (!record || !record.receipt_id) return false;
+    const val = String(record.receipt_id).trim();
+    return val.length > 0 && val !== '-';
+  }
+
   // Actions
   onView(record: OnlinePaymentRecord) {
     if (record.generated_receipt) {

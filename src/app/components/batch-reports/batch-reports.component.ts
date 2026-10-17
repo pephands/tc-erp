@@ -273,9 +273,22 @@ export class BatchReportsComponent implements OnInit {
           if (rec.created_at) {
             try {
               const d = new Date(rec.created_at);
-              submittedDateStr = !isNaN(d.getTime()) ? d.toISOString().replace('T', ' ').substring(0, 16) : rec.created_at;
+              if (!isNaN(d.getTime())) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                let hours = d.getHours();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                const hh = String(hours).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                submittedDateStr = `${y}-${m}-${day} ${hh}:${mm} ${ampm}`;
+              } else {
+                submittedDateStr = String(rec.created_at);
+              }
             } catch {
-              submittedDateStr = rec.created_at;
+              submittedDateStr = String(rec.created_at);
             }
           }
 

@@ -389,7 +389,7 @@
                   
                   <td><strong>{{ batch.name }}</strong></td>
                   <td class="col-date">{{ batch.date | date:'yyyy-MM-dd' }}</td>
-                  <td class="col-date">{{ batch.generated_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                  <td class="col-date">{{ batch.generated_at | date:'yyyy-MM-dd hh:mm a' }}</td>
                   
                   <td>
                     @if(batch.status === 'COMPLETED') {
@@ -558,7 +558,7 @@
             } @else {
               @for (rec of records(); track rec.id) {
                 <tr>
-                  <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+                  <td class="col-date">{{ rec.created_at | date:'yyyy-MM-dd hh:mm a' }}</td>
                   <td>
                     <strong>{{ rec.telecaller_employee_Id || '-' }}</strong>
                     @if (rec.telecaller_name) {

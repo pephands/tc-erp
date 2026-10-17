@@ -259,8 +259,18 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
     this.fetchRecords();
   }
 
+  hasReceiptId(record: any): boolean {
+    if (!record || !record.receipt_id) return false;
+    const val = String(record.receipt_id).trim();
+    return val.length > 0 && val !== '-';
+  }
+
   // Row Action Handlers
   onView(record: any): void {
+    if (!this.hasReceiptId(record)) {
+      this.toastService.error('Missing Receipt ID', 'Receipt ID is not available for this record.');
+      return;
+    }
     if (record.generated_receipt_url) {
       const sep = record.generated_receipt_url.includes('?') ? '&' : '?';
       const freshUrl = `${record.generated_receipt_url}${sep}t=${Date.now()}`;
@@ -284,6 +294,10 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
   }
 
   onDownload(record: any): void {
+    if (!this.hasReceiptId(record)) {
+      this.toastService.error('Missing Receipt ID', 'Receipt ID is not available for this record.');
+      return;
+    }
     if (record.generated_receipt_url) {
       const sep = record.generated_receipt_url.includes('?') ? '&' : '?';
       const freshUrl = `${record.generated_receipt_url}${sep}t=${Date.now()}`;
@@ -346,7 +360,10 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
   }
 
   onSendWhatsApp(record: any): void {
-    if (!record.id) return;
+    if (!record.id || !this.hasReceiptId(record)) {
+      this.toastService.error('Missing Receipt ID', 'Receipt ID is required to send WhatsApp receipt.');
+      return;
+    }
     this.sendingWhatsApp.update((s) => new Set(s).add(record.id));
     this.paymentService.sendWhatsappReceipt(record.id).subscribe({
       next: () => {

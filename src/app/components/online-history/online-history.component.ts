@@ -369,8 +369,8 @@ export class OnlineHistoryComponent implements OnInit {
           try {
             const exportData = items.map(rec => {
               const approvedDate = rec.approved_at
-                ? (this.datePipe.transform(rec.approved_at, 'yyyy-MM-dd HH:mm') || rec.approved_at)
-                : (rec.created_at ? (this.datePipe.transform(rec.created_at, 'yyyy-MM-dd HH:mm') || rec.created_at) : '-');
+                ? (this.datePipe.transform(rec.approved_at, 'yyyy-MM-dd hh:mm a') || rec.approved_at)
+                : (rec.created_at ? (this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at) : '-');
 
               return {
                 'Approved Date': approvedDate,

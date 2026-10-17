@@ -183,7 +183,7 @@
             <td class="col-actions"
               style="white-space: nowrap; display: flex; gap: 8px; justify-content: center; align-items: center; border-bottom: none; height: 100%;">
 
-              @if ((rec.donation_type || 'Amount') === 'Amount') {
+              @if ((rec.donation_type || 'Amount') === 'Amount' && hasReceiptId(rec)) {
               <button type="button" class="btn-action-aesthetic btn-view" title="View Receipt" (click)="onView(rec)">
                 <span class="material-symbols-outlined">visibility</span>
               </button>
@@ -207,7 +207,7 @@
               </button>
               }
 
-              } @else {
+              } @else if ((rec.donation_type || 'Amount') !== 'Amount') {
               <!-- For Goodies, just a placeholder or alternative view if needed. No receipt generation. -->
               <span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No Receipt</span>
               }
