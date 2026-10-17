@@ -79,10 +79,20 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
-  deleteReceipt(id: number | string): Observable<any> {
-    return this.httpClient.delete<any>(`${this.endpoint}${id}/`, {
+  deleteReceiptFile(id: number | string): Observable<any> {
+    return this.httpClient.delete<any>(this.endPoint.paymentRecordReceipt(Number(id)), {
       headers: this.headers,
     });
+  }
+
+  deleteTrustReceiptFile(id: number | string): Observable<any> {
+    return this.httpClient.delete<any>(this.endPoint.trustReceiptDownload(id), {
+      headers: this.headers,
+    });
+  }
+
+  deleteReceipt(id: number | string): Observable<any> {
+    return this.deleteReceiptFile(id);
   }
 
   deletePaymentRecord(id: number | string): Observable<any> {

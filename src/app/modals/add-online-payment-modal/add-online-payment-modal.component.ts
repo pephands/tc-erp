@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, inject, signal, OnChanges, SimpleChanges, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, Input, inject, signal, computed, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
@@ -43,7 +43,21 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   existingProofUrl = signal<string | null>(null);
   isProofReplaced = signal<boolean>(false);
 
+  selectedReceiptFile = signal<File | null>(null);
+  selectedReceiptFileName = signal<string>('');
+  existingReceiptUrl = signal<string | null>(null);
+  isReceiptReplaced = signal<boolean>(false);
+  isReceiptCleared = signal<boolean>(false);
+
   paymentModes = signal<any[]>([]);
+
+  isAdmin = signal<boolean>(false);
+  isOT = signal<boolean>(false);
+  canEditReceiptId = computed(() => this.isAdmin() || this.isOT());
+  canChangeStatus = computed(() => this.isAdmin() || this.isOT());
+
+  status = signal<string>('OK');
+  customStatus = signal<string>('');
 
   isSubmitting = signal<boolean>(false);
   errorMessage = signal<string>('');
@@ -53,10 +67,17 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     if (user && (user as any).slab) {
       this.slab.set((user as any).slab);
     }
+    this.checkRoles();
   }
 
   ngOnInit() {
+    this.checkRoles();
     this.fetchPaymentModes();
+  }
+
+  checkRoles(): void {
+    this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
+    this.isOT.set(this.authService.hasRole(['OT', 'ONLINE PAYMENT TEAM']));
   }
 
   fetchPaymentModes() {
@@ -89,8 +110,22 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.address.set(this.editRecord.address || '');
       this.dob.set(this.editRecord.dob || '');
       this.remarks.set(this.editRecord.remarks || '');
-      this.existingProofUrl.set((this.editRecord as any).payment_proof_url || null);
+      const curStatus = this.editRecord.status || 'OK';
+      this.status.set(curStatus);
+      if (!['OK', 'RESEND', 'PENDING', 'NOT OK', 'INVALID'].includes(curStatus)) {
+        this.customStatus.set(curStatus);
+      } else {
+        this.customStatus.set('');
+      }
+      this.existingProofUrl.set((this.editRecord as any).payment_proof_url || (this.editRecord as any).payment_proof || null);
       this.isProofReplaced.set(false);
+
+      const rUrl = (this.editRecord as any).generated_receipt_url || (this.editRecord as any).generated_receipt || null;
+      this.existingReceiptUrl.set(rUrl);
+      this.isReceiptReplaced.set(false);
+      this.isReceiptCleared.set(false);
+      this.selectedReceiptFile.set(null);
+      this.selectedReceiptFileName.set('');
     }
   }
 
@@ -100,6 +135,41 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.selectedFile.set(file);
       this.selectedFileName.set(file.name);
     }
+  }
+
+  onReceiptFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedReceiptFile.set(file);
+      this.selectedReceiptFileName.set(file.name);
+      this.isReceiptCleared.set(false);
+    }
+  }
+
+  replaceReceipt(): void {
+    this.isReceiptReplaced.set(true);
+    this.isReceiptCleared.set(false);
+    this.selectedReceiptFile.set(null);
+    this.selectedReceiptFileName.set('');
+  }
+
+  clearReceipt(): void {
+    this.isReceiptCleared.set(true);
+    this.isReceiptReplaced.set(false);
+    this.selectedReceiptFile.set(null);
+    this.selectedReceiptFileName.set('');
+  }
+
+  undoClearReceipt(): void {
+    this.isReceiptCleared.set(false);
+    this.isReceiptReplaced.set(false);
+    this.selectedReceiptFile.set(null);
+    this.selectedReceiptFileName.set('');
+  }
+
+  removeSelectedReceiptFile(): void {
+    this.selectedReceiptFile.set(null);
+    this.selectedReceiptFileName.set('');
   }
 
   removeExistingProof(): void {
@@ -164,9 +234,23 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     }
   }
 
+  onStatusChange(val: string): void {
+    this.status.set(val);
+    if (val !== 'CUSTOM') {
+      this.customStatus.set('');
+    }
+  }
+
   onReset(): void {
     this.paymentDate.set(new Date().toISOString().slice(0, 10));
     this.receiptId.set(this.editRecord ? (this.editRecord.receipt_id || '') : '');
+    const defaultStatus = this.editRecord ? (this.editRecord.status || 'OK') : 'OK';
+    this.status.set(defaultStatus);
+    if (!['OK', 'RESEND', 'PENDING', 'NOT OK', 'INVALID'].includes(defaultStatus)) {
+      this.customStatus.set(defaultStatus);
+    } else {
+      this.customStatus.set('');
+    }
     this.mobileNumber.set('');
     this.altMobileNumber.set('');
     this.donorName.set('');
@@ -186,6 +270,12 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     this.selectedFile.set(null);
     this.selectedFileName.set('');
     this.isProofReplaced.set(false);
+    const rUrl = (this.editRecord as any)?.generated_receipt_url || (this.editRecord as any)?.generated_receipt || null;
+    this.existingReceiptUrl.set(rUrl);
+    this.selectedReceiptFile.set(null);
+    this.selectedReceiptFileName.set('');
+    this.isReceiptReplaced.set(false);
+    this.isReceiptCleared.set(false);
     this.errorMessage.set('');
   }
 
@@ -244,8 +334,26 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
     const formData = new FormData();
     formData.append('payment_date', this.paymentDate());
-    if (this.editRecord) {
-      formData.append('receipt_id', this.receiptId().trim());
+    if (this.canEditReceiptId()) {
+      const rId = this.receiptId().trim();
+      if (rId) {
+        formData.append('receipt_id', rId);
+      } else if (this.editRecord) {
+        formData.append('receipt_id', '');
+      }
+
+      if (this.isReceiptCleared() && !this.selectedReceiptFile()) {
+        formData.append('clear_receipt', 'true');
+      } else if (this.selectedReceiptFile()) {
+        formData.append('generated_receipt', this.selectedReceiptFile()!, this.selectedReceiptFile()!.name);
+      }
+    }
+
+    if (this.canChangeStatus()) {
+      const finalStatus = (this.status() === 'CUSTOM' ? this.customStatus() : this.status()).trim().toUpperCase();
+      if (finalStatus) {
+        formData.append('status', finalStatus);
+      }
     }
     formData.append('mobile_number', this.mobileNumber().trim());
     formData.append('alt_mobile_number', this.altMobileNumber().trim());

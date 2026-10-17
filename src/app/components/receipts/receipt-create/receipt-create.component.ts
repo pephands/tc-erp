@@ -41,6 +41,9 @@ export class ReceiptCreateComponent implements OnInit {
   branches = signal<any[]>([]);
   isAdmin = signal<boolean>(false);
   isPR = signal<boolean>(false);
+  isOT = signal<boolean>(false);
+  receiptId = signal<string>('');
+  canEditReceiptId = computed(() => this.isAdmin() || this.isOT());
 
   // Branch User Selection (for Admin)
   branchUsers = signal<any[]>([]);
@@ -103,6 +106,9 @@ export class ReceiptCreateComponent implements OnInit {
     }
     if (this.authService.hasRole(['ADMIN', 'ADMINISTRATOR'])) {
       this.isAdmin.set(true);
+      this.fetchBranches();
+    } else if (this.authService.hasRole(['OT', 'ONLINE PAYMENT TEAM'])) {
+      this.isOT.set(true);
       this.fetchBranches();
     } else if (this.authService.hasRole(['PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER', 'PR'])) {
       this.isPR.set(true);
@@ -439,6 +445,9 @@ export class ReceiptCreateComponent implements OnInit {
 
     const formData = new FormData();
     formData.append('payment_date', this.paymentDate());
+    if (this.canEditReceiptId() && this.receiptId().trim()) {
+      formData.append('receipt_id', this.receiptId().trim());
+    }
     formData.append('mobile_number', this.mobileNumber().trim());
     if (this.altMobileNumber().trim()) {
       formData.append('alt_mobile_number', this.altMobileNumber().trim());

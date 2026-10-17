@@ -213,12 +213,12 @@
               }
 
               @if (canEdit(rec)) {
-              <button type="button" class="btn-action-aesthetic btn-edit" title="Edit" (click)="onEdit(rec)">
+              <button type="button" class="btn-action-aesthetic btn-edit" title="Edit Record Details" (click)="onEdit(rec)">
                 <span class="material-symbols-outlined">edit</span>
               </button>
               }
-              @if (canDelete(rec)) {
-              <button type="button" class="btn-action-aesthetic btn-delete" title="Delete" (click)="onDelete(rec)">
+              @if (canDeleteReceiptFile(rec)) {
+              <button type="button" class="btn-action-aesthetic btn-delete" title="Delete Receipt File" (click)="onDeleteReceiptFile(rec)">
                 <span class="material-symbols-outlined">delete</span>
               </button>
               }

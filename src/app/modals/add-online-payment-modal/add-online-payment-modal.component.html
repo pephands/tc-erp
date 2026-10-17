@@ -37,8 +37,8 @@
           />
         </div>
 
-        <!-- 1b. Receipt ID (When editing record) -->
-        <!-- @if (editRecord) {
+        <!-- 1b. Receipt ID (Only for Admin and Online Payment Team) -->
+        @if (canEditReceiptId()) {
           <div class="form-group fg-receipt-id">
             <label for="receiptId">Receipt ID</label>
             <input
@@ -50,7 +50,7 @@
               (ngModelChange)="receiptId.set($event)"
             />
           </div>
-        } -->
+        }
 
         <!-- 2. Donor Number -->
         <div class="form-group fg-donor-number">
@@ -180,6 +180,58 @@
           }
         </div>
 
+        <!-- 8b. Receipt File (Only for Admin and Online Payment Team) -->
+        @if (canEditReceiptId()) {
+          <div class="form-group fg-receipt-file">
+            <label for="receiptFile">Receipt File</label>
+            <span class="file-allowed-hint">Allowed extension (.pdf)</span>
+
+            @if (isReceiptCleared()) {
+              <div class="file-cleared-notice" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px dashed #ef4444; border-radius: 6px; background: #fef2f2; margin-top: 5px;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #dc2626; font-size: 0.85rem; font-weight: 500;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete_outline</span>
+                  <span>Receipt file will be cleared</span>
+                </div>
+                <button type="button" class="btn-undo" style="padding: 4px 10px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #fff; color: #334155; border-radius: 4px; cursor: pointer;" (click)="undoClearReceipt()">
+                  Undo
+                </button>
+              </div>
+            } @else if (existingReceiptUrl() && !isReceiptReplaced()) {
+              <div class="existing-file-preview" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9; margin-top: 5px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span class="material-symbols-outlined" style="color: #0284c7;">description</span>
+                  <span style="font-size: 0.875rem; font-weight: 500; color: #1e293b;">Existing Receipt</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <a [href]="existingReceiptUrl()" target="_blank" class="btn-secondary-action" style="text-decoration: none; padding: 4px 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 4px; color: #334155; background: #fff;">View</a>
+                  <button type="button" class="btn-secondary-action" style="padding: 4px 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 4px; color: #334155; background: #fff; cursor: pointer;" (click)="replaceReceipt()">Replace</button>
+                  <button type="button" class="btn-delete" style="padding: 4px 8px; font-size: 0.85rem; border: none; background: #ffebee; color: #d32f2f; border-radius: 4px; cursor: pointer;" (click)="clearReceipt()">Clear</button>
+                </div>
+              </div>
+            } @else {
+              <div class="file-input-wrapper" style="position: relative; display: flex; align-items: center; gap: 8px;">
+                <input
+                  type="file"
+                  id="receiptFile"
+                  accept=".pdf"
+                  (change)="onReceiptFileSelected($event)"
+                />
+                @if (existingReceiptUrl() && isReceiptReplaced()) {
+                  <button type="button" class="btn-cancel-replace" style="padding: 6px 10px; font-size: 0.8rem; border: 1px solid #cbd5e1; background: #f8fafc; color: #64748b; border-radius: 4px; cursor: pointer; white-space: nowrap;" (click)="undoClearReceipt()" title="Keep existing receipt">
+                    Cancel
+                  </button>
+                }
+              </div>
+              @if (selectedReceiptFileName()) {
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; font-size: 0.8rem; color: #0284c7;">
+                  <span>Selected: {{ selectedReceiptFileName() }}</span>
+                  <button type="button" style="border: none; background: transparent; color: #ef4444; cursor: pointer; font-size: 0.8rem;" (click)="removeSelectedReceiptFile()">Remove</button>
+                </div>
+              }
+            }
+          </div>
+        }
+
         <!-- 9. Donor Type -->
         <div class="form-group fg-donor-type">
           <label for="donorType">Donor Type <span class="required-star">*</span></label>
@@ -271,6 +323,50 @@
             (ngModelChange)="remarks.set($event)"
           ></textarea>
         </div>
+
+        <!-- 16. Status (Only for Admin and Online Payment Team) -->
+        @if (canChangeStatus()) {
+          <div class="form-group fg-status">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.15rem;">
+              <label for="recordStatus">Status <span class="required-star">*</span></label>
+              <span
+                class="status-preview-badge"
+                [style.background]="status() === 'OK' ? '#d1fae5' : (status() === 'RESEND' ? '#fef3c7' : (status() === 'PENDING' ? '#e0e7ff' : '#fee2e2'))"
+                [style.color]="status() === 'OK' ? '#065f46' : (status() === 'RESEND' ? '#d97706' : (status() === 'PENDING' ? '#4338ca' : '#b91c1c'))"
+                [style.border]="status() === 'OK' ? '1px solid #10b981' : (status() === 'RESEND' ? '1px solid #fcd34d' : (status() === 'PENDING' ? '1px solid #c7d2fe' : '1px solid #f87171'))"
+                style="padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;"
+              >
+                {{ status() === 'CUSTOM' ? (customStatus() || 'CUSTOM') : status() }}
+              </span>
+            </div>
+            <select
+              id="recordStatus"
+              class="form-control"
+              [ngModel]="status()"
+              (ngModelChange)="onStatusChange($event)"
+            >
+              <option value="OK">OK</option>
+              <option value="RESEND">RESEND</option>
+              <option value="PENDING">PENDING</option>
+              <option value="NOT OK">NOT OK</option>
+              <option value="INVALID">INVALID</option>
+              @if (status() && !['OK', 'RESEND', 'PENDING', 'NOT OK', 'INVALID', 'CUSTOM'].includes(status())) {
+                <option [value]="status()">{{ status() }}</option>
+              }
+              <option value="CUSTOM">Custom Status...</option>
+            </select>
+            @if (status() === 'CUSTOM') {
+              <input
+                type="text"
+                class="form-control uppercase-input"
+                style="margin-top: 6px;"
+                placeholder="Enter Custom Status"
+                [ngModel]="customStatus()"
+                (ngModelChange)="customStatus.set($event)"
+              />
+            }
+          </div>
+        }
       </div>
     </div>
 

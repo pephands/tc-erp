@@ -279,6 +279,25 @@ export class TrustReceiptsComponent implements OnInit {
     return false;
   }
 
+  canDeleteReceiptFile(rec: OnlinePaymentRecord): boolean {
+    return (this.isAdmin() || this.isOT()) && (rec.donation_type || 'Amount') === 'Amount' && !!(rec.generated_receipt || rec.generated_receipt_url);
+  }
+
+  onDeleteReceiptFile(record: OnlinePaymentRecord): void {
+    if (confirm('Are you sure you want to delete the existing receipt file for this record? (The record details will be kept, and you can edit or regenerate the receipt).')) {
+      this.paymentService.deleteTrustReceiptFile(record.id).subscribe({
+        next: (res: any) => {
+          this.toastService.success('Receipt File Deleted', res.message || 'Receipt file deleted successfully.');
+          this.fetchTrustReceipts();
+        },
+        error: (err: any) => {
+          console.error('Error deleting trust receipt file:', err);
+          this.toastService.error('Delete Failed', err.error?.message || 'Failed to delete the receipt file.');
+        }
+      });
+    }
+  }
+
   onEdit(record: OnlinePaymentRecord): void {
     this.editRecord.set(record);
     this.showEditModal.set(true);

@@ -63,6 +63,7 @@ export class ReceiptListComponent implements OnInit {
   // Auth & Roles
   isAdmin = signal<boolean>(false);
   isTCT = signal<boolean>(false);
+  isOT = signal<boolean>(false);
   isManager = signal<boolean>(false);
   isTL = signal<boolean>(false);
   isTC = signal<boolean>(false);
@@ -92,11 +93,12 @@ export class ReceiptListComponent implements OnInit {
   checkUserRole(): void {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR', 'TCT']));
     this.isTCT.set(this.authService.hasRole(['TCT']));
+    this.isOT.set(this.authService.hasRole(['OT', 'ONLINE PAYMENT TEAM']));
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER', 'TEAM LEAD']) && !this.isAdmin());
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
     this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER']));
-    this.isTC.set(this.authService.hasRole(['TC', 'TELECALLER', 'TELE CALLER']) || (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR()));
+    this.isTC.set(this.authService.hasRole(['TC', 'TELECALLER', 'TELE CALLER']) || (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR() && !this.isOT()));
 
     if (this.isTC()) {
       const today = new Date();
@@ -293,7 +295,7 @@ export class ReceiptListComponent implements OnInit {
   }
 
   canEdit(rec: OnlinePaymentRecord): boolean {
-    if (this.isAdmin() || this.isSuperintendent()) return true;
+    if (this.isAdmin() || this.isSuperintendent() || this.isOT()) return true;
     if (this.isPR()) {
       if (!rec.created_at) return false;
       const today = new Date();
@@ -303,8 +305,13 @@ export class ReceiptListComponent implements OnInit {
     return false;
   }
 
+  canDeleteReceiptFile(rec: OnlinePaymentRecord): boolean {
+    // Only Admin and Online Payment Team can delete existing receipt file
+    return (this.isAdmin() || this.isOT()) && (rec.donation_type || 'Amount') === 'Amount' && !!(rec.generated_receipt || rec.generated_receipt_url);
+  }
+
   canDelete(rec: OnlinePaymentRecord): boolean {
-    return this.isAdmin() || this.isSuperintendent();
+    return this.canDeleteReceiptFile(rec);
   }
 
   // Pagination Handlers
@@ -659,19 +666,23 @@ export class ReceiptListComponent implements OnInit {
     this.showEditModal.set(true);
   }
 
-  onDelete(record: OnlinePaymentRecord) {
-    if (confirm('Are you sure you want to completely delete this receipt? This action cannot be undone.')) {
-      this.paymentService.deleteReceipt(record.id).subscribe({
-        next: () => {
-          alert('Receipt deleted successfully.');
+  onDeleteReceiptFile(record: OnlinePaymentRecord): void {
+    if (confirm('Are you sure you want to delete the existing receipt file for this record? (The record details will be kept, and you can edit or regenerate the receipt).')) {
+      this.paymentService.deleteReceiptFile(record.id).subscribe({
+        next: (res: any) => {
+          this.toastService.success('Receipt File Deleted', res.message || 'Receipt file deleted successfully.');
           this.fetchReceiptRecords();
         },
         error: (err: any) => {
-          console.error('Error deleting receipt:', err);
-          alert('Failed to delete the receipt.');
+          console.error('Error deleting receipt file:', err);
+          this.toastService.error('Delete Failed', err.error?.message || 'Failed to delete the receipt file.');
         }
       });
     }
+  }
+
+  onDelete(record: OnlinePaymentRecord): void {
+    this.onDeleteReceiptFile(record);
   }
 
   onModalClose() {

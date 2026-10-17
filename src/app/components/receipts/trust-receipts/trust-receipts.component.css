@@ -383,6 +383,17 @@
   transform: translateY(-1px);
 }
 
+.btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
 .no-receipt-label {
   font-size: 0.75rem;
   color: var(--text-dim, #94a3b8);
