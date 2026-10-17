@@ -203,6 +203,11 @@ export class AuthService {
           codes.push('OT');
           codes.push('ONLINE PAYMENT TEAM');
         }
+        if (upper === 'PUBLIC RELATIONSHIP OFFICER' || upper === 'PUBLIC RELATIONS' || upper === 'PUBLIC_RELATIONS' || upper === 'PR') {
+          codes.push('PUBLIC_RELATIONS');
+          codes.push('PUBLIC RELATIONSHIP OFFICER');
+          codes.push('PUBLIC RELATIONS');
+        }
       } else if (r && typeof r === 'object') {
         const code = (r.code || '').trim().toUpperCase();
         const name = (r.name || '').trim().toUpperCase();
@@ -219,6 +224,11 @@ export class AuthService {
         if (name === 'ONLINE PAYMENT TEAM' || code === 'OT') {
           codes.push('OT');
           codes.push('ONLINE PAYMENT TEAM');
+        }
+        if (name === 'PUBLIC RELATIONSHIP OFFICER' || name === 'PUBLIC RELATIONS' || code === 'PUBLIC_RELATIONS' || code === 'PR') {
+          codes.push('PUBLIC_RELATIONS');
+          codes.push('PUBLIC RELATIONSHIP OFFICER');
+          codes.push('PUBLIC RELATIONS');
         }
       }
     }

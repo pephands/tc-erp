@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -26,6 +27,7 @@ export class TrustReceiptsComponent implements OnInit {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private datePipe = inject(DatePipe);
+  private router = inject(Router);
 
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
@@ -99,12 +101,12 @@ export class TrustReceiptsComponent implements OnInit {
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isOT.set(this.authService.hasRole(['OT', 'ONLINE PAYMENT TEAM']));
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER', 'TEAM LEAD']) && !this.isAdmin());
-    this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS']));
+    this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER']));
     this.isTC.set(this.authService.hasRole(['TC', 'TELECALLER', 'TELE CALLER']) || (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isPR() && !this.isOT()));
   }
 
   fetchTrustBranches(): void {
-    this.branchService.getData(1, 100).subscribe({
+    this.branchService.getData(1, 1000, '', 'true', 'true').subscribe({
       next: (res: any) => {
         let allBranches: any[] = [];
         if (res && res.results) {
@@ -115,7 +117,15 @@ export class TrustReceiptsComponent implements OnInit {
           allBranches = res;
         }
         // Strict filter: only trust branches
-        this.branches.set(allBranches.filter((b: any) => b.is_trust === true));
+        let trustBranches = allBranches.filter((b: any) => b.is_trust === true);
+        if (this.isPR()) {
+          const userBranchId = this.authService.currentUser()?.branch?.id;
+          if (userBranchId) {
+            trustBranches = trustBranches.filter((b: any) => b.id === userBranchId);
+            this.branchFilter.set(String(userBranchId));
+          }
+        }
+        this.branches.set(trustBranches);
       },
       error: (err: any) => {
         console.error('Error fetching trust branches:', err);
@@ -580,5 +590,9 @@ export class TrustReceiptsComponent implements OnInit {
     if (h > 0) return `${h}h ${m}m ${s}s`;
     if (m > 0) return `${m}m ${s}s`;
     return `${s}s`;
+  }
+
+  onCreateReceipt(): void {
+    this.router.navigate(['/receipts/create']);
   }
 }

@@ -87,6 +87,7 @@ export class SidebarComponent implements OnInit {
     if (roles.includes('TL')) return 'TL';
     if (roles.includes('OT') || roles.includes('ONLINE PAYMENT TEAM')) return 'OT';
     if (roles.includes('TCT')) return 'TCT';
+    if (roles.includes('PUBLIC_RELATIONS') || roles.includes('PUBLIC RELATIONSHIP OFFICER') || roles.includes('PR')) return 'PUBLIC_RELATIONS';
     if (roles.includes('TC')) return 'TC';
     return roles.length > 0 ? roles[0] : '';
   }
@@ -392,21 +393,28 @@ export class SidebarComponent implements OnInit {
       label: 'Receipts',
       icon: 'receipt_long',
       category: 'Finance',
-      allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'TCT', 'OT','ONLINE PAYMENT TEAM'],
+      allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER', 'TCT', 'OT','ONLINE PAYMENT TEAM'],
       submenus: [
+        // {
+        //   id: 'receipt_create',
+        //   label: 'Create Receipt',
+        //   icon: 'add_circle',
+        //   route: '/receipts/create',
+        //   allowedRoles: ['ADMIN', 'PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER'],
+        // },
         {
           id: 'receipts_view',
           label: 'Receipt List',
           icon: 'receipt',
           route: '/receipts/view',
-           allowedRoles: ['ADMIN', 'TL', 'TC', 'PUBLIC_RELATIONS', 'TCT'],
+           allowedRoles: ['ADMIN', 'TL', 'TC','TCT'],
         },
         {
           id: 'trust_receipts',
           label: 'Trust Receipts',
           icon: 'verified_user',
           route: '/receipts/trust-receipts',
-           allowedRoles: ['ADMIN', 'OT','ONLINE PAYMENT TEAM'],
+          allowedRoles: ['ADMIN', 'OT', 'ONLINE PAYMENT TEAM', 'PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER'],
         },
         {
           id: 'batch_receipts',
@@ -615,9 +623,9 @@ export class SidebarComponent implements OnInit {
       return 'manager';
     }
 
-    if (cleanUrl.includes('/receipts/create') || cleanUrl === '/receipts' || cleanUrl === '/receipts/') {
+    if (cleanUrl === '/receipts' || cleanUrl === '/receipts/') {
       this.expandedMenuIds.update((set) => new Set(set).add('receipts'));
-      return this.primaryRole === 'OT' || this.primaryRole === 'ONLINE PAYMENT TEAM'
+      return this.primaryRole === 'OT' || this.primaryRole === 'ONLINE PAYMENT TEAM' || this.primaryRole === 'PUBLIC_RELATIONS'
         ? 'trust_receipts'
         : 'receipts_view';
     }

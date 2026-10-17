@@ -1,4 +1,15 @@
 <main class="page-container">
+  <!-- Submission Loading Overlay -->
+  @if (isSubmitting()) {
+    <div class="submission-loading-overlay">
+      <div class="loading-modal-card">
+        <div class="spinner-circle"></div>
+        <h3 class="loading-title">Creating Receipt...</h3>
+        <p class="loading-desc">Please wait while the receipt is being generated and saved.</p>
+      </div>
+    </div>
+  }
+
   <div class="form-card shadow-card" style="padding: 0; overflow: hidden;">
     
     <!-- Header Bar (moved inside card) -->
@@ -31,12 +42,12 @@
       </div>
     }
 
-    <div class="two-column-grid" >
+    <div class="two-column-grid">
       <!-- LEFT COLUMN -->
-      <div class="grid-column" >
+      <div class="grid-column">
         
         @if (isAdmin() || isPR()) {
-          <div class="form-group custom-dropdown-container" style="position: relative;">
+          <div class="form-group branch-dropdown-container" style="position: relative;">
             <label>Branch <span class="required-star">*</span></label>
             <div class="form-control dropdown-trigger" (click)="toggleBranchDropdown()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff;">
               <span>{{ branchName() || 'Select Branch' }}</span>
@@ -68,6 +79,57 @@
             }
           </div>
         }
+
+        <!-- Staff Member Selection (Admin Only: Once Branch is selected) -->
+        @if (isAdmin()) {
+          <div class="form-group user-dropdown-container" style="position: relative;">
+            <label>Staff Member (Telecaller / PRO) <span class="required-star">*</span></label>
+            <div 
+              class="form-control dropdown-trigger" 
+              (click)="toggleUserDropdown()" 
+              [style.cursor]="!branch() ? 'not-allowed' : 'pointer'"
+              [style.background]="!branch() ? '#f8fafc' : '#fff'"
+              style="display: flex; justify-content: space-between; align-items: center;">
+              <span [style.color]="selectedUserDisplayName() ? '#0f172a' : '#64748b'">
+                {{ selectedUserDisplayName() || (!branch() ? 'Select a branch first' : (isLoadingUsers() ? 'Loading staff members...' : 'Select Staff Member')) }}
+              </span>
+              <span class="material-symbols-outlined" style="color: #64748b; font-size: 1.2rem;">arrow_drop_down</span>
+            </div>
+
+            @if (isUserDropdownOpen() && branch()) {
+              <div class="custom-dropdown-menu" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 50; margin-top: 4px; overflow: hidden; display: flex; flex-direction: column; max-height: 250px;">
+                <div class="search-box" style="padding: 8px; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search staff by name or ID..."
+                    [ngModel]="userSearch()"
+                    (ngModelChange)="userSearch.set($event)"
+                    style="margin-bottom: 0;"
+                  />
+                </div>
+                <div class="dropdown-list" style="overflow-y: auto; flex: 1;">
+                  @for (u of filteredBranchUsers(); track u.id) {
+                    <div class="dropdown-item" (click)="selectUser(u)" style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                      <div>
+                        <div style="font-weight: 500; color: #1e293b;">{{ u.full_name || u.employee_Id }}</div>
+                        <div style="font-size: 11px; color: #64748b;">ID: {{ u.employee_Id }}</div>
+                      </div>
+                      <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: #f1f5f9; color: #475569; font-weight: 500;">
+                        {{ u.designation || getUserRoleLabel(u) }}
+                      </span>
+                    </div>
+                  } @empty {
+                    <div class="dropdown-item" style="padding: 12px; color: #94a3b8; text-align: center;">
+                      {{ isLoadingUsers() ? 'Loading staff members...' : 'No eligible active staff found' }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         <div class="form-group">
           <label>Payment Date <span class="required-star">*</span></label>
           <input
@@ -75,7 +137,6 @@
             class="form-control"
             [ngModel]="paymentDate()"
             (ngModelChange)="paymentDate.set($event)"
-            
           />
         </div>
 
@@ -85,40 +146,38 @@
             type="text"
             class="form-control"
             placeholder="Enter alternate mobile number"
-            maxlength="10"
+            maxlength="20"
             [ngModel]="altMobileNumber()"
             (ngModelChange)="onAltMobileNumberChange($event)"
-            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '').slice(0, 10)"
           />
         </div>
 
-        @if (isSuperintendent() || isPR()) {
-          <div class="form-group">
-            <label>Donation Type <span class="required-star">*</span></label>
-            <div class="action-header-right">
-              <button 
-                type="button" 
-                style="flex: 1; padding: 10px; border-radius: 6px; font-weight: 500; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
-                [style.background]="donationType() === 'Amount' ? '#eef2ff' : '#fff'"
-                [style.color]="donationType() === 'Amount' ? '#4f46e5' : '#475569'"
-                [style.borderColor]="donationType() === 'Amount' ? '#4f46e5' : '#cbd5e1'"
-                (click)="donationType.set('Amount')">
-                Amount
-              </button>
-              <button 
-                type="button" 
-                style="flex: 1; padding: 10px; border-radius: 6px; font-weight: 500; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
-                [style.background]="donationType() === 'Goodies' ? '#eef2ff' : '#fff'"
-                [style.color]="donationType() === 'Goodies' ? '#4f46e5' : '#475569'"
-                [style.borderColor]="donationType() === 'Goodies' ? '#4f46e5' : '#cbd5e1'"
-                (click)="donationType.set('Goodies')">
-                Goodies
-              </button>
-            </div>
+        <!-- Donation Type -->
+        <div class="form-group">
+          <label>Donation Type <span class="required-star">*</span></label>
+          <div style="display: flex; gap: 8px;">
+            <button 
+              type="button" 
+              style="flex: 1; padding: 10px; border-radius: 6px; font-weight: 500; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
+              [style.background]="donationType() === 'Amount' ? '#eef2ff' : '#fff'"
+              [style.color]="donationType() === 'Amount' ? '#4f46e5' : '#475569'"
+              [style.borderColor]="donationType() === 'Amount' ? '#4f46e5' : '#cbd5e1'"
+              (click)="donationType.set('Amount')">
+              Amount
+            </button>
+            <button 
+              type="button" 
+              style="flex: 1; padding: 10px; border-radius: 6px; font-weight: 500; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;"
+              [style.background]="donationType() === 'Goodies' ? '#eef2ff' : '#fff'"
+              [style.color]="donationType() === 'Goodies' ? '#4f46e5' : '#475569'"
+              [style.borderColor]="donationType() === 'Goodies' ? '#4f46e5' : '#cbd5e1'"
+              (click)="donationType.set('Goodies')">
+              Goodies
+            </button>
           </div>
-        }
+        </div>
 
-        @if (!((isSuperintendent() || isPR()) && donationType() === 'Goodies')) {
+        @if (donationType() !== 'Goodies') {
           <div class="form-group">
             <label>Amount <span class="required-star">*</span></label>
             <input
@@ -127,19 +186,17 @@
               placeholder="Enter amount"
               [ngModel]="amount()"
               (ngModelChange)="amount.set($event)"
-              
             />
           </div>
         }
 
-        @if (!((isSuperintendent() || isPR()) && donationType() === 'Goodies')) {
+        @if (donationType() !== 'Goodies') {
           <div class="form-group">
             <label>Payment Mode <span class="required-star">*</span></label>
             <select
               class="form-control"
               [ngModel]="modeOfPayment()"
               (ngModelChange)="modeOfPayment.set($event)"
-              
             >
               <option value="">Select Payment Mode</option>
               @for (mode of paymentModes(); track mode.id) {
@@ -170,7 +227,6 @@
             maxlength="10"
             [ngModel]="panNumber()"
             (ngModelChange)="panNumber.set($event)"
-            
           />
         </div>
 
@@ -182,7 +238,6 @@
             placeholder="Enter correction name"
             [ngModel]="correctionName()"
             (ngModelChange)="correctionName.set($event)"
-            
           />
         </div>
 
@@ -194,25 +249,24 @@
             placeholder="Enter full address"
             [ngModel]="address()"
             (ngModelChange)="address.set($event)"
-            
           ></textarea>
         </div>
 
       </div>
 
       <!-- RIGHT COLUMN -->
-      <div class="grid-column" >
+      <div class="grid-column">
         
         <div class="form-group">
           <label>Donor Number <span class="required-star">*</span></label>
           <input
             type="text"
             class="form-control"
-            placeholder="Enter mobile number"
+            placeholder="Enter 10-digit mobile number"
             maxlength="10"
             [ngModel]="mobileNumber()"
             (ngModelChange)="onMobileNumberChange($event)"
-            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '')"
+            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '').slice(0, 10)"
           />
           <div *ngIf="matchedDonors().length > 1" style="margin-top: 8px;">
             <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
@@ -234,11 +288,10 @@
             placeholder="Enter donor name"
             [ngModel]="donorName()"
             (ngModelChange)="donorName.set($event)"
-            
           />
         </div>
 
-        @if (!((isSuperintendent() || isPR()) && donationType() === 'Goodies')) {
+        @if (donationType() !== 'Goodies') {
           <div class="form-group">
             <label>Reference Id <span class="required-star">*</span></label>
             <input
@@ -247,12 +300,11 @@
               placeholder="Enter reference ID"
               [ngModel]="referenceId()"
               (ngModelChange)="referenceId.set($event)"
-              
             />
           </div>
         }
 
-        @if (!isSuperintendent() && !isPR()) {
+        @if (donationType() !== 'Goodies' && !isSuperintendent() && !isPR() && !isCurrentBranchTrust()) {
           <div class="form-group">
             <label>Slab</label>
             <input
@@ -261,7 +313,6 @@
               [ngModel]="slab()"
               disabled
               readonly
-              
             />
           </div>
         }
@@ -273,7 +324,6 @@
             type="file"
             accept=".jpg,.jpeg,.png,.gif,.pdf"
             (change)="onFileSelected($event)"
-            
           />
         </div>
 
@@ -285,7 +335,6 @@
             placeholder="Enter remarks"
             [ngModel]="remarks()"
             (ngModelChange)="remarks.set($event)"
-            
           ></textarea>
         </div>
 
@@ -296,7 +345,6 @@
             class="form-control"
             [ngModel]="dob()"
             (ngModelChange)="dob.set($event)"
-            
           />
         </div>
 

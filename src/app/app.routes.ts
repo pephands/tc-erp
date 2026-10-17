@@ -340,7 +340,7 @@ export const routes: Routes = [
       {
         path: 'receipts/trust-receipts',
         component: TrustReceiptsComponent,
-        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'])],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM', 'PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER'])],
       },
       {
         path: 'receipts/batch-receipts',
@@ -350,7 +350,7 @@ export const routes: Routes = [
       {
         path: 'receipts/create',
         component: ReceiptCreateComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'ADMINISTRATOR', 'PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER', 'SUPERINTENDENT'])],
       },
       {
         path: 'trust-children',
