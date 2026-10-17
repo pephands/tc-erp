@@ -111,7 +111,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   matchedDonors = signal<any[]>([]);
 
   onMobileNumberChange(val: string): void {
-    val = val.replace(/[^0-9]/g, '');
+    val = (val || '').replace(/[^0-9]/g, '').slice(0, 10);
     this.mobileNumber.set(val);
     this.matchedDonors.set([]); // Reset on change
     
@@ -146,7 +146,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   }
 
   onAltMobileNumberChange(val: string): void {
-    this.altMobileNumber.set(val);
+    this.altMobileNumber.set(val || '');
   }
 
   selectMatchedDonor(donorOrValue: any): void {
@@ -228,13 +228,6 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     
     if (!this.donorType().trim()) {
       this.errorMessage.set('Donor Type is required.');
-      return;
-    }
-
-    const mNo = this.mobileNumber().trim();
-    const altNo = this.altMobileNumber().trim();
-    if (altNo && mNo === altNo) {
-      this.errorMessage.set('Alternate Mobile Number cannot be the same as Donor Number.');
       return;
     }
 

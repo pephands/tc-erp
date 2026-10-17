@@ -30,7 +30,7 @@
           <input
             type="text"
             id="searchInput"
-            placeholder="Search donor name, mobile, ref ID..."
+            placeholder="Search donor name, mobile, ref ID, branch, emp ID..."
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearchChange($event)"
           />
@@ -84,6 +84,8 @@
           <tr>
             <th>Created Date</th>
             <th>Donation Date</th>
+            <th>Branch</th>
+            <th>TC EMP ID</th>
             <th>Mobile Number</th>
             <th>Donor Name</th>
             <th>Amount</th>
@@ -99,7 +101,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="12" class="loading-state">
+              <td colspan="14" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Fetching online payment details...</p>
               </td>
@@ -109,6 +111,13 @@
               <tr>
                 <td class="col-date">{{ rec.created_at | date: 'yyyy-MM-dd' }}</td>
                 <td class="col-date">{{ rec.payment_date }}</td>
+                <td><strong>{{ rec.branch_name || '-' }}</strong></td>
+                <td>
+                  <strong>{{ rec.telecaller_employee_Id || '-' }}</strong>
+                  @if (rec.telecaller_name) {
+                    <br><small style="color: #6b7280;">({{ rec.telecaller_name }})</small>
+                  }
+                </td>
                 <td class="col-mobile">{{ rec.mobile_number }}</td>
                 <td class="col-name">
                   <strong>{{ rec.donor_name }}</strong>
@@ -160,7 +169,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="12" class="empty-state">
+                <td colspan="14" class="empty-state">
                   <span class="material-symbols-outlined empty-icon">receipt_long</span>
                   <p class="empty-title">No Online Payment Records Found</p>
                   <p class="empty-sub">
