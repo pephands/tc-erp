@@ -23,6 +23,20 @@
         </div>
       </div>
 
+      <!-- Branch -->
+      <div class="filter-field">
+        <label for="branchApprovedSelect">Branch</label>
+        <div class="input-wrapper">
+          <span class="material-symbols-outlined input-icon">store</span>
+          <select id="branchApprovedSelect" [ngModel]="branchFilter()" (ngModelChange)="onBranchChange($event)" class="branch-select">
+            <option value="">All Branches</option>
+            @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
       <!-- Start Date -->
       <div class="filter-field">
         <label for="startDateApprovedInput">Start Date</label>

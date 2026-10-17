@@ -5,6 +5,7 @@ export interface OnlinePaymentRecord {
   telecaller_employee_Id?: string;
   branch: number;
   branch_name?: string;
+  branch_is_trust?: boolean;
   payment_date: string;
   mobile_number: string;
   alt_mobile_number?: string;

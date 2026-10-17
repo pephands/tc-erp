@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
+import { BranchListService } from '../../services/branch-list.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
 
 @Component({
@@ -15,6 +16,7 @@ import { OnlinePaymentRecord } from '../../models/payment.model';
 export class ApprovedRecordsComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private authService = inject(AuthService);
+  private branchService = inject(BranchListService);
 
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
@@ -27,6 +29,8 @@ export class ApprovedRecordsComponent implements OnInit {
   searchQuery = signal<string>('');
   startDate = signal<string>('');
   endDate = signal<string>('');
+  branchFilter = signal<string>('');
+  branches = signal<any[]>([]);
   isFilterApplied = signal<boolean>(false);
 
   // Pagination
@@ -61,7 +65,40 @@ export class ApprovedRecordsComponent implements OnInit {
       this.startDate.set(startStr);
       this.endDate.set(endStr);
     }
+    this.fetchBranches();
     this.fetchApprovedRecords();
+  }
+
+  fetchBranches(): void {
+    // Only fetch non-trust branches (is_trust=false)
+    this.branchService.getData(1, 1000, '', 'true', 'false').subscribe({
+      next: (res: any) => {
+        let branchList: any[] = [];
+        if (res && res.data) {
+          branchList = res.data;
+        } else if (res && res.results) {
+          branchList = res.results;
+        } else if (Array.isArray(res)) {
+          branchList = res;
+        }
+        // Strict guard: ensure only branches with is_trust == false are included
+        branchList = branchList.filter((b: any) => !b.is_trust);
+
+        // For TL role, strictly show only their assigned branch if applicable
+        if (this.userRole() === 'TL') {
+          const userBranchId = this.authService.currentUser()?.branch?.id;
+          if (userBranchId) {
+            branchList = branchList.filter((b: any) => b.id === userBranchId);
+            this.branchFilter.set(String(userBranchId));
+          }
+        }
+
+        this.branches.set(branchList);
+      },
+      error: (err: any) => {
+        console.error('Error fetching branches for approved records:', err);
+      }
+    });
   }
 
   fetchApprovedRecords(): void {
@@ -70,8 +107,24 @@ export class ApprovedRecordsComponent implements OnInit {
     const start = this.startDate();
     const end = this.endDate();
     const page = this.currentPage();
+    const branch = this.branchFilter();
 
-    this.paymentService.getRecords('OK', search, start, end, page, '', false, '', false, '', '', this.pageSize()).subscribe({
+    this.paymentService.getRecords(
+      'OK',
+      search,
+      start,
+      end,
+      page,
+      '',
+      false,
+      branch,
+      false,
+      '',
+      '',
+      this.pageSize(),
+      '',
+      'false' // Exclude trust branches (only branch is_trust == false)
+    ).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
@@ -87,6 +140,9 @@ export class ApprovedRecordsComponent implements OnInit {
           count = items.length;
         }
 
+        // Additional safeguard to ensure no trust branch records are shown
+        items = items.filter((rec: any) => !rec.branch_is_trust);
+
         this.records.set(items);
         this.totalCount.set(count);
         this.isLoading.set(false);
@@ -101,6 +157,13 @@ export class ApprovedRecordsComponent implements OnInit {
   // Filter Handlers
   onSearchChange(val: string): void {
     this.searchQuery.set(val);
+    this.updateFilterState();
+    this.currentPage.set(1);
+    this.fetchApprovedRecords();
+  }
+
+  onBranchChange(val: string): void {
+    this.branchFilter.set(val);
     this.updateFilterState();
     this.currentPage.set(1);
     this.fetchApprovedRecords();
@@ -123,6 +186,13 @@ export class ApprovedRecordsComponent implements OnInit {
   onResetFilters(): void {
     this.searchQuery.set('');
     
+    if (this.userRole() === 'TL') {
+      const userBranchId = this.authService.currentUser()?.branch?.id;
+      this.branchFilter.set(userBranchId ? String(userBranchId) : '');
+    } else {
+      this.branchFilter.set('');
+    }
+    
     if (this.userRole() === 'TC') {
       const today = new Date();
       const endStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -141,7 +211,7 @@ export class ApprovedRecordsComponent implements OnInit {
   }
 
   private updateFilterState(): void {
-    this.isFilterApplied.set(!!(this.searchQuery() || this.startDate() || this.endDate()));
+    this.isFilterApplied.set(!!(this.searchQuery() || this.startDate() || this.endDate() || this.branchFilter()));
   }
 
   downloadReceipt(rec: OnlinePaymentRecord): void {
