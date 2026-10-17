@@ -95,7 +95,7 @@ export class ReceiptListComponent implements OnInit {
     this.isManager.set(this.authService.hasRole(['MANAGER']));
     this.isTL.set(this.authService.hasRole(['TL', 'TEAM LEADER', 'TEAM LEAD']) && !this.isAdmin());
     this.isSuperintendent.set(this.authService.hasRole(['SUPERINTENDENT']));
-    this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS']));
+    this.isPR.set(this.authService.hasRole(['PUBLIC_RELATIONS', 'PUBLIC RELATIONSHIP OFFICER']));
     this.isTC.set(this.authService.hasRole(['TC', 'TELECALLER', 'TELE CALLER']) || (!this.isAdmin() && !this.isManager() && !this.isTL() && !this.isSuperintendent() && !this.isPR()));
 
     if (this.isTC()) {
@@ -129,19 +129,30 @@ export class ReceiptListComponent implements OnInit {
   }
 
   fetchBranches(): void {
-    this.branchService.getData(1, 100).subscribe({
+    // Only fetch active, non-trust branches (is_trust=false)
+    this.branchService.getData(1, 1000, '', 'true', 'false').subscribe({
       next: (res: any) => {
-        if (res && res.results) {
-          this.branches.set(res.results);
-        } else if (res && res.data) {
-          this.branches.set(res.data);
+        let branchList: any[] = [];
+        if (res && res.data) {
+          branchList = res.data;
+        } else if (res && res.results) {
+          branchList = res.results;
         } else if (Array.isArray(res)) {
-          this.branches.set(res);
+          branchList = res;
         }
-        
-        if (this.isPR()) {
-          this.branches.set(this.branches().filter((b: any) => b.is_trust === true));
+
+        // Strict guard: ensure only branches with is_trust == false are included
+        branchList = branchList.filter((b: any) => !b.is_trust);
+
+        // For TL role, strictly show only their assigned branch and exclude trust branches
+        if (this.isTL() && !this.isAdmin() && !this.isManager()) {
+          const userBranchId = this.authService.currentUser()?.branch?.id;
+          branchList = branchList.filter((b: any) => !b.is_trust && (!userBranchId || b.id === userBranchId));
+          if (userBranchId) {
+            this.branchFilter.set(String(userBranchId));
+          }
         }
+        this.branches.set(branchList);
       },
       error: (err: any) => {
         console.error('Error fetching branches:', err);
@@ -162,7 +173,22 @@ export class ReceiptListComponent implements OnInit {
     // For Receipts: list only status 'OK'.
     const status = 'OK';
 
-    this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType, this.pageSize()).subscribe({
+    this.paymentService.getRecords(
+      status,
+      search,
+      start,
+      end,
+      page,
+      '',
+      false,
+      branch,
+      false,
+      panStatus,
+      donationType,
+      this.pageSize(),
+      '',
+      'false' // Exclude trust branches (only branch is_trust == false)
+    ).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
@@ -177,6 +203,9 @@ export class ReceiptListComponent implements OnInit {
           items = res;
           count = items.length;
         }
+
+        // Strictly exclude any trust branch records
+        items = items.filter((rec: any) => !rec.branch_is_trust);
 
         this.records.set(items);
         this.totalCount.set(count);
@@ -312,7 +341,22 @@ export class ReceiptListComponent implements OnInit {
     const donationType = this.activeTab();
     const status = 'OK';
 
-    this.paymentService.getRecords(status, search, start, end, 1, '', false, branch, true, panStatus, donationType, this.pageSize()).subscribe({
+    this.paymentService.getRecords(
+      status,
+      search,
+      start,
+      end,
+      1,
+      '',
+      false,
+      branch,
+      true, // isExport
+      panStatus,
+      donationType,
+      this.pageSize(),
+      '',
+      'false' // Exclude trust branches
+    ).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         if (res && res.data) {
@@ -320,6 +364,9 @@ export class ReceiptListComponent implements OnInit {
         } else if (Array.isArray(res)) {
           items = res;
         }
+
+        // Strictly exclude any trust branch records
+        items = items.filter((rec: any) => !rec.branch_is_trust);
 
         const exportData = items.map(rec => ({
           'Date': this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at,
@@ -399,7 +446,22 @@ export class ReceiptListComponent implements OnInit {
         
         try {
             // isExport = false to get paginated data from backend
-            const res: any = await this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, panStatus, donationType, this.pageSize()).toPromise();
+            const res: any = await this.paymentService.getRecords(
+              status,
+              search,
+              start,
+              end,
+              page,
+              '',
+              false,
+              branch,
+              false,
+              panStatus,
+              donationType,
+              this.pageSize(),
+              '',
+              'false' // Exclude trust branches
+            ).toPromise();
             
             let items: any[] = [];
             if (res && res.results) { 
@@ -411,6 +473,9 @@ export class ReceiptListComponent implements OnInit {
                 items = res;
             }
             
+            // Strictly exclude any trust branch records
+            items = items.filter((rec: any) => !rec.branch_is_trust);
+
             if (!items || items.length === 0) {
                 break;
             }
