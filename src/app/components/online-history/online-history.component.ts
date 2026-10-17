@@ -112,16 +112,20 @@ export class OnlineHistoryComponent implements OnInit {
   }
 
   fetchBranches(): void {
-    this.branchService.getData(1, 100).subscribe({
+    // Only fetch active, non-trust branches (is_trust=false)
+    this.branchService.getData(1, 1000, '', 'true', 'false').subscribe({
       next: (res: any) => {
         let branchList: any[] = [];
-        if (res && res.results) {
-          branchList = res.results;
-        } else if (res && res.data) {
+        if (res && res.data) {
           branchList = res.data;
+        } else if (res && res.results) {
+          branchList = res.results;
         } else if (Array.isArray(res)) {
           branchList = res;
         }
+
+        // Strict guard: ensure only branches with is_trust == false are included
+        branchList = branchList.filter((b: any) => !b.is_trust);
 
         // For TL role, strictly show only their assigned branch and exclude trust branches
         if (this.isTL() && !this.isAdmin() && !this.isManager() && !this.isOT()) {
@@ -149,7 +153,22 @@ export class OnlineHistoryComponent implements OnInit {
     const status = this.statusFilter();
     const branch = this.branchFilter();
 
-    this.paymentService.getRecords(status, search, start, end, page, '', false, branch, false, '', '', this.pageSize()).subscribe({
+    this.paymentService.getRecords(
+      status,
+      search,
+      start,
+      end,
+      page,
+      '',
+      false,
+      branch,
+      false,
+      '',
+      '',
+      this.pageSize(),
+      '',
+      'false' // Exclude trust branches (only branch is_trust == false)
+    ).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
@@ -164,6 +183,9 @@ export class OnlineHistoryComponent implements OnInit {
           items = res;
           count = items.length;
         }
+
+        // Strictly exclude any trust branch records
+        items = items.filter((rec: any) => !rec.branch_is_trust);
 
         this.records.set(items);
         this.totalCount.set(count);
@@ -315,7 +337,12 @@ export class OnlineHistoryComponent implements OnInit {
       '',
       false,
       branch,
-      true // isExport
+      true, // isExport
+      '',
+      '',
+      10,
+      '',
+      'false' // Exclude trust branches
     ).subscribe({
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
@@ -326,6 +353,9 @@ export class OnlineHistoryComponent implements OnInit {
         } else if (Array.isArray(res)) {
           items = res;
         }
+
+        // Strictly exclude any trust branch records
+        items = items.filter((rec: any) => !rec.branch_is_trust);
 
         if (!items || items.length === 0) {
           this.toastService.warning('No Records', 'No payment records found for the selected filter.');
