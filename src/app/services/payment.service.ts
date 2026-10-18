@@ -72,6 +72,19 @@ export class PaymentService extends BaseHttpService {
     });
   }
 
+  syncReceipts(payload: any = {}): Observable<any> {
+    return this.httpClient.post<any>(this.endPoint.paymentReceiptSync, payload, {
+      headers: this.headers,
+    });
+  }
+
+  getReceiptSyncStatus(params?: any): Observable<any> {
+    return this.httpClient.get<any>(this.endPoint.paymentReceiptSync, {
+      headers: this.headers,
+      params,
+    });
+  }
+
 
   updateReceipt(id: number | string, formData: FormData): Observable<any> {
     return this.httpClient.patch<any>(this.endPoint.paymentReceiptEdit(id), formData, {

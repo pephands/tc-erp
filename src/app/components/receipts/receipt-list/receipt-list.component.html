@@ -15,6 +15,13 @@
         <span>Create Receipt</span>
       </button>
       }
+      @if (canSyncReceipts()) {
+      <button type="button" class="btn-action btn-sync-blue" (click)="onSyncReceipts()" [disabled]="isSyncing()"
+        title="Sync and generate missing receipt PDFs">
+        <span class="material-symbols-outlined" [class.spin-icon]="isSyncing()">sync</span>
+        <span>{{ isSyncing() ? 'Syncing...' : 'Sync Receipts' }}</span>
+      </button>
+      }
       @if (!isTC() && !isTCT()) {
       <button type="button" class="btn-action btn-export-green" (click)="onExportExcel()">
         <span class="material-symbols-outlined">download</span>

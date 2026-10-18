@@ -6,6 +6,8 @@ import { saveAs } from 'file-saver';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { PaymentService } from '../../../services/payment.service';
 import { BranchListService } from '../../../services/branch-list.service';
 import { AuthService } from '../../../services/auth.service';
@@ -34,6 +36,7 @@ export class ReceiptListComponent implements OnInit {
   // Data & State
   records = signal<OnlinePaymentRecord[]>([]);
   isLoading = signal<boolean>(false);
+  isSyncing = signal<boolean>(false);
   isZipping = signal<boolean>(false);
   zipProgress = signal<string>('');
   zipElapsedTime = signal<number>(0);
@@ -69,6 +72,12 @@ export class ReceiptListComponent implements OnInit {
   isTC = signal<boolean>(false);
   isPR = signal<boolean>(false);
   branches = signal<any[]>([]);
+
+  // Only Admin and Online Payment Team (OT) roles can view/trigger Receipt Sync
+  canSyncReceipts = computed(() => {
+    const isPureAdmin = (this.isAdmin() && !this.isTCT()) || this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']);
+    return isPureAdmin || this.isOT();
+  });
 
   // Pagination
   currentPage = signal<number>(1);
@@ -423,136 +432,256 @@ export class ReceiptListComponent implements OnInit {
     return `${s}s`;
   }
 
+  getFullReceiptUrl(url: string | undefined | null): string {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const base = environment.baseUrl.replace(/\/+$/, '');
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${base}${path}`;
+  }
+
   async onExportPDFZip(): Promise<void> {
+    if (this.isZipping()) return;
+
     const search = this.searchQuery().trim();
     const start = this.startDate();
     const end = this.endDate();
     const branch = this.branchFilter();
     const panStatus = this.panStatusFilter();
-    const donationType = this.activeTab();
+    const donationType = this.activeTab() === 'Goodies' ? 'Goodies' : 'Amount';
     const status = 'OK';
 
+    if (this.activeTab() === 'Goodies') {
+      this.toastService.info('Notice', 'No PDFs can be generated for Goodies donations.');
+      return;
+    }
+
     this.isZipping.set(true);
-    this.zipProgress.set('Initializing...');
+    this.zipProgress.set('Fetching records...');
     this.zipElapsedTime.set(0);
-    
+
     if (this.zipTimer) clearInterval(this.zipTimer);
+    const startTime = Date.now();
     this.zipTimer = setInterval(() => {
-      this.zipElapsedTime.update(v => v + 1);
+      this.zipElapsedTime.set(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
 
     const zip = new JSZip();
     let downloadedCount = 0;
-    let page = 1;
-    let totalExpected = 0;
-    
-    const startTime = Date.now();
+    const usedFileNames = new Set<string>();
 
-    while (true) {
+    try {
+      let allRecords: any[] = [];
+      let page = 1;
+
+      while (true) {
         this.zipProgress.set(`Fetching page ${page}...`);
-        
-        try {
-            // isExport = false to get paginated data from backend
-            const res: any = await this.paymentService.getRecords(
-              status,
-              search,
-              start,
-              end,
-              page,
-              '',
-              false,
-              branch,
-              false,
-              panStatus,
-              donationType,
-              this.pageSize(),
-              '',
-              'false' // Exclude trust branches
-            ).toPromise();
-            
-            let items: any[] = [];
-            if (res && res.results) { 
-                items = res.results;
-                if (page === 1) totalExpected = res.count || 0;
-            } else if (res && res.data) {
-                items = Array.isArray(res.data) ? res.data : [res.data];
-            } else if (Array.isArray(res)) {
-                items = res;
-            }
-            
-            // Strictly exclude any trust branch records
-            items = items.filter((rec: any) => !rec.branch_is_trust);
+        const res: any = await firstValueFrom(
+          this.paymentService.getRecords(
+            status,
+            search,
+            start,
+            end,
+            page,
+            '',
+            false,
+            branch,
+            false,
+            panStatus,
+            donationType,
+            100,
+            '',
+            'false'
+          )
+        );
 
-            if (!items || items.length === 0) {
-                break;
-            }
-            
-            // Apply strict filter: only Amount donation_type and OK status
-            const pdfItems = items.filter(r => ((r.donation_type === 'Amount') || (!r.donation_type)) && r.status === 'OK');
-            
-            for (const rec of pdfItems) {
-                let progressStr = `Generating ${downloadedCount + 1}...`;
-                if (totalExpected > 0) {
-                    const elapsed = Date.now() - startTime;
-                    const avgTimePerItem = elapsed / (downloadedCount || 1);
-                    const remainingItems = totalExpected - downloadedCount;
-                    const etaSeconds = Math.ceil((avgTimePerItem * remainingItems) / 1000);
-                    progressStr = `Generating ${downloadedCount + 1}/${totalExpected}... (Est. ${this.formatETA(etaSeconds)} remaining)`;
-                }
-                this.zipProgress.set(progressStr);
-                
-                try {
-                    if (rec.generated_receipt) {
-                        try {
-                            const res = await fetch(rec.generated_receipt);
-                            if (res.ok) {
-                                const blob = await res.blob();
-                                const fileName = rec.receipt_id ? `${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
-                                zip.file(fileName, blob);
-                                downloadedCount++;
-                            }
-                        } catch (e) {
-                            console.error('Failed to fetch generated_receipt for ZIP', e);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Failed to download PDF from backend for:', rec.receipt_id, e);
-                }
-            }
-            
-            // Check if we reached the end
-            if (res && res.next) {
-                page++;
-            } else if (items.length < 10) { 
-                break;
-            } else {
-                if (!res || !res.next) break;
-                page++;
-            }
-        } catch (err: any) {
-            console.error('Error fetching receipts for zip:', err);
-            this.zipProgress.set('Failed to fetch receipts for export.');
-            break;
+        let items: any[] = [];
+        if (res && res.results) {
+          items = res.results;
+        } else if (res && res.data) {
+          items = Array.isArray(res.data) ? res.data : [res.data];
+        } else if (Array.isArray(res)) {
+          items = res;
         }
-    }
-    
-    if (downloadedCount > 0) {
+
+        items = items.filter((rec: any) => !rec.branch_is_trust);
+        if (!items || items.length === 0) break;
+
+        allRecords.push(...items);
+
+        if (!res || !res.next || items.length < 100) break;
+        page++;
+      }
+
+      // Filter to records that have receipt_id (or assignable) and are Amount
+      const pdfItems = allRecords.filter(
+        r => (r.donation_type === 'Amount' || !r.donation_type) && r.status === 'OK' && this.hasReceiptId(r)
+      );
+
+      if (pdfItems.length === 0) {
+        this.zipProgress.set('No Amount receipts with receipt IDs found to download.');
+        if (this.zipTimer) clearInterval(this.zipTimer);
+        setTimeout(() => {
+          this.isZipping.set(false);
+          this.zipProgress.set('');
+        }, 3000);
+        return;
+      }
+
+      const totalExpected = pdfItems.length;
+      let nextIndex = 0;
+      const CONCURRENCY = Math.min(6, totalExpected);
+
+      const worker = async () => {
+        while (nextIndex < totalExpected) {
+          const index = nextIndex++;
+          const rec = pdfItems[index];
+          if (!rec) break;
+
+          this.zipProgress.set(`Packaging ${index + 1}/${totalExpected}... (${rec.receipt_id || rec.id})`);
+
+          try {
+            let pdfBlob: Blob | null = null;
+            const directUrl = this.getFullReceiptUrl(rec.generated_receipt_url || rec.generated_receipt);
+
+            if (directUrl) {
+              try {
+                const fetchRes = await fetch(directUrl);
+                if (fetchRes.ok) {
+                  pdfBlob = await fetchRes.blob();
+                }
+              } catch (e) {
+                // fallback to downloadReceipt
+              }
+            }
+
+            // Fallback: If not pre-generated or direct fetch failed, generate on-the-fly via backend
+            if (!pdfBlob) {
+              try {
+                pdfBlob = await firstValueFrom(this.paymentService.downloadReceipt(rec.id));
+              } catch (dlErr) {
+                console.warn(`Failed to generate/download receipt for ${rec.id}:`, dlErr);
+              }
+            }
+
+            if (pdfBlob) {
+              let fileName = rec.receipt_id ? `Receipt_${rec.receipt_id}.pdf` : `receipt_${rec.id}.pdf`;
+              if (usedFileNames.has(fileName)) {
+                fileName = `Receipt_${rec.receipt_id || 'rec'}_${rec.id}.pdf`;
+              }
+              usedFileNames.add(fileName);
+              zip.file(fileName, pdfBlob);
+              downloadedCount++;
+            }
+          } catch (itemErr) {
+            console.error('Error downloading receipt for item:', rec.id, itemErr);
+          }
+        }
+      };
+
+      await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
+      if (downloadedCount > 0) {
         this.zipProgress.set('Zipping files...');
         const content = await zip.generateAsync({ type: 'blob' });
         saveAs(content, `Receipts_PDFs_${new Date().toISOString().slice(0, 10)}.zip`);
         this.zipProgress.set(`Success! Downloaded ${downloadedCount} receipts.`);
-    } else {
-        this.zipProgress.set('Failed to download any PDFs or no Amount receipts found.');
-    }
-
-    if (this.zipTimer) clearInterval(this.zipTimer);
-    setTimeout(() => {
+      } else {
+        this.zipProgress.set('Failed to download any PDFs.');
+      }
+    } catch (err: any) {
+      console.error('Error exporting PDF zip:', err);
+      this.zipProgress.set('Error packaging receipts.');
+    } finally {
+      if (this.zipTimer) clearInterval(this.zipTimer);
+      setTimeout(() => {
         this.isZipping.set(false);
         this.zipProgress.set('');
-    }, 3000);
+      }, 3000);
+    }
   }
+
   onCreateReceipt(): void {
     this.router.navigate(['/receipts/create']);
+  }
+
+  onSyncReceipts(): void {
+    if (!this.canSyncReceipts()) {
+      this.toastService.error('Access Denied', 'Only Admin and Online Payment Team are authorized to sync receipts.');
+      return;
+    }
+    if (this.isSyncing()) return;
+    this.isSyncing.set(true);
+
+    const payload: any = {
+      is_trust: 'false',
+    };
+    const branch = this.branchFilter();
+    if (branch) payload.branch = branch;
+    const start = this.startDate();
+    if (start) payload.start_date = start;
+    const end = this.endDate();
+    if (end) payload.end_date = end;
+    const search = this.searchQuery().trim();
+    if (search) payload.search = search;
+    const panStatus = this.panStatusFilter();
+    if (panStatus) payload.pan_status = panStatus;
+    const donationType = this.activeTab();
+    if (donationType && donationType !== 'All') payload.donation_type = donationType;
+
+    this.paymentService.syncReceipts(payload).subscribe({
+      next: (res: any) => {
+        if (res.status === 'up_to_date') {
+          this.toastService.success('Up to Date', res.message || 'All matching receipts already generated.');
+          this.isSyncing.set(false);
+        } else if (res.status === 'already_running') {
+          this.toastService.info('Sync in Progress', res.message || 'Receipt sync is already running in background.');
+          this.pollSyncStatus(payload);
+        } else {
+          this.toastService.info('Sync Started', res.message || 'Receipt sync started in background.');
+          this.pollSyncStatus(payload);
+        }
+      },
+      error: (err: any) => {
+        this.isSyncing.set(false);
+        this.toastService.error('Sync Failed', err.error?.message || 'Failed to start receipt synchronization.');
+      }
+    });
+  }
+
+  private pollSyncStatus(filters?: any): void {
+    const checkInterval = setInterval(() => {
+      this.paymentService.getReceiptSyncStatus(filters).subscribe({
+        next: (statusRes: any) => {
+          const syncState = statusRes.sync_state;
+          if (!syncState || !syncState.is_running) {
+            clearInterval(checkInterval);
+            this.isSyncing.set(false);
+            const success = syncState?.success ?? 0;
+            const failed = syncState?.failed ?? 0;
+            this.toastService.success(
+              'Sync Completed',
+              `Receipt synchronization complete! Generated: ${success}${failed > 0 ? `, Failed: ${failed}` : ''}`
+            );
+            this.fetchReceiptRecords();
+          }
+        },
+        error: () => {
+          clearInterval(checkInterval);
+          this.isSyncing.set(false);
+          this.fetchReceiptRecords();
+        }
+      });
+    }, 2500);
+
+    // Timeout polling after 90 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      if (this.isSyncing()) {
+        this.isSyncing.set(false);
+        this.fetchReceiptRecords();
+      }
+    }, 90000);
   }
 
   hasReceiptId(record: any): boolean {
@@ -563,8 +692,9 @@ export class ReceiptListComponent implements OnInit {
 
   // Actions
   onView(record: OnlinePaymentRecord) {
-    if (record.generated_receipt) {
-      window.open(record.generated_receipt, '_blank');
+    const rawUrl = record.generated_receipt_url || record.generated_receipt;
+    if (rawUrl) {
+      window.open(this.getFullReceiptUrl(rawUrl), '_blank');
     } else {
       this.toastService.info('Generating', 'Receipt is generating, please wait...');
       this.paymentService.downloadReceipt(record.id).subscribe({
@@ -581,9 +711,10 @@ export class ReceiptListComponent implements OnInit {
   }
 
   onDownload(record: OnlinePaymentRecord) {
-    if (record.generated_receipt) {
+    const rawUrl = record.generated_receipt_url || record.generated_receipt;
+    if (rawUrl) {
       const a = document.createElement('a');
-      a.href = record.generated_receipt;
+      a.href = this.getFullReceiptUrl(rawUrl);
       a.target = '_blank';
       a.download = `Receipt_${record.receipt_id || record.id}.pdf`;
       document.body.appendChild(a);
