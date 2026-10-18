@@ -118,7 +118,7 @@ export class ReceiptListComponent implements OnInit {
       this.endDate.set(this.formatDate(lastDay));
     }
 
-    if (this.isAdmin() || this.isManager() || this.isTL() || this.isPR()) {
+    if (this.isAdmin() || this.isManager() || this.isTL() || this.isPR() || this.isOT()) {
       this.fetchBranches();
     }
   }
@@ -172,7 +172,7 @@ export class ReceiptListComponent implements OnInit {
     const panStatus = this.panStatusFilter();
     const donationType = this.activeTab();
 
-    // For Receipts: list only status 'OK'.
+    // For Receipts: list strictly status 'OK'
     const status = 'OK';
 
     this.paymentService.getRecords(
@@ -699,6 +699,7 @@ export class ReceiptListComponent implements OnInit {
   onModalSubmit() {
     this.showEditModal.set(false);
     this.editRecord.set(null);
+    this.toastService.success('Record Updated', 'Receipt details and status updated successfully.');
     this.fetchReceiptRecords();
   }
 }

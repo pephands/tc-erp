@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -51,6 +51,60 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return roles.length > 0 ? roles[0] : '';
   }
 
+  // Device & Role Check for Attendance Restrictions (TC and TL mobile-only)
+  checkIfMobilePhone(): boolean {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false;
+    }
+    const ua = (navigator.userAgent || navigator.vendor || (window as any).opera || '').toLowerCase();
+
+    // 1. Explicitly check for Tablets and exclude them
+    const isIpad = /ipad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isTablet = /tablet|playbook|silk|kindle/i.test(ua);
+    const isAndroidTablet = /android/i.test(ua) && !/mobile/i.test(ua);
+    if (isIpad || isTablet || isAndroidTablet) {
+      return false;
+    }
+
+    // 2. Explicitly check for Desktop platforms
+    const isDesktopOs = /windows nt|macintosh|x11|cros/i.test(ua) && !/mobile|phone/i.test(ua);
+    if (isDesktopOs) {
+      return false;
+    }
+
+    // 3. Confirm Mobile Phone signatures
+    const isIphoneOrIpod = /iphone|ipod/i.test(ua);
+    const isAndroidPhone = /android/i.test(ua) && /mobile/i.test(ua);
+    const isOtherMobile = /mobile|phone|opera mobi|opera mini|iemobile|fennec/i.test(ua);
+
+    if (isIphoneOrIpod || isAndroidPhone || isOtherMobile) {
+      return true;
+    }
+
+    return false;
+  }
+
+  isMobileDevice = signal<boolean>(this.checkIfMobilePhone());
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.isMobileDevice.set(this.checkIfMobilePhone());
+  }
+
+  readonly isMobileAttendanceRequired = computed(() => {
+    const roles = this.userRoles();
+    if (roles.includes('ADMIN') || this.primaryRole === 'ADMIN') {
+      return false;
+    }
+    const isTc = roles.includes('TC') || roles.includes('TELECALLER') || roles.includes('TELE CALLER') || this.primaryRole === 'TC';
+    const isTl = roles.includes('TL') || roles.includes('TEAM LEADER') || roles.includes('TEAM LEAD') || this.primaryRole === 'TL';
+    return isTc || isTl;
+  });
+
+  readonly isDesktopBlockedForAttendance = computed(() => {
+    return this.isMobileAttendanceRequired() && !this.isMobileDevice();
+  });
+
   // Live Digital Clock & Date
   currentTimeString = signal<string>('');
   currentDateString = signal<string>('');
@@ -71,6 +125,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isWfhRequired = signal<boolean>(false);
   wfhPasscode = signal<string>('');
   isWfhMarked = signal<boolean>(false);
+
+  // Check-Out Confirmation Modal State
+  showCheckOutModal = signal<boolean>(false);
+  isCheckingOut = signal<boolean>(false);
 
   // TL / Admin WFH Passcode Management State
   staffUsers = signal<any[]>([]);
@@ -369,6 +427,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async onCheckIn(): Promise<void> {
+    if (this.isDesktopBlockedForAttendance()) {
+      this.toastService.error(
+        'Mobile Device Required',
+        'Check-in and check-out are only allowed from a mobile device. Desktop, laptop, and tablet devices are not permitted.'
+      );
+      return;
+    }
+
     if (this.isWfhMode() && !this.wfhPasscode().trim()) {
       this.toastService.error('Passcode Required', 'Please enter your 6-character WFH passcode provided by your Team Leader.');
       return;
@@ -465,10 +531,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }
         
-        if (errorMsg.includes('Invalid token')) {
-          this.toastService.error('Session Expired', 'Please login again.');
-          this.authService.logout().subscribe(() => {
-            this.router.navigate(['/login']);
+        if (
+          err?.status === 401 ||
+          err?.status === 403 ||
+          errorMsg.includes('Invalid token') ||
+          errorMsg.includes('Authentication credentials were not provided')
+        ) {
+          this.authService.forceSessionLogout('session_transferred');
+          this.router.navigate(['/login'], {
+            queryParams: { sessionTransferred: 'true' },
+            replaceUrl: true
           });
           return;
         }
@@ -482,45 +554,96 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
   }
+  promptCheckOut(): void {
+    if (this.isDesktopBlockedForAttendance()) {
+      this.toastService.error(
+        'Mobile Device Required',
+        'Check-in and check-out are only allowed from a mobile device. Desktop, laptop, and tablet devices are not permitted.'
+      );
+      return;
+    }
+    const attendanceId = this.checkInService.getAttendanceId();
+    if (!attendanceId) {
+      this.toastService.error('Checkout Failed', 'No active attendance record found for today.');
+      return;
+    }
+    this.showCheckOutModal.set(true);
+  }
+
+  cancelCheckOut(): void {
+    if (this.isCheckingOut()) return;
+    this.showCheckOutModal.set(false);
+  }
+
+  async confirmCheckOut(): Promise<void> {
+    if (this.isCheckingOut()) return;
+    if ((this.isWfhRequired() || this.isWfhMode()) && !this.wfhPasscode().trim()) {
+      this.toastService.error('Passcode Required', 'Please enter your 6-character WFH passcode provided by your Team Leader.');
+      return;
+    }
+    this.isCheckingOut.set(true);
+    await this.onCheckOut();
+  }
 
   async onCheckOut(): Promise<void> {
+    if (this.isDesktopBlockedForAttendance()) {
+      this.toastService.error(
+        'Mobile Device Required',
+        'Check-in and check-out are only allowed from a mobile device. Desktop, laptop, and tablet devices are not permitted.'
+      );
+      return;
+    }
     const attendanceId = this.checkInService.getAttendanceId();
     if (!attendanceId) {
       this.toastService.error('Checkout Failed', 'No active attendance record found for today.');
       return;
     }
 
-    if (this.isWfhMode() && !this.wfhPasscode().trim()) {
+    if ((this.isWfhRequired() || this.isWfhMode()) && !this.wfhPasscode().trim()) {
       this.toastService.error('Passcode Required', 'Please enter your 6-character WFH passcode provided by your Team Leader.');
+      this.isCheckingOut.set(false);
       return;
     }
 
+    let coords: LocationCoordinates | null = null;
     try {
-      const coords = await this.checkInService.getCurrentLocation();
-      const isWfh = this.isWfhMode();
-      const payload: AttendanceCheckOutPayload = {
-        attendance_id: attendanceId,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        ip_address: this.clientIp(),
-        deviceid: this.checkInService.getDeviceId() || undefined,
-        override_code: isWfh ? this.wfhPasscode().trim().toUpperCase() : undefined
-      };
+      coords = await this.checkInService.getCurrentLocation();
+    } catch (_) {
+      // Desktop devices may not support Geolocation API; proceed with available network context
+    }
 
-      this.checkOutService.getData(payload).subscribe({
-        next: () => {
-          const now = new Date();
-          const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-          this.checkOutTime.set(timeStr);
-          this.checkInService.clearAttendanceMarked();
-          this.statusState.set('COMPLETED');
-          this.toastService.info('Check-Out Recorded', `Check-out recorded at ${timeStr}. Device authorization session cleared.`);
-          setTimeout(() => {
-            window.location.reload();
-          }, 800);
-        },
-        error: (err: any) => {
-          let errorMsg = 'Failed to record checkout on the server.';
+    const passcode = this.wfhPasscode().trim().toUpperCase();
+    const payload: AttendanceCheckOutPayload = {
+      attendance_id: attendanceId,
+      latitude: coords ? coords.latitude : undefined,
+      longitude: coords ? coords.longitude : undefined,
+      ip_address: this.clientIp(),
+      deviceid: this.checkInService.getDeviceId() || undefined,
+      override_code: passcode || undefined
+    };
+
+    this.checkOutService.getData(payload).subscribe({
+      next: () => {
+        this.isCheckingOut.set(false);
+        this.showCheckOutModal.set(false);
+        this.isWfhRequired.set(false);
+        this.isWfhMode.set(false);
+        this.wfhPasscode.set('');
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        this.checkOutTime.set(timeStr);
+        this.checkInService.clearAttendanceMarked();
+        this.statusState.set('COMPLETED');
+        this.toastService.info('Check-Out Recorded', `Check-out recorded at ${timeStr}. Session completed.`);
+        setTimeout(() => {
+          this.authService.forceSessionLogout('session_transferred');
+          this.router.navigate(['/login']);
+        }, 1200);
+      },
+      error: (err: any) => {
+        this.isCheckingOut.set(false);
+        this.showCheckOutModal.set(false);
+        let errorMsg = 'Failed to record checkout on the server.';
           if (err.error) {
             if (Array.isArray(err.error)) {
                errorMsg = err.error[0];
@@ -535,10 +658,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
           }
 
-          if (errorMsg.includes('Invalid token')) {
-            this.toastService.error('Session Expired', 'Please login again.');
-            this.authService.logout().subscribe(() => {
-              this.router.navigate(['/login']);
+          if (
+            errorMsg.includes('Device mismatch') ||
+            errorMsg.includes('DEV-') ||
+            errorMsg.includes('Expected check-in device') ||
+            errorMsg.includes('device_id')
+          ) {
+            errorMsg = 'Device mismatch: Check-out must be performed from your primary logged-in mobile device used during check-in.';
+          }
+
+          if (
+            err?.status === 401 ||
+            err?.status === 403 ||
+            errorMsg.includes('Invalid token') ||
+            errorMsg.includes('Authentication credentials were not provided')
+          ) {
+            this.authService.forceSessionLogout('session_transferred');
+            this.router.navigate(['/login'], {
+              queryParams: { sessionTransferred: 'true' },
+              replaceUrl: true
             });
             return;
           }
@@ -551,9 +689,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         }
       });
-    } catch (err) {
-      this.toastService.error('Location Error', 'Failed to get location for checkout.');
-    }
+  }
+
+  onCancelWfhCheckout(): void {
+    this.isWfhRequired.set(false);
+    this.isWfhMode.set(false);
+    this.wfhPasscode.set('');
   }
 
   onRetry(): void {

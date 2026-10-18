@@ -294,7 +294,7 @@ export class SidebarComponent implements OnInit {
           id: 'live_batch',
           label: 'Live Batch',
           icon: 'speed',
-          allowedRoles: ['ADMIN', 'MANAGER'],
+          allowedRoles: ['ADMIN', 'MANAGER', 'OT', 'ONLINE PAYMENT TEAM'],
           route: '/live-batch',
         },
         {
@@ -407,7 +407,7 @@ export class SidebarComponent implements OnInit {
           label: 'Receipt List',
           icon: 'receipt',
           route: '/receipts/view',
-           allowedRoles: ['ADMIN', 'TL', 'TC','TCT'],
+          allowedRoles: ['ADMIN', 'TL', 'TC', 'TCT', 'OT', 'ONLINE PAYMENT TEAM'],
         },
         {
           id: 'trust_receipts',
@@ -421,7 +421,7 @@ export class SidebarComponent implements OnInit {
           label: 'Batch Receipts',
           icon: 'inventory_2',
           route: '/receipts/batch-receipts',
-          allowedRoles: ['ADMIN', 'TCT'],
+          allowedRoles: ['ADMIN', 'TCT', 'OT', 'ONLINE PAYMENT TEAM'],
         },
       ],
     },

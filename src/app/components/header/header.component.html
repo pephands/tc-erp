@@ -24,6 +24,19 @@
 
   <!-- Right Header Actions -->
   <div class="top-header-right">
+    <!-- Device Code Button (Non-Admin) -->
+    @if (primaryRole !== 'ADMIN') {
+      <button 
+        type="button" 
+        class="theme-palette-btn device-code-header-btn" 
+        (click)="openDeviceTransferModal()"
+        title="Device Transfer Code"
+      >
+        <span class="material-symbols-outlined">devices</span>
+        <span class="theme-btn-label">Device Code</span>
+      </button>
+    }
+
     <!-- Theme Switcher -->
     <div class="theme-picker-wrapper">
       <button 
@@ -91,6 +104,14 @@
             <span class="material-symbols-outlined item-icon">lock_reset</span>
             <span>Reset Password</span>
           </button>
+
+          <!-- Device Transfer Code Option (Non-Admin) -->
+          @if (primaryRole !== 'ADMIN') {
+            <button type="button" class="dropdown-item" (click)="openDeviceTransferModal()">
+              <span class="material-symbols-outlined item-icon">devices</span>
+              <span>Device Transfer Code</span>
+            </button>
+          }
 
           <!-- Logout Option -->
           <button type="button" class="dropdown-item logout-item" (click)="onLogout()">

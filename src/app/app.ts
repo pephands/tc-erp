@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { DeviceAuthModalComponent } from './modals/device-auth-modal/device-auth-modal.component';
+import { DeviceTransferModalComponent } from './modals/device-transfer-modal/device-transfer-modal.component';
 import { ForcePasswordResetModalComponent } from './modals/force-password-reset-modal/force-password-reset-modal.component';
 import { ToastComponent } from './modals/toast/toast.component';
 import { AnnouncementModalComponent } from './components/announcement-modal/announcement-modal.component';
@@ -9,7 +10,7 @@ import { DevToolsProtectionService } from './services/devtools-protection.servic
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DeviceAuthModalComponent, ForcePasswordResetModalComponent, ToastComponent, AnnouncementModalComponent],
+  imports: [RouterOutlet, DeviceAuthModalComponent, DeviceTransferModalComponent, ForcePasswordResetModalComponent, ToastComponent, AnnouncementModalComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

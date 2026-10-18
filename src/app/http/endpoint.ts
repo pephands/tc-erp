@@ -19,6 +19,14 @@ export class Endpoint {
     return this.baseUrl + 'accounts/logout/';
   }
 
+  get activeDeviceCode(): string {
+    return this.baseUrl + 'accounts/active-device-code/';
+  }
+
+  get verifyDeviceTransfer(): string {
+    return this.baseUrl + 'accounts/verify-device-transfer/';
+  }
+
   get users(): string {
     return this.baseUrl + 'accounts/users/';
   }

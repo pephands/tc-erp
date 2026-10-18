@@ -21,7 +21,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   @Output() submitted = new EventEmitter<void>();
 
   // Form Fields
-  paymentDate = signal<string>(new Date().toISOString().slice(0, 10));
+  paymentDate = signal<string>('');
   receiptId = signal<string>('');
   mobileNumber = signal<string>('');
   altMobileNumber = signal<string>('');
@@ -95,7 +95,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['editRecord'] && this.editRecord) {
-      this.paymentDate.set(this.editRecord.payment_date || new Date().toISOString().slice(0, 10));
+      this.paymentDate.set(this.editRecord.payment_date || '');
       this.receiptId.set(this.editRecord.receipt_id || '');
       this.mobileNumber.set(this.editRecord.mobile_number || '');
       this.altMobileNumber.set(this.editRecord.alt_mobile_number || '');
@@ -242,7 +242,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   }
 
   onReset(): void {
-    this.paymentDate.set(new Date().toISOString().slice(0, 10));
+    this.paymentDate.set(this.editRecord ? (this.editRecord.payment_date || '') : '');
     this.receiptId.set(this.editRecord ? (this.editRecord.receipt_id || '') : '');
     const defaultStatus = this.editRecord ? (this.editRecord.status || 'OK') : 'OK';
     this.status.set(defaultStatus);
@@ -286,8 +286,9 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   onSubmit(): void {
     this.errorMessage.set('');
 
-    if (!this.paymentDate()) {
-      this.errorMessage.set('Payment Date is required.');
+    const pDate = this.paymentDate() ? this.paymentDate().trim() : '';
+    if (!pDate) {
+      this.errorMessage.set('Payment Date is required. Please select a valid payment date.');
       return;
     }
     const donorNo = this.mobileNumber().trim();
@@ -333,7 +334,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     this.isSubmitting.set(true);
 
     const formData = new FormData();
-    formData.append('payment_date', this.paymentDate());
+    formData.append('payment_date', pDate);
     if (this.canEditReceiptId()) {
       const rId = this.receiptId().trim();
       if (rId) {
@@ -384,7 +385,8 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     }
 
     if (this.editRecord) {
-      const updateObs = this.editRecord.status === 'OK' 
+      const isReceipt = (this.editRecord.status || '').toUpperCase().startsWith('OK') || !!(this.editRecord as any).generated_receipt || !!this.editRecord.receipt_id;
+      const updateObs = isReceipt 
         ? this.paymentService.updateReceipt(this.editRecord.id, formData)
         : this.paymentService.updateOnlinePayment(this.editRecord.id, formData);
 

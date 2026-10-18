@@ -5,8 +5,8 @@ import { Endpoint } from '../http/endpoint';
 
 export interface AttendanceCheckOutPayload {
   attendance_id: number;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   ip_address?: string;
   deviceid?: string;
   override_code?: string;

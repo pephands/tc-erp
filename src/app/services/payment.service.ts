@@ -253,7 +253,8 @@ export class PaymentService extends BaseHttpService {
     isExport: boolean = false,
     panStatus: string = '',
     donationType: string = '',
-    pageSize: number = 10
+    pageSize: number = 10,
+    status: string = ''
   ): Observable<any> {
     let params = new HttpParams();
     if (search) params = params.set('search', search);
@@ -265,6 +266,7 @@ export class PaymentService extends BaseHttpService {
     if (panStatus) params = params.set('pan_status', panStatus);
     if (donationType) params = params.set('donation_type', donationType);
     if (pageSize) params = params.set('page_size', pageSize.toString());
+    if (status) params = params.set('status', status);
 
     return this.httpClient.get<any>(this.endPoint.trustReceipts, {
       headers: this.headers,

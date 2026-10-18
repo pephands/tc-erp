@@ -87,6 +87,7 @@
         </div>
       </div>
 
+
       <!-- Date Filters -->
       <div class="filter-field">
         <label>Start Date</label>
@@ -173,9 +174,17 @@
             <td class="col-ref"><code>{{ rec.reference_id || '-' }}</code></td>
             <td class="col-remarks">{{ rec.remarks || '-' }}</td>
             <td class="col-status">
-              <span class="status-badge badge-ok">
-                {{ rec.status || 'OK' }}
-              </span>
+              @if ((rec.status || 'OK').toUpperCase() === 'OK') {
+              <span class="status-badge badge-ok">OK</span>
+              } @else if ((rec.status || '').toUpperCase() === 'RESEND') {
+              <span class="status-badge badge-resend">RESEND</span>
+              } @else if ((rec.status || '').toUpperCase() === 'PENDING') {
+              <span class="status-badge badge-pending">PENDING</span>
+              } @else if ((rec.status || '').toUpperCase() === 'NOT OK') {
+              <span class="status-badge badge-not-ok">NOT OK</span>
+              } @else {
+              <span class="status-badge badge-other">{{ rec.status }}</span>
+              }
             </td>
             <td class="col-actions">
               <div class="actions-wrapper">

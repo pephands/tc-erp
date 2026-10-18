@@ -345,7 +345,7 @@ export const routes: Routes = [
       {
         path: 'receipts/batch-receipts',
         component: BatchReceiptsComponent,
-        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TCT'])],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TCT', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'receipts/create',

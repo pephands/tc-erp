@@ -6,6 +6,7 @@ import { ThemeService } from '../../services/theme.service';
 import { User } from '../../models/user.model';
 import { AttendanceCheckInService } from '../../services/attendance-checkin.service';
 import { DeviceAuthModalService } from '../../services/device-auth-modal.service';
+import { DeviceTransferModalService } from '../../services/device-transfer-modal.service';
 
 @Component({
   selector: 'app-header',
@@ -19,6 +20,7 @@ export class HeaderComponent {
   private themeService = inject(ThemeService);
   private checkInService = inject(AttendanceCheckInService);
   private modalService = inject(DeviceAuthModalService);
+  private deviceTransferModalService = inject(DeviceTransferModalService);
   private router = inject(Router);
 
   @Input() pageTitle = 'Dashboard';
@@ -70,6 +72,11 @@ export class HeaderComponent {
   closeDropdowns(): void {
     this.isUserDropdownOpen.set(false);
     this.isThemePickerOpen.set(false);
+  }
+
+  openDeviceTransferModal(): void {
+    this.closeDropdowns();
+    this.deviceTransferModalService.show();
   }
 
   onResetPassword(): void {

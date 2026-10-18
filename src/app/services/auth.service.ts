@@ -1,11 +1,12 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { User, AuthSession } from '../models/user.model';
 import { AdminLoginService } from './login.service';
 import { LogoutService } from './logout.service';
 import { Endpoint } from '../http/endpoint';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { AttendanceCheckInService } from './attendance-checkin.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,7 @@ export class AuthService {
   private logoutService = inject(LogoutService);
   private endpoint = inject(Endpoint);
   private http = inject(HttpClient);
+  private attendanceCheckInService = inject(AttendanceCheckInService);
 
   // Signals for reactive state
   readonly currentSession = signal<AuthSession | null>(this.loadStoredSession());
@@ -61,9 +63,27 @@ export class AuthService {
     return null;
   }
 
-  login(employee_Id: string, password: string): Observable<{ success: boolean; message: string; user?: User; mustResetPassword?: boolean }> {
-    return this.loginService.getData({ employee_Id, password }).pipe(
+  login(employee_Id: string, password: string, forceNewCode: boolean = false): Observable<{
+    success: boolean;
+    message: string;
+    user?: User;
+    mustResetPassword?: boolean;
+    requiresTransferCode?: boolean;
+    expiresInSeconds?: number;
+    employee_Id?: string;
+  }> {
+    return this.loginService.getData({ employee_Id, password, force_new_code: forceNewCode }).pipe(
       map((response: any) => {
+        if (response.status === 'transfer_required' || response.requires_code) {
+          return {
+            success: false,
+            requiresTransferCode: true,
+            message: response.message || 'Verification code required to transfer device session.',
+            expiresInSeconds: response.expires_in_seconds || 300,
+            employee_Id: response.employee_Id || employee_Id
+          };
+        }
+
         if (response.status === 'success' || response.token) {
           const session: AuthSession = {
             user: response.user,
@@ -73,6 +93,15 @@ export class AuthService {
 
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
           this.currentSession.set(session);
+
+          // Inherit attendance check-in status if already marked today
+          if (response.attendance && response.attendance.has_checked_in) {
+            this.attendanceCheckInService.setAttendanceMarked(
+              response.attendance.attendance_id,
+              response.attendance.checkin_time,
+              response.attendance.is_wfh
+            );
+          }
 
           const mustReset = !!(response.must_reset_password || response.user?.is_password_reset_required);
           if (mustReset) {
@@ -98,6 +127,74 @@ export class AuthService {
         return of({ success: false, message: errorMsg });
       })
     );
+  }
+
+  verifyDeviceTransfer(employee_Id: string, password: string, code: string): Observable<{
+    success: boolean;
+    message: string;
+    user?: User;
+    mustResetPassword?: boolean;
+  }> {
+    const currentDeviceId = this.attendanceCheckInService.getDeviceId();
+    return this.http.post<any>(this.endpoint.verifyDeviceTransfer, {
+      employee_Id,
+      password,
+      code,
+      device_id: currentDeviceId
+    }).pipe(
+      map((response: any) => {
+        if (response.status === 'success' && response.token) {
+          const session: AuthSession = {
+            user: response.user,
+            token: response.token,
+            loginTime: new Date().toISOString()
+          };
+
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
+          this.currentSession.set(session);
+
+          // Inherit attendance check-in status if already marked today
+          if (response.attendance && response.attendance.has_checked_in) {
+            this.attendanceCheckInService.setAttendanceMarked(
+              response.attendance.attendance_id,
+              response.attendance.checkin_time,
+              response.attendance.is_wfh
+            );
+            if (response.attendance.device_id) {
+              this.attendanceCheckInService.setDeviceId(response.attendance.device_id);
+            }
+          }
+
+          const mustReset = !!(response.must_reset_password || response.user?.is_password_reset_required);
+          if (mustReset) {
+            this.openPasswordResetModal(true);
+          }
+
+          return { success: true, message: 'Device transfer successful!', user: response.user, mustResetPassword: mustReset };
+        } else {
+          return { success: false, message: response.message || 'Verification failed.' };
+        }
+      }),
+      catchError((error) => {
+        let errorMsg = 'Failed to verify transfer code. Please try again.';
+        if (error.error && error.error.message) {
+          errorMsg = error.error.message;
+        }
+        return of({ success: false, message: errorMsg });
+      })
+    );
+  }
+
+  getActiveDeviceCode(): Observable<{ has_pending_code: boolean; code: string | null; expires_in_seconds: number }> {
+    const session = this.currentSession();
+    const headers = session?.token ? new HttpHeaders({ Authorization: `Token ${session.token}` }) : new HttpHeaders();
+    return this.http.get<any>(this.endpoint.activeDeviceCode, { headers });
+  }
+
+  generateActiveDeviceCode(): Observable<{ has_pending_code: boolean; code: string; expires_in_seconds: number; message: string }> {
+    const session = this.currentSession();
+    const headers = session?.token ? new HttpHeaders({ Authorization: `Token ${session.token}` }) : new HttpHeaders();
+    return this.http.post<any>(this.endpoint.activeDeviceCode, {}, { headers });
   }
 
   changePassword(oldPassword: string, newPassword: string, confirmPassword: string): Observable<any> {
@@ -148,10 +245,21 @@ export class AuthService {
     );
   }
 
+  forceSessionLogout(reason: 'session_transferred' | 'session_expired' = 'session_transferred'): void {
+    this.clearLocalSession();
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('tc_erp_attendance_id');
+      localStorage.removeItem('tc_erp_checkin_time');
+      localStorage.removeItem('tc_erp_is_wfh');
+    }
+  }
+
   private clearLocalSession(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem('tc_erp_last_checkin_date');
-    localStorage.removeItem('tc_erp_has_checked_out_date');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(this.STORAGE_KEY);
+      localStorage.removeItem('tc_erp_last_checkin_date');
+      localStorage.removeItem('tc_erp_has_checked_out_date');
+    }
     this.closePasswordResetModal(true);
     this.currentSession.set(null);
   }

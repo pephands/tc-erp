@@ -32,6 +32,7 @@
             type="date"
             id="paymentDate"
             class="form-control"
+            required
             [ngModel]="paymentDate()"
             (ngModelChange)="paymentDate.set($event)"
           />

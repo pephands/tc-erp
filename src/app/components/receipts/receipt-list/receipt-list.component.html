@@ -47,8 +47,8 @@
         </div>
       </div>
 
-      <!-- Branch Filter (Admin/Manager view) -->
-      @if (isAdmin() || isManager() || isPR()) {
+      <!-- Branch Filter (Admin/Manager/OT view) -->
+      @if (isAdmin() || isManager() || isPR() || isOT() || (isTL() && branches().length > 0)) {
       <div class="filter-field">
         <label>Branch</label>
         <div class="input-wrapper">
@@ -62,6 +62,7 @@
         </div>
       </div>
       }
+
 
       <!-- Donation Type Filter -->
       <div class="filter-field">
@@ -166,9 +167,17 @@
             <td class="col-ref"><code>{{ rec.reference_id }}</code></td>
             <td class="col-remarks">{{ rec.remarks || '-' }}</td>
             <td class="col-status">
-              <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">
-                {{ rec.status || 'OK' }}
-              </span>
+              @if ((rec.status || 'OK').toUpperCase() === 'OK') {
+              <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">OK</span>
+              } @else if ((rec.status || '').toUpperCase() === 'RESEND') {
+              <span class="status-badge" style="background: #fef3c7; color: #b45309; border: 1px solid #f59e0b;">RESEND</span>
+              } @else if ((rec.status || '').toUpperCase() === 'PENDING') {
+              <span class="status-badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #6366f1;">PENDING</span>
+              } @else if ((rec.status || '').toUpperCase() === 'NOT OK') {
+              <span class="status-badge" style="background: #fee2e2; color: #991b1b; border: 1px solid #ef4444;">NOT OK</span>
+              } @else {
+              <span class="status-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #94a3b8;">{{ rec.status }}</span>
+              }
             </td>
             <td class="col-file">
               @if (rec.payment_proof_url || rec.payment_proof) {

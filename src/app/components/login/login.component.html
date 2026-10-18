@@ -25,60 +25,121 @@
       </div>
     }
 
-    <!-- Manual Login Form -->
-    <form (ngSubmit)="onLogin()" class="login-form">
-      <div class="form-group">
-        <label for="employee_Id">Employee ID</label>
-        <div class="input-wrapper">
-          <span class="material-symbols-outlined input-icon">person</span>
-          <input 
-            type="text" 
-            id="employee_Id" 
-            name="employee_Id" 
-            [(ngModel)]="employee_Id" 
-            placeholder="e.g. admin, tl_rajesh, tc_priya" 
-            autocomplete="employee_Id"
-            required 
-          />
+    <!-- Device Transfer Verification Form -->
+    @if (isTransferRequired()) {
+      <div class="transfer-box">
+        <div class="transfer-header">
+          <div class="device-icon-pulse">
+            <span class="material-symbols-outlined">devices</span>
+          </div>
+          <h2 class="transfer-title">Device Authorization</h2>
+          <p class="transfer-desc">
+            An active session is open on another device. Enter the <strong>6-digit verification code</strong> shown on that device to transfer and authorize this one.
+          </p>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <div class="input-wrapper">
-          <span class="material-symbols-outlined input-icon">lock</span>
-          <input 
-            [type]="showPassword() ? 'text' : 'password'" 
-            id="password" 
-            name="password" 
-            [(ngModel)]="password" 
-            placeholder="Enter your password" 
-            autocomplete="current-password"
-            required 
-          />
-          <button 
-            type="button" 
-            class="password-toggle" 
-            (click)="toggleShowPassword()" 
-            aria-label="Toggle password visibility"
-          >
-            <span class="material-symbols-outlined">
-              {{ showPassword() ? 'visibility_off' : 'visibility' }}
-            </span>
+        <form (ngSubmit)="onVerifyTransfer()" class="login-form">
+          <div class="form-group">
+            <label for="transferCode">6-Digit Verification Code</label>
+            <div class="input-wrapper code-input-wrapper">
+              <span class="material-symbols-outlined input-icon">pin</span>
+              <input 
+                type="text" 
+                id="transferCode" 
+                name="transferCode" 
+                [(ngModel)]="transferCode" 
+                placeholder="123456" 
+                maxlength="6"
+                autocomplete="one-time-code"
+                required 
+                class="code-input"
+              />
+            </div>
+          </div>
+
+          <div class="timer-row">
+            <span class="material-symbols-outlined timer-icon">timer</span>
+            <span class="timer-text">Code valid for: <strong>{{ countdownDisplay() }}</strong></span>
+          </div>
+
+          <button type="submit" class="btn-submit btn-verify" [disabled]="isLoading() || !transferCode().trim()">
+            @if (isLoading()) {
+              <span class="spinner"></span>
+              <span>Verifying & Transferring...</span>
+            } @else {
+              <span class="material-symbols-outlined">swap_horiz</span>
+              <span>Authorize & Log In to This Device</span>
+            }
           </button>
-        </div>
-      </div>
 
-      <button type="submit" class="btn-submit" [disabled]="isLoading()">
-        @if (isLoading()) {
-          <span class="spinner"></span>
-          <span>Signing in...</span>
-        } @else {
-          <span class="material-symbols-outlined">login</span>
-          <span>Sign In to Dashboard</span>
-        }
-      </button>
-    </form>
+          <div class="transfer-actions">
+            <button type="button" class="btn-link" (click)="onResendCode()" [disabled]="isLoading()">
+              <span class="material-symbols-outlined">refresh</span>
+              <span>Request New Code</span>
+            </button>
+            <span class="divider">&bull;</span>
+            <button type="button" class="btn-link" (click)="onCancelTransfer()">
+              <span>Back to Login</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    } @else {
+      <!-- Manual Login Form -->
+      <form (ngSubmit)="onLogin()" class="login-form">
+        <div class="form-group">
+          <label for="employee_Id">Employee ID</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">person</span>
+            <input 
+              type="text" 
+              id="employee_Id" 
+              name="employee_Id" 
+              [(ngModel)]="employee_Id" 
+              placeholder="e.g. admin, tl_rajesh, tc_priya" 
+              autocomplete="employee_Id"
+              required 
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">lock</span>
+            <input 
+              [type]="showPassword() ? 'text' : 'password'" 
+              id="password" 
+              name="password" 
+              [(ngModel)]="password" 
+              placeholder="Enter your password" 
+              autocomplete="current-password"
+              required 
+            />
+            <button 
+              type="button" 
+              class="password-toggle" 
+              (click)="toggleShowPassword()" 
+              aria-label="Toggle password visibility"
+            >
+              <span class="material-symbols-outlined">
+                {{ showPassword() ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>Signing in...</span>
+          } @else {
+            <span class="material-symbols-outlined">login</span>
+            <span>Sign In to Dashboard</span>
+          }
+        </button>
+      </form>
+    }
 
     <div class="login-footer">
       <p>TC-ERP v1.0.0 &bull; Secure Internal Telecalling Portal</p>
