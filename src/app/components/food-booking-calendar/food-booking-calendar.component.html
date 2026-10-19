@@ -201,15 +201,30 @@
               
               <div class="day-slots">
                 <ng-container *ngFor="let slot of uniqueSlots()">
-                   <div *ngIf="getSlotAggregateStatus(day, slot) as status" 
+                   <div *ngIf="getSlotStatusInfo(day, slot) as info" 
                         class="micro-slot" 
-                        [ngClass]="status.toLowerCase()"
-                        [class.hidden-slot]="status === 'NONE'"
-                        [style.cursor]="(status !== 'NONE' && !isTL() && !isPR() && !isManager()) ? 'pointer' : 'default'"
-                        (click)="status !== 'NONE' && !isTL() && !isPR() && !isManager() && onSlotGroupClick(day, slot)"
-                        title="{{slot}}: {{status}}">
+                        [ngClass]="info.isMulti ? 'multi-status' : info.primaryStatus.toLowerCase()"
+                        [class.hidden-slot]="!info.hasMenus || info.primaryStatus === 'NONE'"
+                        [style.cursor]="(info.hasMenus && !isTL() && !isPR() && !isManager()) ? 'pointer' : 'default'"
+                        (click)="info.hasMenus && !isTL() && !isPR() && !isManager() && onSlotGroupClick(day, slot)"
+                        [title]="info.tooltip">
                      <span class="slot-name" style="font-weight: 800; text-transform: uppercase;">{{ slot === 'CAKE CUTTING' ? 'CAKE' : slot }}</span>
-                     <span class="slot-status-text" style="font-size: 9px; opacity: 0.9;">{{ status === 'OPEN' ? 'Available' : status }}</span>
+
+                     <!-- Multiple statuses: combined text with colored status dots (e.g. 🔵 COMPLETED / 🟢 BOOKED) -->
+                     <div *ngIf="info.isMulti" class="slot-status-group">
+                       <ng-container *ngFor="let s of info.statuses; let last = last">
+                         <span class="slot-status-item" [ngClass]="s.itemClass">
+                           <span class="status-dot" [ngClass]="s.dotClass"></span>
+                           <span>{{ s.label }}</span>
+                         </span>
+                         <span *ngIf="!last" class="status-divider">/</span>
+                       </ng-container>
+                     </div>
+
+                     <!-- Single status -->
+                     <span *ngIf="!info.isMulti" class="slot-status-text" style="font-size: 9px; opacity: 0.9;">
+                       {{ info.display }}
+                     </span>
                    </div>
                 </ng-container>
               </div>

@@ -718,3 +718,83 @@
 }
 .micro-slot.completed .slot-status-dot { background: #0284c7; }
 
+/* Multi-status micro-slot styling */
+.micro-slot.multi-status {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
+  color: #0f172a;
+  border: 1px solid #bae6fd;
+}
+
+.micro-slot.multi-status:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #d1fae5 100%);
+  border-color: #7dd3fc;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+}
+
+.slot-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.slot-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.slot-status-item.item-completed {
+  color: #0369a1;
+}
+
+.slot-status-item.item-booked {
+  color: #047857;
+}
+
+.slot-status-item.item-reserved {
+  color: #b91c1c;
+}
+
+.slot-status-item.item-open {
+  color: #64748b;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.dot-completed {
+  background-color: #0284c7;
+  box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.25);
+}
+
+.status-dot.dot-booked {
+  background-color: #10b981;
+  box-shadow: 0 0 0 1.5px rgba(16, 185, 129, 0.25);
+}
+
+.status-dot.dot-reserved {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 1.5px rgba(239, 68, 68, 0.25);
+}
+
+.status-dot.dot-open {
+  background-color: #94a3b8;
+}
+
+.status-divider {
+  color: #94a3b8;
+  font-weight: 600;
+  margin: 0 1px;
+}
+
+

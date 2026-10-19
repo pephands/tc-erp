@@ -538,18 +538,90 @@ export class FoodBookingCalendarComponent implements OnInit {
     this.newMenu = { id: null, trust_name: lastTrust, slot: '', menu_name: '', amount: 0, is_active: true };
   }
 
-  getSlotAggregateStatus(day: any, slot: string) {
-    if (!day.date) return null;
+  getSlotStatusInfo(day: any, slot: string): {
+    hasMenus: boolean;
+    isMulti: boolean;
+    primaryStatus: string;
+    display: string;
+    statuses: Array<{ status: string; label: string; dotClass: string; itemClass: string }>;
+    tooltip: string;
+  } | null {
+    if (!day || !day.date) return null;
     const currentTrustId = this.selectedBranchId();
     const menusForSlot = this.foodMenus().filter(m => m.slot === slot && m.is_active && m.trust_name == currentTrustId);
+    if (menusForSlot.length === 0) {
+      return {
+        hasMenus: false,
+        isMulti: false,
+        primaryStatus: 'NONE',
+        display: '',
+        statuses: [],
+        tooltip: `${slot}: No active menus`
+      };
+    }
+
     const bookingsForSlot = day.bookings.filter((b: any) => menusForSlot.some(m => m.id === b.menu) && b.booking_status !== 'CANCELLED');
-    
-    if (menusForSlot.length === 0) return 'NONE';
-    if (bookingsForSlot.length === 0) return 'OPEN';
-    
-    if (bookingsForSlot.some((b: any) => b.booking_status === 'COMPLETED')) return 'COMPLETED';
-    if (bookingsForSlot.some((b: any) => b.booking_status === 'BOOKED')) return 'BOOKED';
-    return 'RESERVED';
+    if (bookingsForSlot.length === 0) {
+      return {
+        hasMenus: true,
+        isMulti: false,
+        primaryStatus: 'OPEN',
+        display: 'Available',
+        statuses: [{ status: 'OPEN', label: 'Available', dotClass: 'dot-open', itemClass: 'item-open' }],
+        tooltip: `${slot}: Available`
+      };
+    }
+
+    // Collect unique booking statuses in preferred priority order
+    const priority = ['COMPLETED', 'BOOKED', 'RESERVED'];
+    const activeStatuses = Array.from(
+      new Set(bookingsForSlot.map((b: any) => (b.booking_status || '').toUpperCase()).filter(Boolean))
+    ) as string[];
+
+    activeStatuses.sort((a, b) => {
+      const idxA = priority.indexOf(a);
+      const idxB = priority.indexOf(b);
+      return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+    });
+
+    const statusObjects = activeStatuses.map(st => {
+      let dotClass = 'dot-reserved';
+      let itemClass = 'item-reserved';
+      if (st === 'COMPLETED') {
+        dotClass = 'dot-completed';
+        itemClass = 'item-completed';
+      } else if (st === 'BOOKED') {
+        dotClass = 'dot-booked';
+        itemClass = 'item-booked';
+      }
+      return {
+        status: st,
+        label: st,
+        dotClass,
+        itemClass
+      };
+    });
+
+    const isMulti = statusObjects.length > 1;
+    const primaryStatus = isMulti ? 'MULTI' : (statusObjects[0]?.status || 'RESERVED');
+    const combinedLabel = statusObjects.map(s => s.label).join(' / ');
+
+    return {
+      hasMenus: true,
+      isMulti,
+      primaryStatus,
+      display: combinedLabel,
+      statuses: statusObjects,
+      tooltip: `${slot}: ${combinedLabel}`
+    };
+  }
+
+  getSlotAggregateStatus(day: any, slot: string) {
+    const info = this.getSlotStatusInfo(day, slot);
+    if (!info) return null;
+    if (!info.hasMenus) return 'NONE';
+    if (info.isMulti) return 'MULTI';
+    return info.primaryStatus;
   }
 
   getMenusForSelectedDate(slot: string) {
