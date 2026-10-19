@@ -1,6 +1,7 @@
 .layout-wrapper {
   height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   background: var(--bg-app);
   display: flex;
   overflow: hidden;
@@ -9,6 +10,9 @@
 
 .main-content-area {
   flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   margin-left: 260px;
   height: 100vh;
   display: flex;
@@ -23,11 +27,15 @@
 
 .page-body {
   flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 768px) {
