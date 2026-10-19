@@ -588,31 +588,54 @@ export class WorkstationComponent implements OnInit {
         if (res && res.results) list = res.results;
         else if (res && res.data) list = res.data;
 
-        if (!list || list.length === 0) return;
+        if (!list || list.length === 0) {
+          this.triggerToast('No call logs found for the selected filters.');
+          return;
+        }
+
         const exportData = list.map((item: any, index: number) => ({
           'S.No': index + 1,
-          'Branch': item['Branch'],
-          'TC Name': item['TC Name'],
-          'Employee ID': item['TC Employee ID'],
-          'Donor Name': item['Donor Name'],
-          'Phone Number': item['Phone Number'],
-          'DOB': item['DOB'],
+          'Branch': item['Branch'] || '',
+          'TC Name': item['TC Name'] || '',
+          'Employee ID': item['TC Employee ID'] || '',
+          'Donor Name': item['Donor Name'] || '',
+          'Phone Number': item['Phone Number'] || '',
+          'DOB': item['DOB'] || '',
           'Anniversary': item['Anniversary'] || '',
-          'Base Type': item['Base Type'],
-          'Assigned Date': item['Assigned Date'],
-          'Call Completed Date': item['Call Completed Date'],
-          'Call Disposition': item['Call Disposition'],
-          'Remarks': item['Remarks']
+          'Base Type': item['Base Type'] || '',
+          'Assigned Date': item['Assigned Date'] || '',
+          'Call Completed Date': item['Call Completed Date'] || '',
+          'Call Disposition': item['Call Disposition'] || '',
+          'Remarks': item['Remarks'] || ''
         }));
+
         const worksheet = XLSX.utils.json_to_sheet(exportData);
+        worksheet['!cols'] = [
+          { wch: 6 },  // S.No
+          { wch: 20 }, // Branch
+          { wch: 22 }, // TC Name
+          { wch: 16 }, // Employee ID
+          { wch: 25 }, // Donor Name
+          { wch: 15 }, // Phone Number
+          { wch: 12 }, // DOB
+          { wch: 14 }, // Anniversary
+          { wch: 14 }, // Base Type
+          { wch: 15 }, // Assigned Date
+          { wch: 22 }, // Call Completed Date
+          { wch: 20 }, // Call Disposition
+          { wch: 30 }  // Remarks
+        ];
+
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'TL Call Logs');
         const fileName = `TL_CallLogs_${this.tlFilterStartDate()}_to_${this.tlFilterEndDate()}.xlsx`;
         XLSX.writeFile(workbook, fileName);
+        this.triggerToast(`Downloaded ${list.length} call log records as Excel (.xlsx).`);
       },
       error: (err) => {
         console.error('Error downloading export data', err);
         this.tlIsDownloading.set(false);
+        this.triggerToast('Failed to download export data. Please try again.');
       }
     });
   }
