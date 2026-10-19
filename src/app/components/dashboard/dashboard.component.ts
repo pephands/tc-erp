@@ -11,6 +11,7 @@ import { ToastService } from '../../services/toast.service';
 import { WFHPasscodeService, WFHPasscodeRecord } from '../../services/wfh-passcode.service';
 import { UserListService } from '../../services/user-list.service';
 import { BranchListService } from '../../services/branch-list.service';
+import { UserOtpAdminService, UserOTPRecord } from '../../services/user-otp-admin.service';
 
 import { HttpClient } from '@angular/common/http';
 import { Endpoint } from '../../http/endpoint';
@@ -36,6 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private wfhService = inject(WFHPasscodeService);
   private userListService = inject(UserListService);
   private branchListService = inject(BranchListService);
+  private userOtpAdminService = inject(UserOtpAdminService);
 
   currentUser = this.authService.currentUser;
   userRoles = this.authService.userRoles;
@@ -140,6 +142,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   lastGeneratedPasscode = signal<WFHPasscodeRecord | null>(null);
   copiedCode = signal<string | null>(null);
   isStaffDropdownOpen = signal<boolean>(false);
+
+  // Admin UserOTP Management State
+  userOtpList = signal<UserOTPRecord[]>([]);
+  isLoadingUserOtps = signal<boolean>(false);
+  selectedOtpBranch = signal<number | null>(null);
+  otpSearchText = signal<string>('');
+  copiedOtpCode = signal<string | null>(null);
+  private otpTimerInterval: any = null;
+  private otpSearchTimeout: any = null;
   
   selectStaff(staff: any): void {
     this.selectedStaffId.set(staff.id);
@@ -204,6 +215,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.loadBranches();
       this.loadStaffUsers();
       this.loadTodayPasscodes();
+    }
+
+    if (this.primaryRole === 'ADMIN' || this.primaryRole === 'TL') {
+      this.loadAdminUserOtps();
+      this.startOtpTimer();
     }
 
     // Refresh user session data from backend to ensure roles/branches are up to date
@@ -320,6 +336,87 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  loadAdminUserOtps(): void {
+    if (this.primaryRole !== 'ADMIN' && this.primaryRole !== 'TL') return;
+    this.isLoadingUserOtps.set(true);
+    this.userOtpAdminService.getUserOtps(this.selectedOtpBranch(), this.otpSearchText()).subscribe({
+      next: (res: any) => {
+        this.isLoadingUserOtps.set(false);
+        if (res && res.status === 'success' && res.data) {
+          const activeOnly = res.data.filter((item: UserOTPRecord) => item.is_valid && item.expires_in_seconds > 0);
+          this.userOtpList.set(activeOnly);
+        } else if (Array.isArray(res)) {
+          const activeOnly = res.filter((item: UserOTPRecord) => item.is_valid && item.expires_in_seconds > 0);
+          this.userOtpList.set(activeOnly);
+        }
+      },
+      error: () => {
+        this.isLoadingUserOtps.set(false);
+      }
+    });
+  }
+
+  onOtpFilterBranchChange(branchId: any): void {
+    const val = branchId ? Number(branchId) : null;
+    this.selectedOtpBranch.set(val);
+    this.loadAdminUserOtps();
+  }
+
+  onOtpSearchChange(term: string): void {
+    this.otpSearchText.set(term);
+    if (this.otpSearchTimeout) clearTimeout(this.otpSearchTimeout);
+    this.otpSearchTimeout = setTimeout(() => {
+      this.loadAdminUserOtps();
+    }, 300);
+  }
+
+  copyOtpCode(code: string): void {
+    if (!code) return;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        this.copiedOtpCode.set(code);
+        this.toastService.info('Copied', `OTP ${code} copied to clipboard!`);
+        setTimeout(() => {
+          if (this.copiedOtpCode() === code) {
+            this.copiedOtpCode.set(null);
+          }
+        }, 3000);
+      });
+    }
+  }
+
+  formatOtpCountdown(seconds: number): string {
+    if (!seconds || seconds <= 0) return 'Expired';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+  }
+
+  startOtpTimer(): void {
+    this.stopOtpTimer();
+    this.otpTimerInterval = setInterval(() => {
+      this.userOtpList.update(list =>
+        list
+          .map(item => {
+            const nextSec = item.expires_in_seconds - 1;
+            return {
+              ...item,
+              expires_in_seconds: nextSec,
+              is_valid: nextSec > 0
+            };
+          })
+          .filter(item => item.is_valid && item.expires_in_seconds > 0)
+      );
+    }, 1000);
+  }
+
+  stopOtpTimer(): void {
+    if (this.otpTimerInterval) {
+      clearInterval(this.otpTimerInterval);
+      this.otpTimerInterval = null;
+    }
+  }
+
   private syncAttendanceState(): void {
     this.todayService.getData().subscribe({
       next: (res: any) => {
@@ -407,6 +504,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.clockInterval) {
       clearInterval(this.clockInterval);
     }
+    this.stopOtpTimer();
   }
 
   private startLiveClock(): void {

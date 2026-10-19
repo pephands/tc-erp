@@ -1,0 +1,139 @@
+<div class="modal-backdrop" *ngIf="isOpen()" (click)="onClose()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-left">
+        <div class="icon-circle">
+          <span class="material-symbols-outlined">devices</span>
+        </div>
+        <div>
+          <h2 class="modal-title">Device Transfer OTPs</h2>
+          <p class="modal-sub">{{ primaryRole === 'ADMIN' ? 'View active 6-digit user authentication codes & expiration' : ('Active 6-digit codes for ' + (currentUser()?.branch?.name || 'your branch')) }}</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button type="button" class="btn-refresh" (click)="fetchOtps()" [disabled]="isLoading()" title="Refresh List">
+          <span class="material-symbols-outlined" [class.spinning]="isLoading()">refresh</span>
+        </button>
+        <button type="button" class="btn-close" (click)="onClose()" title="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter & Search Controls Bar -->
+    <div class="controls-bar">
+      <!-- Branch Filter -->
+      <div class="control-item branch-select-wrap">
+        <label class="control-label">{{ primaryRole === 'ADMIN' ? 'Filter Branch' : 'Your Branch' }}</label>
+        @if (primaryRole === 'ADMIN') {
+          <div class="select-wrapper">
+            <select class="control-select" [ngModel]="selectedBranch()" (ngModelChange)="onBranchChange($event)">
+              <option [ngValue]="null">All Branches</option>
+              @for (b of branches(); track b.id) {
+                <option [ngValue]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </div>
+        } @else {
+          <div class="locked-branch-pill">
+            <span class="material-symbols-outlined locked-branch-icon">apartment</span>
+            <span class="locked-branch-name">{{ currentUser()?.branch?.name || 'My Branch' }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Search Box -->
+      <div class="control-item search-wrap">
+        <label class="control-label">Search Employee</label>
+        <div class="search-input-wrapper">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input 
+            type="text" 
+            class="control-input" 
+            placeholder="Emp ID, Name, or OTP..." 
+            [ngModel]="searchText()" 
+            (ngModelChange)="onSearchChange($event)"
+          />
+          @if (searchText()) {
+            <button type="button" class="clear-search-btn" (click)="clearSearch()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- OTPs Table Container -->
+    <div class="table-container">
+      <table class="otp-table">
+        <thead>
+          <tr>
+            <th>Branch Name</th>
+            <th>Employee Name</th>
+            <th>Emp ID</th>
+            <th>OTP Code</th>
+            <th>Status</th>
+            <th>Expires In</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of otpList(); track item.id) {
+            <tr [class.expired-row]="!item.is_valid">
+              <td class="branch-cell">
+                <span class="branch-pill">{{ item.branch_name || '-' }}</span>
+              </td>
+              <td class="emp-name-cell font-medium">{{ item.employee_name || '-' }}</td>
+              <td><span class="emp-id-badge">{{ item.employee_id }}</span></td>
+              <td>
+                <div class="otp-box-cell">
+                  <code class="otp-code">{{ item.otp_code }}</code>
+                  <button 
+                    type="button" 
+                    class="copy-mini-btn" 
+                    (click)="copyOtp(item.otp_code)"
+                    [title]="copiedCode() === item.otp_code ? 'Copied!' : 'Copy Code'"
+                  >
+                    <span class="material-symbols-outlined">{{ copiedCode() === item.otp_code ? 'check' : 'content_copy' }}</span>
+                  </button>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [class.badge-active]="item.is_valid" [class.badge-expired]="!item.is_valid">
+                  {{ item.is_valid ? 'Active' : 'Expired' }}
+                </span>
+              </td>
+              <td class="expiry-cell">
+                <span [class.text-active]="item.is_valid" [class.text-muted]="!item.is_valid">
+                  {{ item.is_valid ? formatCountdown(item.expires_in_seconds) : 'Expired' }}
+                </span>
+              </td>
+              <td class="date-cell">{{ item.created_at | date:'dd MMM yyyy, h:mm a' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">
+                <div class="empty-wrap">
+                  <span class="material-symbols-outlined empty-icon">lock_open</span>
+                  <p>{{ isLoading() ? 'Loading active OTP records...' : 'No active device OTP codes generated.' }}</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <div class="footer-count">
+        Showing <strong>{{ otpList().length }}</strong> active OTP {{ otpList().length === 1 ? 'record' : 'records' }}
+      </div>
+      <button type="button" class="btn-done" (click)="onClose()">Close</button>
+    </div>
+
+  </div>
+</div>

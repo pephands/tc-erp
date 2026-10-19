@@ -7,6 +7,7 @@ import { User } from '../../models/user.model';
 import { AttendanceCheckInService } from '../../services/attendance-checkin.service';
 import { DeviceAuthModalService } from '../../services/device-auth-modal.service';
 import { DeviceTransferModalService } from '../../services/device-transfer-modal.service';
+import { UserOtpAdminService } from '../../services/user-otp-admin.service';
 
 @Component({
   selector: 'app-header',
@@ -21,6 +22,7 @@ export class HeaderComponent {
   private checkInService = inject(AttendanceCheckInService);
   private modalService = inject(DeviceAuthModalService);
   private deviceTransferModalService = inject(DeviceTransferModalService);
+  private userOtpAdminService = inject(UserOtpAdminService);
   private router = inject(Router);
 
   @Input() pageTitle = 'Dashboard';
@@ -41,42 +43,27 @@ export class HeaderComponent {
     if (roles.includes('TC')) return 'TC';
     return roles.length > 0 ? roles[0] : '';
   }
-  availableThemes = this.themeService.availableThemes;
-  currentTheme = this.themeService.currentTheme;
 
   isUserDropdownOpen = signal<boolean>(false);
-  isThemePickerOpen = signal<boolean>(false);
-
-  toggleThemePicker(event?: Event): void {
-    if (event) event.stopPropagation();
-    this.isUserDropdownOpen.set(false);
-    this.isThemePickerOpen.update(v => !v);
-  }
-
-  closeThemePicker(): void {
-    this.isThemePickerOpen.set(false);
-  }
-
-  selectTheme(themeId: string): void {
-    this.themeService.setTheme(themeId);
-    this.closeThemePicker();
-  }
 
   toggleUserDropdown(event?: Event): void {
     if (event) event.stopPropagation();
-    this.isThemePickerOpen.set(false);
     this.isUserDropdownOpen.update(v => !v);
   }
 
   @HostListener('document:click')
   closeDropdowns(): void {
     this.isUserDropdownOpen.set(false);
-    this.isThemePickerOpen.set(false);
   }
 
   openDeviceTransferModal(): void {
     this.closeDropdowns();
     this.deviceTransferModalService.show();
+  }
+
+  openAdminDeviceOtpModal(): void {
+    this.closeDropdowns();
+    this.userOtpAdminService.openModal();
   }
 
   onResetPassword(): void {

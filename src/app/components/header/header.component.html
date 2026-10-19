@@ -24,8 +24,18 @@
 
   <!-- Right Header Actions -->
   <div class="top-header-right">
-    <!-- Device Code Button (Non-Admin) -->
-    @if (primaryRole !== 'ADMIN') {
+    <!-- Device Code Button -->
+    @if (primaryRole === 'ADMIN' || primaryRole === 'TL') {
+      <button 
+        type="button" 
+        class="theme-palette-btn device-code-header-btn" 
+        (click)="openAdminDeviceOtpModal()"
+        [title]="primaryRole === 'ADMIN' ? 'View All Device Transfer OTPs' : 'View Branch Staff Device OTPs'"
+      >
+        <span class="material-symbols-outlined">devices</span>
+        <span class="theme-btn-label">Device Codes</span>
+      </button>
+    } @else {
       <button 
         type="button" 
         class="theme-palette-btn device-code-header-btn" 
@@ -36,42 +46,6 @@
         <span class="theme-btn-label">Device Code</span>
       </button>
     }
-
-    <!-- Theme Switcher -->
-    <div class="theme-picker-wrapper">
-      <button 
-        type="button" 
-        class="theme-palette-btn" 
-        (click)="toggleThemePicker($event)"
-        [class.active]="isThemePickerOpen()"
-        title="Choose Color Theme"
-      >
-        <span class="material-symbols-outlined">palette</span>
-        <span class="theme-btn-label">{{ currentTheme().name }}</span>
-      </button>
-
-      @if (isThemePickerOpen()) {
-        <div class="theme-dropdown-menu shadow-lg" (click)="$event.stopPropagation()">
-          <div class="theme-header">
-            <span class="material-symbols-outlined">format_paint</span>
-            <span>Select Color Theme</span>
-          </div>
-          <div class="theme-list">
-            @for (t of availableThemes; track t.id) {
-              <button 
-                type="button" 
-                class="theme-option-btn" 
-                [class.selected]="currentTheme().id === t.id"
-                (click)="selectTheme(t.id)"
-              >
-                <span class="swatch-circle" [style.background]="t.previewGradient"></span>
-                <span class="theme-option-name">{{ t.name }}</span>
-              </button>
-            }
-          </div>
-        </div>
-      }
-    </div>
 
     <!-- User Profile Dropdown -->
     <div class="user-dropdown-wrapper">
@@ -105,8 +79,13 @@
             <span>Reset Password</span>
           </button>
 
-          <!-- Device Transfer Code Option (Non-Admin) -->
-          @if (primaryRole !== 'ADMIN') {
+          <!-- Device Transfer Code Option -->
+          @if (primaryRole === 'ADMIN' || primaryRole === 'TL') {
+            <button type="button" class="dropdown-item" (click)="openAdminDeviceOtpModal()">
+              <span class="material-symbols-outlined item-icon">devices</span>
+              <span>Staff Device OTPs</span>
+            </button>
+          } @else {
             <button type="button" class="dropdown-item" (click)="openDeviceTransferModal()">
               <span class="material-symbols-outlined item-icon">devices</span>
               <span>Device Transfer Code</span>

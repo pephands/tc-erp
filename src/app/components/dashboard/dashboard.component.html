@@ -515,6 +515,162 @@
           </div>
         }
       }
+
+      <!-- STAFF DEVICE TRANSFER OTPS (ADMIN & TL) -->
+      @if (primaryRole === 'ADMIN' || primaryRole === 'TL') {
+        <div class="category-group-card shadow-card otp-admin-card">
+          <div class="category-header-bar flex-wrap-header">
+            <div class="header-title-group">
+              <div class="category-icon-chip chip-otp">
+                <span class="material-symbols-outlined">phonelink_lock</span>
+              </div>
+              <div>
+                <h3 class="category-title">Staff Device Transfer OTPs</h3>
+                <p class="category-sub">
+                  {{ primaryRole === 'ADMIN' ? 'Active 6-digit device verification codes & live expiration timer' : ('Active 6-digit codes for ' + (currentUser()?.branch?.name || 'My Branch')) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Filter Toolbar -->
+            <div class="otp-filter-toolbar">
+              <!-- Branch Filter: Admin can choose any branch; TL sees their mapped branch -->
+              @if (primaryRole === 'ADMIN') {
+                <div class="otp-select-box">
+                  <select
+                    class="modern-select-sm"
+                    [ngModel]="selectedOtpBranch()"
+                    (ngModelChange)="onOtpFilterBranchChange($event)"
+                    aria-label="Filter by Branch"
+                  >
+                    <option [ngValue]="null">All Branches</option>
+                    @for (b of branches(); track b.id) {
+                      <option [ngValue]="b.id">{{ b.name }}</option>
+                    }
+                  </select>
+                </div>
+              } @else {
+                <div class="branch-pill-badge" style="padding: 0.4rem 0.75rem; font-size: 0.82rem;">
+                  <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px; color: var(--primary);">apartment</span>
+                  <span>{{ currentUser()?.branch?.name || 'My Branch' }}</span>
+                </div>
+              }
+
+              <!-- Search Box -->
+              <div class="otp-search-box">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input
+                  type="text"
+                  placeholder="Search staff, ID, branch..."
+                  [ngModel]="otpSearchText()"
+                  (ngModelChange)="onOtpSearchChange($event)"
+                />
+                @if (otpSearchText()) {
+                  <button type="button" class="btn-clear-term" (click)="onOtpSearchChange('')" title="Clear Search">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                }
+              </div>
+
+              <!-- Refresh Button -->
+              <button
+                type="button"
+                class="btn-refresh-mini"
+                (click)="loadAdminUserOtps()"
+                [disabled]="isLoadingUserOtps()"
+                title="Refresh OTP list"
+              >
+                <span class="material-symbols-outlined" [class.spinning]="isLoadingUserOtps()">refresh</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- OTP Table -->
+          <div class="otp-table-wrap">
+            <table class="otp-modern-table">
+              <thead>
+                <tr>
+                  <th>Branch</th>
+                  <th>Employee Name</th>
+                  <th>Emp ID</th>
+                  <th>OTP Code</th>
+                  <th>Status</th>
+                  <th>Expires In</th>
+                  <th>Generated Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (isLoadingUserOtps()) {
+                  <tr>
+                    <td colspan="7" class="otp-status-cell">
+                      <div class="btn-spinner" style="margin: 0.75rem auto; border-top-color: var(--primary, #ea580c); width: 22px; height: 22px;"></div>
+                      <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Loading device OTP records...</span>
+                    </td>
+                  </tr>
+                } @else {
+                  @for (item of userOtpList(); track item.id) {
+                    <tr>
+                      <td>
+                        <span class="branch-pill-badge">{{ item.branch_name || 'All / Main' }}</span>
+                      </td>
+                      <td>
+                        <div class="emp-name-wrap">
+                          <span class="emp-avatar-circle">{{ (item.employee_name || 'U').charAt(0).toUpperCase() }}</span>
+                          <span class="emp-name-bold">{{ item.employee_name || '-' }}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="emp-id-pill">{{ item.employee_id }}</span>
+                      </td>
+                      <td>
+                        <div class="otp-code-container">
+                          <code class="otp-code-text">{{ item.otp_code }}</code>
+                          <button
+                            type="button"
+                            class="btn-copy-sm-icon"
+                            (click)="copyOtpCode(item.otp_code)"
+                            [title]="copiedOtpCode() === item.otp_code ? 'Copied!' : 'Copy OTP'"
+                          >
+                            <span class="material-symbols-outlined">
+                              {{ copiedOtpCode() === item.otp_code ? 'check' : 'content_copy' }}
+                            </span>
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="mini-status-badge status-active">
+                          Active
+                        </span>
+                      </td>
+                      <td>
+                        <span class="timer-countdown-badge badge-countdown-active">
+                          <span class="material-symbols-outlined countdown-icon">timer</span>
+                          {{ formatOtpCountdown(item.expires_in_seconds) }}
+                        </span>
+                      </td>
+                      <td class="created-at-cell">
+                        {{ item.created_at | date:'dd MMM yyyy, h:mm a' }}
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="otp-status-cell">
+                        <div class="empty-otp-box">
+                          <span class="material-symbols-outlined empty-icon">pin_invoke</span>
+                          <p class="empty-title">No Active Device Transfer OTPs Found</p>
+                          <p class="empty-subtitle">
+                            {{ primaryRole === 'ADMIN' ? 'When employees request verification to transfer or login from a new device, their active OTP codes and live countdown will appear here.' : 'When staff in your branch request verification to transfer or login from a new device, their active OTP codes and live countdown will appear here.' }}
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- ==================== RIGHT SECTION: SQUARE CARDS ==================== -->

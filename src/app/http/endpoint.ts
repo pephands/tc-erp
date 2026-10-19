@@ -27,6 +27,10 @@ export class Endpoint {
     return this.baseUrl + 'accounts/verify-device-transfer/';
   }
 
+  get adminUserOtps(): string {
+    return this.baseUrl + 'accounts/admin/user-otps/';
+  }
+
   get users(): string {
     return this.baseUrl + 'accounts/users/';
   }
