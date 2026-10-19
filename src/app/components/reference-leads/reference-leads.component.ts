@@ -25,6 +25,10 @@ export class ReferenceLeadsComponent implements OnInit {
   // Form for New Lead (TC only)
   isNewLeadModalOpen = signal<boolean>(false);
   isUploadModalOpen = signal<boolean>(false);
+  phoneError = signal<string>('');
+  isCheckingPhone = signal<boolean>(false);
+  isSubmitting = signal<boolean>(false);
+  private toastTimeout: any = null;
   
   openUploadModal() {
     this.isUploadModalOpen.set(true);
@@ -68,6 +72,44 @@ export class ReferenceLeadsComponent implements OnInit {
     if (val.length > 10) val = val.substring(0, 10);
     event.target.value = val;
     this.newLead.update(l => ({ ...l, [field]: val }));
+
+    if (field === 'phone_number') {
+      if (val.length === 10) {
+        this.checkPhoneNumber(val);
+      } else {
+        this.phoneError.set('');
+      }
+    }
+  }
+
+  checkPhoneNumber(phone: string) {
+    if (!phone || phone.length !== 10) {
+      this.phoneError.set('');
+      return;
+    }
+    this.isCheckingPhone.set(true);
+    this.http.get(`${environment.baseUrl}telecalling/reference-leads/check/?phone_number=${phone}`, {
+      headers: this.telecallingService.headers
+    }).subscribe({
+      next: (res: any) => {
+        this.isCheckingPhone.set(false);
+        if (res && res.exists) {
+          const msg = res.message || "This mobile number is already verified or has already been submitted as a reference lead. You cannot submit this number again.";
+          this.phoneError.set(msg);
+          this.showToastNotification(msg, 'error', 4500);
+        } else {
+          this.phoneError.set('');
+        }
+      },
+      error: (err) => {
+        this.isCheckingPhone.set(false);
+        const msg = err.error?.message;
+        if (msg) {
+          this.phoneError.set(msg);
+          this.showToastNotification(msg, 'error', 4500);
+        }
+      }
+    });
   }
 
   clearAnni() {
@@ -152,13 +194,16 @@ export class ReferenceLeadsComponent implements OnInit {
     });
   }
 
-  showToastNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+  showToastNotification(message: string, type: 'success' | 'error' | 'info' = 'info', duration = 4000) {
     this.toastMessage.set(message);
     this.toastType.set(type);
     this.showToast.set(true);
-    setTimeout(() => {
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
       this.showToast.set(false);
-    }, 3000);
+    }, duration);
   }
 
   fetchLeads() {
@@ -197,18 +242,44 @@ export class ReferenceLeadsComponent implements OnInit {
       phone_number: '',
       alternative_number: ''
     });
+    this.phoneError.set('');
+    this.isCheckingPhone.set(false);
+    this.isSubmitting.set(false);
     this.clearDob();
     this.clearAnni();
     this.isNewLeadModalOpen.set(true);
   }
 
   closeNewLeadModal() {
+    this.phoneError.set('');
+    this.isCheckingPhone.set(false);
+    this.isSubmitting.set(false);
     this.isNewLeadModalOpen.set(false);
   }
 
   submitNewLead() {
-    if (!this.newLead().phone_number || this.newLead().phone_number.length !== 10) {
-      this.showToastNotification("Phone number must be exactly 10 digits.");
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    const phone = this.newLead().phone_number;
+    if (!phone || phone.length !== 10) {
+      this.showToastNotification("Phone number must be exactly 10 digits.", "error");
+      return;
+    }
+
+    if (this.phoneError()) {
+      this.showToastNotification(this.phoneError(), "error", 4500);
+      return;
+    }
+
+    if (this.isCheckingPhone()) {
+      this.showToastNotification("Checking phone number availability, please wait...", "info");
+      return;
+    }
+
+    if (this.newLead().alternative_number && this.newLead().alternative_number.trim() === phone.trim()) {
+      this.showToastNotification("Alternative number cannot be the same as phone number.", "error");
       return;
     }
     
@@ -216,7 +287,7 @@ export class ReferenceLeadsComponent implements OnInit {
     let dob = null;
     if (this.dobYear() && this.dobMonth() && this.dobDay()) {
       if (this.dobYear().length !== 4) {
-        this.showToastNotification("DOB Year must be 4 digits.");
+        this.showToastNotification("DOB Year must be 4 digits.", "error");
         return;
       }
       const y = parseInt(this.dobYear(), 10);
@@ -224,7 +295,7 @@ export class ReferenceLeadsComponent implements OnInit {
       const d = parseInt(this.dobDay(), 10);
       const date = new Date(y, m - 1, d);
       if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
-        this.showToastNotification("Invalid Date of Birth. Please check the day and month.");
+        this.showToastNotification("Invalid Date of Birth. Please check the day and month.", "error");
         return;
       }
       dob = `${this.dobYear()}-${this.dobMonth()}-${this.dobDay().padStart(2, '0')}`;
@@ -233,7 +304,7 @@ export class ReferenceLeadsComponent implements OnInit {
     let anniversary = null;
     if (this.anniYear() && this.anniMonth() && this.anniDay()) {
       if (this.anniYear().length !== 4) {
-        this.showToastNotification("Anniversary Year must be 4 digits.");
+        this.showToastNotification("Anniversary Year must be 4 digits.", "error");
         return;
       }
       const y = parseInt(this.anniYear(), 10);
@@ -241,7 +312,7 @@ export class ReferenceLeadsComponent implements OnInit {
       const d = parseInt(this.anniDay(), 10);
       const date = new Date(y, m - 1, d);
       if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
-        this.showToastNotification("Invalid Anniversary Date. Please check the day and month.");
+        this.showToastNotification("Invalid Anniversary Date. Please check the day and month.", "error");
         return;
       }
       anniversary = `${this.anniYear()}-${this.anniMonth()}-${this.anniDay().padStart(2, '0')}`;
@@ -252,8 +323,10 @@ export class ReferenceLeadsComponent implements OnInit {
       payload.donor_name = payload.donor_name.toUpperCase();
     }
 
+    this.isSubmitting.set(true);
     this.http.post(`${environment.baseUrl}telecalling/reference-leads/`, payload, { headers: this.telecallingService.headers }).subscribe({
       next: (res: any) => {
+        this.isSubmitting.set(false);
         if (res && res.status === 'success') {
           this.showToastNotification("Reference lead submitted successfully!", "success");
           this.closeNewLeadModal();
@@ -261,7 +334,15 @@ export class ReferenceLeadsComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.showToastNotification(err.error?.message || "Failed to submit lead", "error");
+        this.isSubmitting.set(false);
+        const errorMsg = err.error?.message || 
+                         err.error?.errors?.phone_number?.[0] || 
+                         (err.error?.errors && typeof err.error.errors === 'object' ? (Object.values(err.error.errors) as any).flat()[0] : null) || 
+                         "Failed to submit lead";
+        this.showToastNotification(String(errorMsg), "error", 4500);
+        if (typeof errorMsg === 'string' && (errorMsg.includes('already verified') || errorMsg.includes('reference lead'))) {
+          this.phoneError.set(errorMsg);
+        }
       }
     });
   }
