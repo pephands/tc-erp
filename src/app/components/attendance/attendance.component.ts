@@ -54,6 +54,7 @@ export class AttendanceComponent implements OnInit {
   startDate = signal<string>(new Date().toLocaleDateString('en-CA'));
   endDate = signal<string>(new Date().toLocaleDateString('en-CA'));
   selectedStatus = signal<string>('');
+  selectedCheckStatus = signal<string>('');
   isFilterApplied = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isExporting = signal<boolean>(false);
@@ -235,9 +236,9 @@ export class AttendanceComponent implements OnInit {
 
     const search = this.searchQuery().trim();
     const status = this.selectedStatus();
+    const checkStatus = this.selectedCheckStatus();
 
-
-    this.attendanceService.getAttendanceRecords(branch, start, end, search, this.currentPage(), this.pageSize(), status).subscribe({
+    this.attendanceService.getAttendanceRecords(branch, start, end, search, this.currentPage(), this.pageSize(), status, checkStatus).subscribe({
       next: (res: any) => {
         let items: any[] = [];
         if (res && res.status === 'success' && res.data) {
@@ -358,8 +359,9 @@ export class AttendanceComponent implements OnInit {
     const end = this.endDate() || defaultEnd;
     const search = this.searchQuery().trim();
     const status = this.selectedStatus();
+    const checkStatus = this.selectedCheckStatus();
 
-    this.attendanceService.exportAttendanceExcel(branch, start, end, search, status).subscribe({
+    this.attendanceService.exportAttendanceExcel(branch, start, end, search, status, checkStatus).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -416,12 +418,19 @@ export class AttendanceComponent implements OnInit {
     this.fetchAttendanceFromApi();
   }
 
+  onCheckStatusChange(val: string): void {
+    this.selectedCheckStatus.set(val);
+    this.updateFilterAppliedState();
+    this.currentPage.set(1);
+    this.fetchAttendanceFromApi();
+  }
+
   private updateFilterAppliedState(): void {
     const isBranchFiltered = this.isAdminOrManager ? !!this.selectedBranch() : false;
     const defaultStart = this.isTcUser ? this.currentMonthStart : this.todayDateStr;
     const defaultEnd = this.isTcUser ? this.currentMonthEnd : this.todayDateStr;
     const isDateFiltered = (!!this.startDate() && this.startDate() !== defaultStart) || (!!this.endDate() && this.endDate() !== defaultEnd);
-    this.isFilterApplied.set(!!(isBranchFiltered || isDateFiltered || this.searchQuery() || this.selectedStatus()));
+    this.isFilterApplied.set(!!(isBranchFiltered || isDateFiltered || this.searchQuery() || this.selectedStatus() || this.selectedCheckStatus()));
   }
 
   onResetFilters(): void {
@@ -435,6 +444,7 @@ export class AttendanceComponent implements OnInit {
     }
     this.searchQuery.set('');
     this.selectedStatus.set('');
+    this.selectedCheckStatus.set('');
     this.isFilterApplied.set(false);
     this.currentPage.set(1);
     this.fetchAttendanceFromApi();
