@@ -53,6 +53,79 @@
           </div>
         }
 
+        <!-- Admin Branch & Assigned User Reassignment (Only for Admin when editing) -->
+        @if (isAdmin() && editRecord) {
+          <!-- Branch Selector -->
+          <div class="form-group fg-admin-branch">
+            <label for="adminBranch">Branch <span class="required-star">*</span></label>
+            <select
+              id="adminBranch"
+              class="form-control"
+              [ngModel]="selectedBranchId()"
+              (ngModelChange)="onBranchChange($event)"
+            >
+              <option [ngValue]="null" disabled>-- Select Branch --</option>
+              @for (b of branches(); track b.id) {
+                <option [ngValue]="b.id">
+                  {{ b.name }} ({{ b.code }}){{ b.is_trust ? ' [Trust]' : '' }}{{ b.is_active === false ? ' [Inactive]' : '' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <!-- User (Telecaller) Selector with Search -->
+          <div class="form-group fg-admin-user">
+            <label for="adminUser">Assigned User / Telecaller <span class="required-star">*</span></label>
+            @if (isLoadingUsers()) {
+              <div class="user-loading-indicator">
+                <span class="material-symbols-outlined spin-icon">progress_activity</span>
+                <span>Loading active branch users...</span>
+              </div>
+            } @else if (!selectedBranchId()) {
+              <div class="user-hint-text">
+                <span class="material-symbols-outlined">info</span>
+                <span>Select a branch to view active users</span>
+              </div>
+            } @else {
+              <div class="user-search-wrapper">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input
+                  type="text"
+                  class="form-control user-search-input"
+                  placeholder="Search user by name or employee ID..."
+                  [ngModel]="userSearchQuery()"
+                  (ngModelChange)="userSearchQuery.set($event)"
+                />
+                @if (userSearchQuery()) {
+                  <button type="button" class="btn-clear-search" (click)="userSearchQuery.set('')" title="Clear Search">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                }
+              </div>
+
+              <select
+                id="adminUser"
+                class="form-control"
+                style="margin-top: 6px;"
+                [ngModel]="selectedUserId()"
+                (ngModelChange)="onUserChange($event)"
+              >
+                <option [ngValue]="null" disabled>
+                  {{ filteredBranchUsers().length > 0 ? '-- Select Active User (' + filteredBranchUsers().length + ' available) --' : 'No active users found' }}
+                </option>
+                @for (u of filteredBranchUsers(); track u.id) {
+                  <option [ngValue]="u.id">
+                    {{ u.full_name || u.name }} ({{ u.employee_Id || u.phone }}){{ u.is_current ? ' [Current]' : '' }}
+                  </option>
+                }
+              </select>
+              @if (userSearchQuery() && filteredBranchUsers().length === 0) {
+                <div class="no-match-hint">No active users match "{{ userSearchQuery() }}"</div>
+              }
+            }
+          </div>
+        }
+
         <!-- 2. Donor Number -->
         <div class="form-group fg-donor-number">
           <label for="mobileNumber">Donor Number <span class="required-star">*</span></label>

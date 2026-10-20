@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
+import { BranchListService } from '../../services/branch-list.service';
+import { UserListService } from '../../services/user-list.service';
 import { OnlinePaymentRecord } from '../../models/payment.model';
 
 @Component({
@@ -15,6 +17,8 @@ import { OnlinePaymentRecord } from '../../models/payment.model';
 export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   private paymentService = inject(PaymentService);
   private authService = inject(AuthService);
+  private branchListService = inject(BranchListService);
+  private userListService = inject(UserListService);
 
   @Input() editRecord: OnlinePaymentRecord | null = null;
   @Output() close = new EventEmitter<void>();
@@ -56,6 +60,37 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   canEditReceiptId = computed(() => this.isAdmin() || this.isOT());
   canChangeStatus = computed(() => this.isAdmin() || this.isOT());
 
+  // Admin Branch & Telecaller Management
+  branches = signal<any[]>([]);
+  selectedBranchId = signal<number | null>(null);
+  branchUsers = signal<any[]>([]);
+  selectedUserId = signal<number | null>(null);
+  userSearchQuery = signal<string>('');
+  isLoadingUsers = signal<boolean>(false);
+
+  filteredBranchUsers = computed(() => {
+    const query = this.userSearchQuery().toLowerCase().trim();
+    const users = this.branchUsers();
+    if (!query) return users;
+
+    const selectedId = this.selectedUserId();
+    const matches = users.filter((u: any) => {
+      const name = (u.full_name || u.name || '').toLowerCase();
+      const empId = (u.employee_Id || '').toLowerCase();
+      const phone = (u.phone || u.office_phone || '').toLowerCase();
+      return name.includes(query) || empId.includes(query) || phone.includes(query);
+    });
+
+    if (selectedId && !matches.some((u: any) => u.id === selectedId)) {
+      const selectedUser = users.find((u: any) => u.id === selectedId);
+      if (selectedUser) {
+        return [selectedUser, ...matches];
+      }
+    }
+
+    return matches;
+  });
+
   status = signal<string>('OK');
   customStatus = signal<string>('');
 
@@ -73,6 +108,9 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
   ngOnInit() {
     this.checkRoles();
     this.fetchPaymentModes();
+    if (this.isAdmin()) {
+      this.loadBranches();
+    }
   }
 
   checkRoles(): void {
@@ -91,6 +129,100 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       },
       error: (err: any) => console.error('Error fetching payment modes:', err)
     });
+  }
+
+  getRecordBranchId(): number | null {
+    if (!this.editRecord) return null;
+    const b = (this.editRecord as any).branch;
+    if (b && typeof b === 'object') {
+      return b.id ? Number(b.id) : null;
+    }
+    if (b !== undefined && b !== null && b !== '') {
+      const num = Number(b);
+      return isNaN(num) ? null : num;
+    }
+    if ((this.editRecord as any).branch_id !== undefined && (this.editRecord as any).branch_id !== null) {
+      const num = Number((this.editRecord as any).branch_id);
+      return isNaN(num) ? null : num;
+    }
+    return null;
+  }
+
+  getRecordUserId(): number | null {
+    if (!this.editRecord) return null;
+    const t = (this.editRecord as any).telecaller;
+    if (t && typeof t === 'object') {
+      return t.id ? Number(t.id) : null;
+    }
+    if (t !== undefined && t !== null && t !== '') {
+      const num = Number(t);
+      return isNaN(num) ? null : num;
+    }
+    if ((this.editRecord as any).telecaller_id !== undefined && (this.editRecord as any).telecaller_id !== null) {
+      const num = Number((this.editRecord as any).telecaller_id);
+      return isNaN(num) ? null : num;
+    }
+    return null;
+  }
+
+  loadBranches(): void {
+    if (!this.isAdmin()) return;
+    this.branchListService.getData(1, 1000, '', 'true').subscribe({
+      next: (res: any) => {
+        const list = res?.data || res?.results || (Array.isArray(res) ? res : []);
+        const recBranchId = this.getRecordBranchId();
+        if (recBranchId && !list.some((b: any) => b.id === recBranchId) && this.editRecord) {
+          const branchName = (this.editRecord as any).branch_name || `Branch #${recBranchId}`;
+          this.branches.set([{ id: recBranchId, name: branchName, is_active: false }, ...list]);
+        } else {
+          this.branches.set(list);
+        }
+      },
+      error: (err: any) => console.error('Error fetching branches:', err)
+    });
+  }
+
+  loadBranchUsers(branchId: number, currentUserId?: number | null): void {
+    this.isLoadingUsers.set(true);
+    this.userListService.getActiveBranchUsers(branchId).subscribe({
+      next: (res: any) => {
+        this.isLoadingUsers.set(false);
+        const users = res?.results || res?.data || (Array.isArray(res) ? res : []);
+        if (currentUserId && !users.some((u: any) => u.id === currentUserId) && this.editRecord) {
+          const currentUserName = (this.editRecord as any).telecaller_name || `User #${currentUserId}`;
+          const currentUserEmpId = (this.editRecord as any).telecaller_employee_Id || '';
+          users.unshift({
+            id: currentUserId,
+            full_name: currentUserName,
+            employee_Id: currentUserEmpId,
+            is_current: true
+          });
+        }
+        this.branchUsers.set(users);
+      },
+      error: (err: any) => {
+        this.isLoadingUsers.set(false);
+        console.error('Error loading branch users:', err);
+        this.branchUsers.set([]);
+      }
+    });
+  }
+
+  onBranchChange(val: any): void {
+    const bId = val !== null && val !== undefined && val !== '' ? Number(val) : null;
+    this.selectedBranchId.set(bId);
+    this.selectedUserId.set(null);
+    this.userSearchQuery.set('');
+    if (bId) {
+      this.loadBranchUsers(bId);
+    } else {
+      this.branchUsers.set([]);
+    }
+  }
+
+  onUserChange(val: any): void {
+    const uId = val !== null && val !== undefined && val !== '' ? Number(val) : null;
+    this.selectedUserId.set(uId);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -126,6 +258,22 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.isReceiptCleared.set(false);
       this.selectedReceiptFile.set(null);
       this.selectedReceiptFileName.set('');
+
+      if (this.isAdmin()) {
+        const bId = this.getRecordBranchId();
+        const uId = this.getRecordUserId();
+        this.selectedBranchId.set(bId);
+        this.selectedUserId.set(uId);
+        this.userSearchQuery.set('');
+        if (bId) {
+          this.loadBranchUsers(bId, uId);
+        } else {
+          this.branchUsers.set([]);
+        }
+        if (this.branches().length === 0) {
+          this.loadBranches();
+        }
+      }
     }
   }
 
@@ -277,6 +425,24 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     this.isReceiptReplaced.set(false);
     this.isReceiptCleared.set(false);
     this.errorMessage.set('');
+
+    if (this.isAdmin() && this.editRecord) {
+      const bId = this.getRecordBranchId();
+      const uId = this.getRecordUserId();
+      this.selectedBranchId.set(bId);
+      this.selectedUserId.set(uId);
+      this.userSearchQuery.set('');
+      if (bId) {
+        this.loadBranchUsers(bId, uId);
+      } else {
+        this.branchUsers.set([]);
+      }
+    } else {
+      this.selectedBranchId.set(null);
+      this.selectedUserId.set(null);
+      this.branchUsers.set([]);
+      this.userSearchQuery.set('');
+    }
   }
 
   onClose(): void {
@@ -332,6 +498,17 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       }
     }
 
+    if (this.isAdmin() && this.editRecord) {
+      if (!this.selectedBranchId()) {
+        this.errorMessage.set('Branch is required.');
+        return;
+      }
+      if (!this.selectedUserId()) {
+        this.errorMessage.set('Assigned User / Telecaller is required.');
+        return;
+      }
+    }
+
     this.isSubmitting.set(true);
 
     const formData = new FormData();
@@ -355,6 +532,15 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       const finalStatus = (this.status() === 'CUSTOM' ? this.customStatus() : this.status()).trim().toUpperCase();
       if (finalStatus) {
         formData.append('status', finalStatus);
+      }
+    }
+
+    if (this.isAdmin() && this.editRecord) {
+      if (this.selectedBranchId()) {
+        formData.append('branch', String(this.selectedBranchId()));
+      }
+      if (this.selectedUserId()) {
+        formData.append('telecaller', String(this.selectedUserId()));
       }
     }
     formData.append('mobile_number', this.mobileNumber().trim());

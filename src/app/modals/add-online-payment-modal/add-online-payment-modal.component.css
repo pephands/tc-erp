@@ -257,3 +257,70 @@ select.form-control:disabled,
   border-color: #cbd5e1 !important;
   font-weight: 600;
 }
+
+.user-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.user-search-wrapper .search-icon {
+  position: absolute;
+  left: 0.65rem;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.user-search-input {
+  padding-left: 2.2rem !important;
+  padding-right: 2rem !important;
+  font-size: 0.825rem;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.user-search-input:focus {
+  background: #ffffff;
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.btn-clear-search:hover {
+  color: #0f172a;
+}
+
+.btn-clear-search .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.user-loading-indicator,
+.user-hint-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  color: #64748b;
+}
+
+.no-match-hint {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
+}

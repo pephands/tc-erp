@@ -40,6 +40,11 @@ export class UserListService extends BaseHttpService {
     return this.httpClient.get(url, { headers: this.headers });
   }
 
+  getActiveBranchUsers(branchId: number | string): Observable<any> {
+    const url = `${this.endpoint}?branch=${encodeURIComponent(branchId)}&is_active=true&page_size=1000`;
+    return this.httpClient.get(url, { headers: this.headers });
+  }
+
   getRoleUsers(
     roleCode: string,
     branch?: string | number | null,
