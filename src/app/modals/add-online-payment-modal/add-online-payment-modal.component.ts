@@ -100,7 +100,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       this.mobileNumber.set(this.editRecord.mobile_number || '');
       this.altMobileNumber.set(this.editRecord.alt_mobile_number || '');
       this.donorName.set(this.editRecord.donor_name || '');
-      this.amount.set(this.editRecord.amount ? String(this.editRecord.amount) : '');
+      this.amount.set(this.editRecord.amount !== undefined && this.editRecord.amount !== null ? String(this.editRecord.amount) : '');
       this.referenceId.set(this.editRecord.reference_id || '');
       this.modeOfPayment.set(this.editRecord.mode_of_payment || '');
       this.slab.set(this.editRecord.slab || '1');
@@ -303,7 +303,8 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
     if (this.editRecord?.donation_type === 'Goodies') {
       // Skip amount, reference_id, and mode_of_payment validation
     } else {
-      if (!this.amount() || parseFloat(this.amount()) <= 0) {
+      const amtStr = this.amount() !== null && this.amount() !== undefined ? String(this.amount()).trim() : '';
+      if (amtStr === '' || isNaN(Number(amtStr)) || Number(amtStr) < 0) {
         this.errorMessage.set('Please enter a valid amount.');
         return;
       }
@@ -365,7 +366,7 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       formData.append('reference_id', 'Goodies');
       formData.append('mode_of_payment', 'Goodies');
     } else {
-      formData.append('amount', this.amount());
+      formData.append('amount', String(this.amount() ?? '').trim());
       formData.append('reference_id', this.referenceId().trim());
       formData.append('mode_of_payment', this.modeOfPayment().trim().toUpperCase());
     }

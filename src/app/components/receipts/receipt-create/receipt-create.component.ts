@@ -414,7 +414,8 @@ export class ReceiptCreateComponent implements OnInit {
     if (this.donationType() === 'Goodies') {
       // Amount, referenceId, and modeOfPayment are not required for Goodies
     } else {
-      if (!this.amount() || parseFloat(this.amount()) <= 0) {
+      const amtStr = this.amount() !== null && this.amount() !== undefined ? String(this.amount()).trim() : '';
+      if (amtStr === '' || isNaN(Number(amtStr)) || Number(amtStr) < 0) {
         this.errorMessage.set('Please enter a valid amount.');
         return;
       }
@@ -460,7 +461,7 @@ export class ReceiptCreateComponent implements OnInit {
       formData.append('mode_of_payment', 'Goodies');
       formData.append('donation_type', 'Goodies');
     } else {
-      formData.append('amount', this.amount());
+      formData.append('amount', String(this.amount() ?? '').trim());
       formData.append('reference_id', this.referenceId().trim());
       formData.append('mode_of_payment', this.modeOfPayment().trim().toUpperCase());
       formData.append('donation_type', 'Amount');
