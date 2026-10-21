@@ -51,7 +51,7 @@
 
     <div class="filter-controls-grid">
       <!-- Filter 1: Branch Selection (Admin / Manager only) -->
-      @if (!isTl) {
+      @if (canViewAllBranches) {
         <div class="filter-field">
           <label for="branchSelect">Branch</label>
           <div class="select-wrapper">
@@ -326,7 +326,7 @@
                 <select
                   [ngModel]="inputBranchId()"
                   (ngModelChange)="inputBranchId.set($event)"
-                  [disabled]="isTl"
+                  [disabled]="!canViewAllBranches"
                 >
                   <option value="" disabled selected>Select Branch</option>
                   @for (b of branchesList(); track b.id) {

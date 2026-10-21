@@ -5,7 +5,7 @@
 
     <!-- Top Toolbar Header Bar -->
     <div class="top-toolbar">
-      <!-- Left Filter Controls (Select Branch) -->
+      <!-- Left Filter Controls (Select Branch & Status) -->
       <div class="left-filter-group">
         <div class="branch-select-wrapper">
           <select [ngModel]="selectedBranchFilter()" (ngModelChange)="selectedBranchFilter.set($event); onFilterSubmit()" [disabled]="!canViewAllBranches()">
@@ -18,6 +18,20 @@
           </select>
           <span class="material-symbols-outlined select-arrow">expand_more</span>
         </div>
+
+        <div class="status-select-wrapper">
+          <select [ngModel]="selectedStatusFilter()" (ngModelChange)="selectedStatusFilter.set($event); onFilterSubmit()">
+            <option value="all">All Status</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+          <span class="material-symbols-outlined select-arrow">expand_more</span>
+        </div>
+
+        <button type="button" class="btn-reset-filters" (click)="onResetFilters()" title="Reset Filters">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span>Reset</span>
+        </button>
       </div>
 
       <!-- Right Action Button (Create) -->
@@ -66,7 +80,7 @@
           <tbody>
             @if (isLoading()) {
               <tr>
-                <td colspan="6" class="empty-state-cell">
+                <td colspan="7" class="empty-state-cell">
                   <span class="material-symbols-outlined empty-icon spin-icon">progress_activity</span>
                   <p>Loading branch documents...</p>
                 </td>
@@ -81,9 +95,9 @@
                   <td class="text-muted expiry-date">{{ item.expiryDate || '-' }}</td>
                   <td>
                     @if (item.isActive) {
-                      <span class="badge badge-success" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Active</span>
+                      <span class="badge badge-success">Active</span>
                     } @else {
-                      <span class="badge badge-danger" style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Inactive</span>
+                      <span class="badge badge-danger">Inactive</span>
                     }
                   </td>
                   <td class="actions-cell">
@@ -120,7 +134,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="6" class="empty-state-cell">
+                  <td colspan="7" class="empty-state-cell">
                     <span class="material-symbols-outlined empty-icon">folder_off</span>
                     <p>No document records found</p>
                   </td>
@@ -138,7 +152,7 @@
           Showing page {{ currentPage() }} of {{ totalPages() }} ({{ totalItems() }} total records)
           <span style="margin-left: 15px;">
             Per page: 
-            <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" style="padding: 2px 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); setPage(1)" class="per-page-select">
               <option [value]="5">5</option>
               <option [value]="10">10</option>
               <option [value]="20">20</option>

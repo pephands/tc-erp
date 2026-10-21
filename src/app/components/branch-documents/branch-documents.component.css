@@ -30,7 +30,7 @@
   gap: 0.6rem;
 }
 
-/* Branch Select Dropdown (Orange Accent) */
+/* Branch Select Dropdown */
 .branch-select-wrapper {
   position: relative;
   display: inline-flex;
@@ -38,7 +38,7 @@
 }
 
 .branch-select-wrapper select {
-  background: #f59e0b;
+  background: var(--primary);
   color: var(--bg-card);
   font-weight: 600;
   font-size: 0.875rem;
@@ -54,7 +54,7 @@
 }
 
 .branch-select-wrapper select:hover {
-  background: #d97706;
+  background: var(--primary-hover);
 }
 
 .branch-select-wrapper option {
@@ -62,12 +62,80 @@
   color: var(--text-main);
 }
 
-.select-arrow {
+.branch-select-wrapper .select-arrow {
   position: absolute;
   right: 0.6rem;
   color: var(--bg-card);
   pointer-events: none;
   font-size: 20px;
+}
+
+/* Status Select Dropdown */
+.status-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-select-wrapper select {
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.55rem 2.2rem 0.55rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.status-select-wrapper select:hover,
+.status-select-wrapper select:focus {
+  border-color: var(--border-focus);
+}
+
+.status-select-wrapper option {
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.status-select-wrapper .select-arrow {
+  position: absolute;
+  right: 0.6rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 20px;
+}
+
+/* Reset Filters Button */
+.btn-reset-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.btn-reset-filters:hover {
+  background: var(--border-color);
+  color: var(--primary);
+  border-color: var(--border-focus);
+}
+
+.btn-reset-filters .material-symbols-outlined {
+  font-size: 18px;
 }
 
 /* Filter Submit Button */
@@ -186,8 +254,8 @@
 }
 
 .data-table th {
-  background: #f5f5f4;
-  color: #44403c;
+  background: var(--bg-card-subtle);
+  color: var(--text-main);
   font-weight: 700;
   padding: 0.85rem 1rem;
   border-bottom: 2px solid var(--border-color);
@@ -211,7 +279,7 @@
 }
 
 .cell-id {
-  color: #44403c;
+  color: var(--text-muted);
 }
 
 .doc-name {
@@ -224,7 +292,7 @@
 }
 
 .branch-name {
-  color: #44403c;
+  color: var(--text-main);
 }
 
 .text-muted {
@@ -233,6 +301,29 @@
 
 .expiry-date {
   font-weight: 500;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-success {
+  background: var(--role-tc-bg);
+  color: var(--role-tc-color);
+  border: 1px solid var(--role-tc-border);
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Action Icons Styling */
@@ -381,7 +472,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fcfbf9;
+  background: var(--bg-card);
 }
 
 .modal-title-header h2 {
@@ -405,7 +496,7 @@
 
 .modal-close-btn:hover {
   background: var(--bg-input);
-  color: #0f172a;
+  color: var(--text-main);
 }
 
 /* Inner Box Card */
@@ -493,7 +584,7 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-card);
-  color: #0f172a;
+  color: var(--text-main);
   outline: none;
   transition: border-color 0.15s ease;
 }
@@ -520,7 +611,7 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-card);
-  color: #0f172a;
+  color: var(--text-main);
   outline: none;
   appearance: none;
   -webkit-appearance: none;
@@ -578,7 +669,7 @@
 
 .btn-modal-reset:hover {
   background: var(--bg-input);
-  color: #0f172a;
+  color: var(--text-main);
 }
 
 .spin-icon {

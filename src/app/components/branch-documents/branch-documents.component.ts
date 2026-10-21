@@ -42,6 +42,7 @@ export class BranchDocumentsComponent implements OnInit {
 
   // Search, Filter & Pagination State
   selectedBranchFilter = signal<string>('');
+  selectedStatusFilter = signal<string>('all');
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
   pageNumbers = computed(() => {
@@ -75,8 +76,10 @@ export class BranchDocumentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadBranches();
-    if (this.userBranchId || this.userBranchName) {
-      this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName));
+    if (!this.canViewAllBranches()) {
+      if (this.userBranchId || this.userBranchName) {
+        this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName));
+      }
     }
     this.fetchDocumentsFromApi();
   }
@@ -116,8 +119,12 @@ export class BranchDocumentsComponent implements OnInit {
 
   fetchDocumentsFromApi(): void {
     this.isLoading.set(true);
-    const branchFilter = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.selectedBranchFilter()) : this.selectedBranchFilter();
+    let branchFilter = this.selectedBranchFilter();
+    if (!this.canViewAllBranches()) {
+      branchFilter = String(this.userBranchId || this.userBranchName || '');
+    }
     const search = this.searchQuery().trim();
+    const status = this.selectedStatusFilter();
 
     const params: any = {
       page: this.currentPage(),
@@ -125,6 +132,11 @@ export class BranchDocumentsComponent implements OnInit {
     };
     if (branchFilter) params.branch = branchFilter;
     if (search) params.search = search;
+    if (status && status !== 'all') {
+      params.is_active = status;
+    } else if (status === 'all') {
+      params.is_active = 'all';
+    }
 
     this.service.fetchDocuments(params).subscribe({
       next: () => {
@@ -184,6 +196,18 @@ export class BranchDocumentsComponent implements OnInit {
     this.fetchDocumentsFromApi();
   }
 
+  onResetFilters(): void {
+    if (this.canViewAllBranches()) {
+      this.selectedBranchFilter.set('');
+    } else {
+      this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName || ''));
+    }
+    this.selectedStatusFilter.set('all');
+    this.searchQuery.set('');
+    this.currentPage.set(1);
+    this.fetchDocumentsFromApi();
+  }
+
   onUploadFile(): void {
     this.modalMode.set('create');
     this.editingDocument.set(null);
@@ -215,10 +239,10 @@ export class BranchDocumentsComponent implements OnInit {
     this.uploadFileName.set('No file chosen');
     this.inputDocumentName.set('');
     this.inputExpiryDate.set('');
-    if (this.userBranchId || this.userBranchName) {
+    if (!this.canViewAllBranches()) {
       this.inputBranchId.set(this.userBranchId || this.userBranchName || '');
     } else {
-      this.inputBranchId.set('');
+      this.inputBranchId.set(this.selectedBranchFilter() || '');
     }
   }
 
@@ -236,7 +260,7 @@ export class BranchDocumentsComponent implements OnInit {
       alert('Please enter a Document Name.');
       return;
     }
-    if (!branch && !(this.userBranchId || this.userBranchName)) {
+    if (!branch) {
       alert('Please select a Branch.');
       return;
     }

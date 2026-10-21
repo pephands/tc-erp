@@ -53,6 +53,10 @@ export class ExpenseDetailsComponent implements OnInit {
     return this.isAdmin;
   }
 
+  get canViewAllBranches(): boolean {
+    return this.isAdmin;
+  }
+
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
   }
@@ -111,7 +115,7 @@ export class ExpenseDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.loadBranches();
     this.loadCategories();
-    if (this.userBranchId || this.userBranchName) {
+    if (!this.canViewAllBranches && (this.userBranchId || this.userBranchName)) {
       this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName));
     }
     this.fetchExpensesFromApi();
@@ -158,7 +162,10 @@ export class ExpenseDetailsComponent implements OnInit {
 
   fetchExpensesFromApi(): void {
     this.isLoading.set(true);
-    const branch = (this.userBranchName || this.userBranchId) ? (this.userBranchName || this.selectedBranchFilter()) : this.selectedBranchFilter();
+    let branch = this.selectedBranchFilter();
+    if (!this.canViewAllBranches && (this.userBranchId || this.userBranchName)) {
+      branch = String(this.userBranchId || this.userBranchName);
+    }
     const single = this.singleDate();
     const start = this.startDate();
     const end = this.endDate();
@@ -281,12 +288,16 @@ export class ExpenseDetailsComponent implements OnInit {
   }
 
   private updateFilterAppliedState(): void {
-    const isBranchFiltered = (this.userBranchId || this.userBranchName) ? false : !!this.selectedBranchFilter();
+    const isBranchFiltered = !this.canViewAllBranches ? false : !!this.selectedBranchFilter();
     this.isFilterApplied.set(!!(isBranchFiltered || this.singleDate() || this.startDate() || this.endDate() || this.searchQuery()));
   }
 
   onResetFilters(): void {
-    this.selectedBranchFilter.set((this.userBranchId || this.userBranchName) ? String(this.userBranchId || this.userBranchName) : '');
+    if (this.canViewAllBranches) {
+      this.selectedBranchFilter.set('');
+    } else {
+      this.selectedBranchFilter.set(String(this.userBranchId || this.userBranchName || ''));
+    }
     this.singleDate.set('');
     this.startDate.set('');
     this.endDate.set('');
@@ -303,7 +314,10 @@ export class ExpenseDetailsComponent implements OnInit {
     }
 
     this.isExporting.set(true);
-    const branch = this.selectedBranchFilter();
+    let branch = this.selectedBranchFilter();
+    if (!this.canViewAllBranches && (this.userBranchId || this.userBranchName)) {
+      branch = String(this.userBranchId || this.userBranchName);
+    }
     const single = this.singleDate();
     const start = this.startDate();
     const end = this.endDate();
@@ -343,12 +357,14 @@ export class ExpenseDetailsComponent implements OnInit {
     const todayStr = new Date().toISOString().slice(0, 10);
     this.inputDate.set(todayStr);
 
-    if (this.userBranchId || this.userBranchName) {
+    if (!this.canViewAllBranches && (this.userBranchId || this.userBranchName)) {
       if (this.userBranchId) {
         this.inputBranchId.set(this.userBranchId);
       } else if (this.userBranchName) {
         this.inputBranchId.set(this.userBranchName);
       }
+    } else {
+      this.inputBranchId.set(this.selectedBranchFilter() || '');
     }
 
     this.isModalOpen.set(true);
@@ -409,10 +425,10 @@ export class ExpenseDetailsComponent implements OnInit {
     this.inputExpenseName.set('');
     this.inputAmount.set(null);
     this.inputRemarks.set('');
-    if (this.userBranchId || this.userBranchName) {
+    if (!this.canViewAllBranches && (this.userBranchId || this.userBranchName)) {
       this.inputBranchId.set(this.userBranchId || this.userBranchName || '');
     } else {
-      this.inputBranchId.set('');
+      this.inputBranchId.set(this.selectedBranchFilter() || '');
     }
     this.clearSelectedFile();
   }
@@ -437,7 +453,7 @@ export class ExpenseDetailsComponent implements OnInit {
       alert('Please enter a valid Amount.');
       return;
     }
-    if (!branchVal && !(this.userBranchId || this.userBranchName)) {
+    if (!branchVal) {
       alert('Please select a Branch.');
       return;
     }
