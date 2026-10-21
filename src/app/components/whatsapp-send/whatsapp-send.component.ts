@@ -31,7 +31,21 @@ export class WhatsappSendComponent implements OnInit, OnDestroy {
   templateNumbers = signal<{ [key: number]: string }>({});
   isSending = signal<{ [key: number]: boolean }>({});
   expandedCampaigns = signal<{ [key: number]: boolean }>({});
-  cooldowns = signal<{ [key: number]: number }>({});
+  numberCooldowns = signal<{ [key: string]: number }>({});
+
+  // Reactive cooldown map per template based on the phone number currently typed into it
+  cooldowns = computed(() => {
+    const result: { [key: number]: number } = {};
+    const currentNumbers = this.templateNumbers();
+    const cooldownsMap = this.numberCooldowns();
+    for (const [idStr, phone] of Object.entries(currentNumbers)) {
+      const id = Number(idStr);
+      if (phone && phone.length === 10 && cooldownsMap[phone]) {
+        result[id] = cooldownsMap[phone];
+      }
+    }
+    return result;
+  });
   
   // UI state
   isInputFocused: { [key: number]: boolean } = {};
@@ -127,62 +141,83 @@ export class WhatsappSendComponent implements OnInit, OnDestroy {
   }
 
   initCooldownTimer(): void {
+    // Clear any obsolete template-level cooldowns
+    try {
+      localStorage.removeItem('whatsapp_cooldowns');
+    } catch (e) {}
+
     this.checkCooldowns();
     this.timerRef = setInterval(() => this.checkCooldowns(), 1000);
   }
 
   checkCooldowns(): void {
-    const storedStr = localStorage.getItem('whatsapp_cooldowns');
-    if (!storedStr) return;
+    const storedStr = localStorage.getItem('whatsapp_number_cooldowns');
+    if (!storedStr) {
+      if (Object.keys(this.numberCooldowns()).length > 0) {
+        this.numberCooldowns.set({});
+      }
+      return;
+    }
     
     try {
-      const stored = JSON.parse(storedStr);
+      const stored: { [key: string]: number } = JSON.parse(storedStr);
       const now = Date.now();
-      const updatedCooldowns: { [key: number]: number } = {};
+      const updatedCooldowns: { [key: string]: number } = {};
       let hasChanges = false;
       let hasActiveCooldowns = false;
       
-      for (const key of Object.keys(stored)) {
-        const templateId = parseInt(key, 10);
-        const timestamp = stored[templateId];
+      for (const phone of Object.keys(stored)) {
+        const timestamp = stored[phone];
         const elapsed = now - timestamp;
         
         if (elapsed < 60000) {
-          updatedCooldowns[templateId] = Math.ceil((60000 - elapsed) / 1000);
+          updatedCooldowns[phone] = Math.ceil((60000 - elapsed) / 1000);
           hasActiveCooldowns = true;
         } else {
-          delete stored[templateId];
+          delete stored[phone];
           hasChanges = true;
         }
       }
       
-      this.cooldowns.set(updatedCooldowns);
+      this.numberCooldowns.set(updatedCooldowns);
       
       if (hasChanges) {
         if (hasActiveCooldowns) {
-          localStorage.setItem('whatsapp_cooldowns', JSON.stringify(stored));
+          localStorage.setItem('whatsapp_number_cooldowns', JSON.stringify(stored));
         } else {
-          localStorage.removeItem('whatsapp_cooldowns');
+          localStorage.removeItem('whatsapp_number_cooldowns');
         }
       }
     } catch (e) {
-      console.error('Error parsing cooldowns', e);
-      localStorage.removeItem('whatsapp_cooldowns');
+      console.error('Error parsing number cooldowns', e);
+      localStorage.removeItem('whatsapp_number_cooldowns');
+      this.numberCooldowns.set({});
     }
   }
 
-  setTemplateCooldown(templateId: number): void {
-    const storedStr = localStorage.getItem('whatsapp_cooldowns');
-    let stored: { [key: number]: number } = {};
+  setNumberCooldown(phone: string): void {
+    if (!phone) return;
+    const cleanNum = phone.replace(/[^0-9]/g, '').slice(-10);
+    if (cleanNum.length !== 10) return;
+
+    const storedStr = localStorage.getItem('whatsapp_number_cooldowns');
+    let stored: { [key: string]: number } = {};
     if (storedStr) {
       try {
         stored = JSON.parse(storedStr);
       } catch (e) {}
     }
     
-    stored[templateId] = Date.now();
-    localStorage.setItem('whatsapp_cooldowns', JSON.stringify(stored));
+    stored[cleanNum] = Date.now();
+    localStorage.setItem('whatsapp_number_cooldowns', JSON.stringify(stored));
     this.checkCooldowns();
+  }
+
+  setTemplateCooldown(templateId: number, phone?: string): void {
+    const rawNum = phone || (templateId ? this.templateNumbers()[templateId] : '');
+    if (rawNum) {
+      this.setNumberCooldown(rawNum);
+    }
   }
 
   loadCampaigns(): void {
@@ -279,9 +314,10 @@ export class WhatsappSendComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(template: WhatsappTemplate): void {
-    if (!template.id || !this.isValidNumber(template.id) || this.cooldowns()[template.id] > 0) return;
+    if (!template.id || !this.isValidNumber(template.id) || (this.cooldowns()[template.id] || 0) > 0) return;
     
-    let num = this.templateNumbers()[template.id];
+    const rawNum = this.templateNumbers()[template.id];
+    let num = rawNum;
     if (num.length === 10) {
       num = '91' + num;
     }
@@ -291,8 +327,8 @@ export class WhatsappSendComponent implements OnInit, OnDestroy {
 
     this.templateService.triggerTest(template.id, num).subscribe({
       next: (res: any) => {
-        // Record cooldown successfully triggered
-        this.setTemplateCooldown(template.id!);
+        // Record 60-second cooldown specifically for this phone number
+        this.setNumberCooldown(rawNum);
         this.toastService.success('Success', `Message sent via ${template.template_name}`);
         const currentSending = this.isSending();
         this.isSending.set({ ...currentSending, [template.id!]: false });
