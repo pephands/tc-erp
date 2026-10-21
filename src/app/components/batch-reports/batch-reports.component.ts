@@ -401,7 +401,7 @@ export class BatchReportsComponent implements OnInit {
     }
   }
 
-  downloadBatch(runId: number, configName: string, date: string, event: Event): void {
+  downloadBatch(runId: number, configName: string, date: string, event: Event, generatedAt?: any): void {
     event.stopPropagation();
     this.downloadingBatchId.set(runId);
     this.downloadingBatchName.set(configName || 'Batch');
@@ -426,6 +426,15 @@ export class BatchReportsComponent implements OnInit {
         const formatDmy = (dateVal: any, sep: string = '-', monthName: boolean = true) => {
           if (!dateVal) return '';
           try {
+            if (typeof dateVal === 'string' && /^\d{2}-[A-Za-z]{3}-\d{4}$/.test(dateVal.trim())) {
+              return dateVal.trim();
+            }
+            if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal.trim())) {
+              const [y, m, d] = dateVal.trim().split('-');
+              const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              const month = monthName ? monthNames[parseInt(m, 10) - 1] : m;
+              return `${d}${sep}${month}${sep}${y}`;
+            }
             const d = new Date(dateVal);
             if (isNaN(d.getTime())) return dateVal;
             const day = String(d.getDate()).padStart(2, '0');
@@ -460,6 +469,11 @@ export class BatchReportsComponent implements OnInit {
             'Status': rec.status || '',
             'Created Date': formatDmy(rec.created_at, '-', true),
             'Batch': rec.batch_name || configName || '',
+            'Batch Generated Date': formatDmy(
+              rec.batch_generated_date || res.batch_generated_date || generatedAt || res.generated_at || rec.batch_date || res.date || date,
+              '-',
+              true
+            ),
             'Remarks': rec.remarks || '',
             'Receipt Id': rec.receipt_id || '',
             'Correction Name': rec.correction_name || '',

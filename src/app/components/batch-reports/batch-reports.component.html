@@ -167,7 +167,7 @@
                 <td><strong>{{ batch.name }}</strong></td>
                 <td><span class="tag-pill">{{ batch.record_count }}</span></td>
                 <td style="text-align: center;">
-                  <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" [disabled]="isDownloading() || isUploading()">
+                  <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event, batch.generated_at)" [disabled]="isDownloading() || isUploading()">
                     @if (downloadingBatchId() === batch.id) {
                       <span class="material-symbols-outlined spin-icon" style="font-size: 1.1rem;">progress_activity</span>
                       <span>Downloading...</span>
@@ -406,7 +406,7 @@
                   
                   @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || activeTab() === 'BATCHES') {
                     <td>
-                      <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event)" [disabled]="isDownloading() || isUploading()">
+                      <button type="button" class="btn-action-primary" (click)="downloadBatch(batch.id, batch.name, batch.date, $event, batch.generated_at)" [disabled]="isDownloading() || isUploading()">
                         @if (downloadingBatchId() === batch.id) {
                           <span class="material-symbols-outlined spin-icon" style="font-size: 1.1rem;">progress_activity</span>
                           <span>Downloading...</span>
