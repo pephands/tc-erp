@@ -328,8 +328,17 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
 
   matchedDonors = signal<any[]>([]);
 
+  onDonorNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input) {
+      const maxLen = this.editRecord ? 20 : 10;
+      input.value = (input.value || '').replace(/[^0-9]/g, '').slice(0, maxLen);
+    }
+  }
+
   onMobileNumberChange(val: string): void {
-    val = (val || '').replace(/[^0-9]/g, '').slice(0, 10);
+    const maxLen = this.editRecord ? 20 : 10;
+    val = (val || '').replace(/[^0-9]/g, '').slice(0, maxLen);
     this.mobileNumber.set(val);
     this.matchedDonors.set([]); // Reset on change
     
@@ -458,9 +467,20 @@ export class AddOnlinePaymentModalComponent implements OnChanges, OnInit {
       return;
     }
     const donorNo = this.mobileNumber().trim();
-    if (!/^\d{10}$/.test(donorNo)) {
-      this.errorMessage.set('Donor Number must be exactly 10 digits.');
-      return;
+    if (this.editRecord) {
+      if (!donorNo) {
+        this.errorMessage.set('Donor Number is required.');
+        return;
+      }
+      if (!/^\d{10,20}$/.test(donorNo)) {
+        this.errorMessage.set('Donor Number must be between 10 and 20 digits.');
+        return;
+      }
+    } else {
+      if (!/^\d{10}$/.test(donorNo)) {
+        this.errorMessage.set('Donor Number must be exactly 10 digits.');
+        return;
+      }
     }
     if (!this.donorName().trim()) {
       this.errorMessage.set('Donor Name is required.');

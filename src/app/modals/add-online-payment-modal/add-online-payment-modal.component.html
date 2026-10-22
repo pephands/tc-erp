@@ -133,11 +133,11 @@
             type="text"
             id="mobileNumber"
             class="form-control"
-            placeholder="Enter 10-digit mobile number"
-            maxlength="10"
+            [placeholder]="editRecord ? 'Enter donor number' : 'Enter 10-digit mobile number'"
+            [attr.maxlength]="editRecord ? '20' : '10'"
             [ngModel]="mobileNumber()"
             (ngModelChange)="onMobileNumberChange($event)"
-            (input)="$any($event.target).value = $any($event.target).value.replace(/[^0-9]/g, '').slice(0, 10)"
+            (input)="onDonorNumberInput($event)"
           />
           <div *ngIf="matchedDonors().length > 1" style="margin-top: 8px;">
             <label style="font-size: 12px; color: #64748b;">Select profile or enter new:</label>
