@@ -83,4 +83,10 @@ export class AttendanceService extends BaseHttpService {
     const url = `${this.endPoint.attendanceList}${attendanceId}/toggle-multiple-sessions/`;
     return this.httpClient.post(url, {}, { headers: this.headers });
   }
+
+  adminCheckoutAll(preserveAdminToken: boolean = false): Observable<any> {
+    return this.httpClient.post(this.endPoint.attendanceAdminCheckoutAll, {
+      preserve_admin_token: preserveAdminToken
+    }, { headers: this.headers });
+  }
 }

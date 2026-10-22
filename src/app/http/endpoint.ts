@@ -120,6 +120,10 @@ export class Endpoint {
     return this.baseUrl + 'attendance/manual-mark/';
   }
 
+  get attendanceAdminCheckoutAll(): string {
+    return this.baseUrl + 'attendance/admin-checkout-all/';
+  }
+
   get wfhPasscode(): string {
     return this.baseUrl + 'attendance/wfh-passcode/';
   }

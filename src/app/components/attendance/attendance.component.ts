@@ -67,6 +67,10 @@ export class AttendanceComponent implements OnInit {
   isDetailModalOpen = signal<boolean>(false);
   selectedAttendance = signal<AttendanceRecord | null>(null);
 
+  isCheckingOutAll = signal<boolean>(false);
+  isCheckoutAllModalOpen = signal<boolean>(false);
+  preserveAdminSession = signal<boolean>(true);
+
   isManualMarkModalOpen = signal<boolean>(false);
   isSubmittingManual = signal<boolean>(false);
   trustUsers = signal<any[]>([]);
@@ -612,6 +616,43 @@ export class AttendanceComponent implements OnInit {
       error: (err: any) => {
         this.isSubmittingManual.set(false);
         alert(err.error?.message || 'Error marking attendance.');
+      }
+    });
+  }
+
+  openCheckoutAllModal(): void {
+    this.isCheckoutAllModalOpen.set(true);
+  }
+
+  closeCheckoutAllModal(): void {
+    this.isCheckoutAllModalOpen.set(false);
+  }
+
+  confirmCheckoutAll(): void {
+    if (this.isCheckingOutAll()) return;
+    this.isCheckingOutAll.set(true);
+
+    this.attendanceService.adminCheckoutAll(this.preserveAdminSession()).subscribe({
+      next: (res: any) => {
+        this.isCheckingOutAll.set(false);
+        this.closeCheckoutAllModal();
+        const msg = res?.message || 'All employees checked out and tokens revoked successfully.';
+        this.triggerToast(msg);
+        this.fetchAttendanceFromApi(true);
+
+        if (!this.preserveAdminSession()) {
+          setTimeout(() => {
+            this.authService.logout().subscribe({
+              error: () => window.location.href = '/login'
+            });
+          }, 1500);
+        }
+      },
+      error: (err: any) => {
+        console.error('Checkout all error:', err);
+        this.isCheckingOutAll.set(false);
+        const errMsg = err?.error?.message || err?.message || 'Failed to complete force checkout.';
+        this.triggerToast(errMsg);
       }
     });
   }
