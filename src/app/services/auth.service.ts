@@ -286,10 +286,36 @@ export class AuthService {
     );
   }
 
-  hasRole(allowedRoles: Array<string>): boolean {
+  getPrimaryRole(): string {
     const roles = this.userRoles();
-    return allowedRoles.some(allowed => roles.includes(allowed));
+    if (roles.includes('ADMIN')) return 'ADMIN';
+    if (roles.includes('MANAGER')) return 'MANAGER';
+    if (roles.includes('SUPERINTENDENT')) return 'SUPERINTENDENT';
+    if (roles.includes('TL')) return 'TL';
+    if (roles.includes('OT') || roles.includes('ONLINE PAYMENT TEAM')) return 'OT';
+    if (roles.includes('TCT')) return 'TCT';
+    if (roles.includes('PUBLIC_RELATIONS') || roles.includes('PUBLIC RELATIONSHIP OFFICER') || roles.includes('PR')) return 'PUBLIC_RELATIONS';
+    if (roles.includes('TC')) return 'TC';
+    return roles.length > 0 ? roles[0] : '';
   }
+
+  hasRoleAccess(allowedRoles?: string[]): boolean {
+    if (!allowedRoles || allowedRoles.length === 0) return true;
+    const userRoles = this.userRoles();
+    const primary = this.getPrimaryRole();
+    if (primary === 'MANAGER') {
+      return allowedRoles.includes('MANAGER');
+    }
+    if (primary && allowedRoles.includes(primary)) {
+      return true;
+    }
+    return allowedRoles.some((r) => userRoles.includes(r));
+  }
+
+  hasRole(allowedRoles: Array<string>): boolean {
+    return this.hasRoleAccess(allowedRoles);
+  }
+
 
   extractRoleCodes(rolesList: any[]): string[] {
     const codes: string[] = [];

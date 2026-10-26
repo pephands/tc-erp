@@ -7,6 +7,7 @@ import { AdminDeviceOtpModalComponent } from './modals/admin-device-otp-modal/ad
 import { ForcePasswordResetModalComponent } from './modals/force-password-reset-modal/force-password-reset-modal.component';
 import { ToastComponent } from './modals/toast/toast.component';
 import { AnnouncementModalComponent } from './components/announcement-modal/announcement-modal.component';
+import { SecurityNoticeModalComponent } from './modals/security-notice-modal/security-notice-modal.component';
 import { DevToolsProtectionService } from './services/devtools-protection.service';
 
 @Component({
@@ -19,7 +20,8 @@ import { DevToolsProtectionService } from './services/devtools-protection.servic
     AdminDeviceOtpModalComponent,
     ForcePasswordResetModalComponent,
     ToastComponent,
-    AnnouncementModalComponent
+    AnnouncementModalComponent,
+    SecurityNoticeModalComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
