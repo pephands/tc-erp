@@ -166,12 +166,82 @@
     </div>
   </div>
 
+  <!-- Saved Queue Resume Banner -->
+  @if (hasSavedQueue() && !isQueueRunning()) {
+    <div class="resume-banner">
+      <div class="resume-info">
+        <span class="material-symbols-outlined resume-icon">history</span>
+        <span>
+          You have <strong>{{ savedQueueCount() }}</strong> unsent WhatsApp receipt{{ savedQueueCount() > 1 ? 's' : '' }} remaining from a previous session.
+        </span>
+      </div>
+      <div class="resume-actions">
+        <button type="button" class="btn-resume" (click)="resumeSavedQueue()">
+          <span class="material-symbols-outlined">play_arrow</span>
+          <span>Resume Sending</span>
+        </button>
+        <button type="button" class="btn-discard" (click)="discardSavedQueue()">
+          <span class="material-symbols-outlined">delete_sweep</span>
+          <span>Discard</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Active Selection Action Banner -->
+  @if (selectedRecordIds().size > 0) {
+    <div class="selection-banner">
+      <div class="selection-info">
+        <span class="material-symbols-outlined select-icon">check_circle</span>
+        <span class="selection-count">
+          <strong>{{ selectedRecordIds().size }}</strong> record{{ selectedRecordIds().size > 1 ? 's' : '' }} selected for WhatsApp receipt
+        </span>
+      </div>
+      <div class="selection-actions">
+        <button
+          type="button"
+          class="btn-bulk-send"
+          (click)="startBulkSend()"
+          [disabled]="isQueueRunning()"
+          title="Send WhatsApp receipts to selected records one by one"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+            <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+          </svg>
+          <span>Send WhatsApp ({{ selectedRecordIds().size }})</span>
+        </button>
+        <button
+          type="button"
+          class="btn-clear-selection"
+          (click)="clearSelection()"
+          [disabled]="isQueueRunning()"
+          title="Clear all selections"
+        >
+          <span class="material-symbols-outlined">close</span>
+          <span>Clear Selection</span>
+        </button>
+      </div>
+    </div>
+  }
+
   <!-- Data Table Card -->
   <div class="table-card shadow-card">
     <div class="table-container">
       <table class="data-table">
         <thead>
           <tr>
+            <th class="th-checkbox">
+              <input
+                type="checkbox"
+                class="row-checkbox"
+                [checked]="isAllPageSelected()"
+                [indeterminate]="isPartiallySelected()"
+                (change)="toggleSelectAllPage()"
+                title="Select all on this page"
+              />
+            </th>
             <th style="width: 50px">S.No</th>
             <th>Batch Name</th>
             <th>Batch Date</th>
@@ -193,14 +263,14 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="16" class="loading-state">
+              <td colspan="17" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading batch receipt records...</p>
               </td>
             </tr>
           } @else if (records().length === 0) {
             <tr>
-              <td colspan="16" class="empty-state">
+              <td colspan="17" class="empty-state">
                 <span class="material-symbols-outlined empty-icon">task_alt</span>
                 <p class="empty-title">All Caught Up!</p>
                 <p class="empty-subtitle">
@@ -214,7 +284,17 @@
             </tr>
           } @else {
             @for (rec of records(); track rec.id; let i = $index) {
-              <tr>
+              <tr [class.row-selected]="isRecordSelected(rec.id)">
+                <td class="td-checkbox">
+                  <input
+                    type="checkbox"
+                    class="row-checkbox"
+                    [checked]="isRecordSelected(rec.id)"
+                    (change)="toggleRecordSelection(rec)"
+                    [disabled]="!hasReceiptId(rec) || rec.is_whatsapp_receipt_generated"
+                    [title]="rec.is_whatsapp_receipt_generated ? 'Already sent' : (!hasReceiptId(rec) ? 'Receipt ID missing' : 'Select record')"
+                  />
+                </td>
                 <td class="col-sno">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
                 <td class="col-batch">
                   <span class="badge-batch">
@@ -395,4 +475,217 @@
     (submitted)="onModalSubmit()"
   ></app-add-online-payment-modal>
 }
+
+<!-- Bulk WhatsApp Queue Progress Modal -->
+@if (isQueueModalOpen()) {
+  <div class="queue-modal-overlay" (click)="closeQueueModal()">
+    <div class="queue-modal shadow-xl" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="queue-modal-header">
+        <div class="queue-header-left">
+          <div class="queue-icon-circle" [class.running]="isQueueRunning()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+              <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="queue-title">Bulk WhatsApp Receipt Dispatcher</h3>
+            <p class="queue-subtitle">
+              @if (isQueueRunning()) {
+                Sending WhatsApp receipts one-by-one to avoid throttling...
+              } @else if (queuePendingList().length === 0) {
+                All receipts have been processed.
+              } @else {
+                Queue paused.
+              }
+            </p>
+          </div>
+        </div>
+
+        <div class="queue-header-actions">
+          <button
+            type="button"
+            class="btn-queue-head-icon"
+            title="Minimize to background"
+            (click)="minimizeQueue()"
+          >
+            <span class="material-symbols-outlined">indeterminate_check_box</span>
+          </button>
+          <button
+            type="button"
+            class="btn-queue-head-icon"
+            title="Close modal"
+            (click)="closeQueueModal()"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="queue-modal-body">
+        <!-- Progress Bar & Stats -->
+        <div class="queue-progress-section">
+          <div class="progress-meta">
+            <span class="progress-label">
+              Overall Progress: <strong>{{ queueSuccessCount() + queueFailedCount() }}</strong> / {{ queueTotal() }}
+            </span>
+            <span class="progress-percent">{{ queueProgressPercent() }}%</span>
+          </div>
+
+          <div class="progress-bar-track">
+            <div
+              class="progress-bar-fill"
+              [style.width.%]="queueProgressPercent()"
+              [class.completed]="queueProgressPercent() === 100"
+            ></div>
+          </div>
+
+          <!-- Counter Chips -->
+          <div class="queue-stat-chips">
+            <div class="stat-chip chip-total">
+              <span class="chip-label">Total</span>
+              <span class="chip-val">{{ queueTotal() }}</span>
+            </div>
+            <div class="stat-chip chip-success">
+              <span class="chip-label">Sent Successfully</span>
+              <span class="chip-val">{{ queueSuccessCount() }}</span>
+            </div>
+            <div class="stat-chip chip-failed">
+              <span class="chip-label">Failed</span>
+              <span class="chip-val">{{ queueFailedCount() }}</span>
+            </div>
+            <div class="stat-chip chip-pending">
+              <span class="chip-label">Remaining</span>
+              <span class="chip-val">{{ queuePendingList().length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Currently Sending Live Banner -->
+        @if (isQueueRunning() && queueCurrentRecord()) {
+          <div class="current-sending-card">
+            <div class="current-spinner"></div>
+            <div class="current-info">
+              <span class="current-tag">Now Sending</span>
+              <div class="current-donor">
+                <strong>{{ queueCurrentRecord().donor_name }}</strong>
+                <span class="current-phone">({{ queueCurrentRecord().mobile_number }})</span>
+              </div>
+              <div class="current-meta">
+                <span>Receipt ID: <strong>{{ queueCurrentRecord().receipt_id }}</strong></span>
+                @if (queueCurrentRecord().amount) {
+                  <span>• Amount: ₹{{ queueCurrentRecord().amount | number }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Logs & Item Table List -->
+        <div class="queue-logs-wrapper">
+          <div class="queue-logs-header">
+            <span>Recipient Details & Delivery Status</span>
+            <span class="log-count-text">{{ queueLogs().length }} items in queue</span>
+          </div>
+
+          <div class="queue-logs-scroll">
+            @for (log of queueLogs(); track log.id; let idx = $index) {
+              <div class="queue-log-row" [class.sending]="log.status === 'sending'" [class.success]="log.status === 'success'" [class.error]="log.status === 'error'">
+                <div class="log-idx">{{ idx + 1 }}</div>
+                <div class="log-donor-cell">
+                  <span class="log-donor-name">{{ log.donor_name }}</span>
+                  <span class="log-phone">{{ log.mobile_number }}</span>
+                </div>
+                <div class="log-receipt-cell">
+                  <span class="log-receipt-badge">#{{ log.receipt_id }}</span>
+                  @if (log.amount) {
+                    <span class="log-amount">₹{{ log.amount | number }}</span>
+                  }
+                </div>
+                <div class="log-status-cell">
+                  @if (log.status === 'pending') {
+                    <span class="badge-status-pill status-pending">
+                      <span class="dot-sm dot-gray"></span> Pending
+                    </span>
+                  } @else if (log.status === 'sending') {
+                    <span class="badge-status-pill status-sending">
+                      <span class="spinner-sm"></span> Sending...
+                    </span>
+                  } @else if (log.status === 'success') {
+                    <span class="badge-status-pill status-success">
+                      <span class="material-symbols-outlined check-icon">check</span> Sent
+                    </span>
+                  } @else if (log.status === 'error') {
+                    <span class="badge-status-pill status-failed" [title]="log.message || 'Error sending receipt'">
+                      <span class="material-symbols-outlined fail-icon">close</span> Failed
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="queue-modal-footer">
+        <div class="footer-left-hint">
+          @if (isQueueRunning()) {
+            <span class="material-symbols-outlined hint-icon">info</span>
+            <span>You can minimize this modal and continue using the ERP while sending in background.</span>
+          } @else if (queuePendingList().length === 0) {
+            <span class="material-symbols-outlined hint-icon-success">check_circle</span>
+            <span>All done! Local storage queue cleared automatically.</span>
+          }
+        </div>
+
+        <div class="footer-buttons">
+          @if (isQueueRunning()) {
+            <button type="button" class="btn-queue-minimize" (click)="minimizeQueue()">
+              <span class="material-symbols-outlined">open_in_full</span>
+              <span>Send in Background</span>
+            </button>
+            <button type="button" class="btn-queue-stop" (click)="stopQueue()">
+              <span class="material-symbols-outlined">stop_circle</span>
+              <span>Stop Queue</span>
+            </button>
+          } @else {
+            <button type="button" class="btn-queue-close" (click)="closeQueueModal()">
+              <span>Close</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Floating Minimized Queue Indicator -->
+@if (isQueueMinimized() && (isQueueRunning() || queuePendingList().length > 0)) {
+  <div class="queue-floating-pill shadow-lg" (click)="reopenQueueModal()">
+    <div class="pill-pulse-ring" [class.pulsing]="isQueueRunning()">
+      <span class="material-symbols-outlined pill-icon">mark_chat_unread</span>
+    </div>
+    <div class="pill-text-group">
+      <div class="pill-top-row">
+        <span class="pill-title">WhatsApp Queue</span>
+        <span class="pill-percent">{{ queueProgressPercent() }}%</span>
+      </div>
+      <div class="pill-sub">
+        @if (isQueueRunning()) {
+          Sending: {{ queueSuccessCount() + queueFailedCount() }}/{{ queueTotal() }} ({{ queuePendingList().length }} left)
+        } @else {
+          Queue Paused ({{ queuePendingList().length }} left)
+        }
+      </div>
+    </div>
+    <button type="button" class="pill-expand-btn" title="Expand Queue Window">
+      <span class="material-symbols-outlined">expand_less</span>
+    </button>
+  </div>
+}
+
 
