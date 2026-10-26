@@ -58,7 +58,7 @@ export const ROUTE_ROLE_PERMISSIONS: Record<string, string[]> = {
   'branch-settings': ['ADMIN'],
   'expense-details': ['ADMIN', 'TL', 'PUBLIC_RELATIONS', 'SUPERINTENDENT'],
   'expense-report': ['ADMIN'],
-  'trust-children': ['ADMIN', 'SUPERINTENDENT'],
+  'trust-children': ['ADMIN', 'SUPERINTENDENT', 'OT', 'ONLINE PAYMENT TEAM'],
   'food-calendar': ['ADMIN', 'MANAGER', 'TL', 'PUBLIC_RELATIONS'],
   'occasions': ['ADMIN'],
 };

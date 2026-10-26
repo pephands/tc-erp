@@ -87,4 +87,17 @@ export class TrustChildrenService extends BaseHttpService {
     const url = `${this.endpoint}${id}/`;
     return this.httpClient.delete(url, { headers: this.headers });
   }
+
+  bulkUpload(formData: FormData): Observable<any> {
+    return this.httpClient.post(`${this.endPoint.trustChildrenBulkUpload}`, formData, {
+      headers: this.multipartHeaders,
+    });
+  }
+
+  downloadSampleTemplate(): Observable<Blob> {
+    return this.httpClient.get(`${this.endPoint.trustChildrenSampleTemplate}`, {
+      headers: this.headers,
+      responseType: 'blob',
+    });
+  }
 }
