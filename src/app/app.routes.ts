@@ -358,7 +358,7 @@ export const routes: Routes = [
       {
         path: 'trust-children',
         component: TrustChildrenComponent,
-        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'SUPERINTENDENT', 'OT', 'ONLINE PAYMENT TEAM'])],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'SUPERINTENDENT'])],
       },
       {
         path: 'food-calendar',

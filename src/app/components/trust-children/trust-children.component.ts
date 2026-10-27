@@ -26,45 +26,7 @@ export class TrustChildrenComponent implements OnInit {
 
   Math = Math;
 
-  isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']) && !this.authService.hasRole(['ADMIN', 'MANAGER', 'OT', 'ONLINE PAYMENT TEAM']));
-  isAdmin = computed(() => this.authService.hasRole(['ADMIN', 'ADMINISTRATOR']));
-  isOT = computed(() => this.authService.hasRole(['OT', 'ONLINE PAYMENT TEAM']));
-  canViewAllTrust = computed(() => this.isAdmin() || this.isOT());
-  canBulkUpload = computed(() => this.isAdmin() || this.isOT());
-
-  availableTrustBranches = computed(() => {
-    const list = this.branchesList();
-    if (this.canViewAllTrust()) {
-      return list;
-    }
-    const userBranch = this.authService.currentUser()?.branch;
-    if (!userBranch) return [];
-
-    const userBranchAny = userBranch as any;
-    const matched = list.filter(b => 
-      String(b.id) === String(userBranch.id) || 
-      (b.name && b.name.toLowerCase() === (userBranch.name || '').toLowerCase()) ||
-      (b.code && userBranchAny.code && b.code.toLowerCase() === String(userBranchAny.code).toLowerCase())
-    );
-
-    if (matched.length === 0 && userBranch) {
-      return [{
-        id: userBranch.id,
-        name: userBranch.name,
-        code: userBranchAny.code || ''
-      }];
-    }
-    return matched;
-  });
-
-  // Bulk Upload Modal Signals
-  isBulkUploadModalOpen = signal<boolean>(false);
-  isBulkUploading = signal<boolean>(false);
-  selectedBulkFile = signal<File | null>(null);
-  bulkUploadFileName = signal<string>('No file chosen');
-  bulkUploadError = signal<string | null>(null);
-  bulkUploadErrorsList = signal<string[]>([]);
-  bulkUploadSuccessMessage = signal<string | null>(null);
+  isSuperintendent = computed(() => this.authService.hasRole(['SUPERINTENDENT']) && !this.authService.hasRole(['ADMIN', 'MANAGER']));
 
   get userBranchName(): string {
     return this.authService.currentUser()?.branch?.name || '';
@@ -105,11 +67,11 @@ export class TrustChildrenComponent implements OnInit {
   branchSearchTerm = signal<string>('');
   filteredModalBranches = computed(() => {
     const search = this.branchSearchTerm().trim().toLowerCase();
-    const list = this.canViewAllTrust() ? this.branchesList() : this.availableTrustBranches();
+    const list = this.branchesList();
     if (!search) return list;
     return list.filter(b =>
-      b.code?.toLowerCase().includes(search) ||
-      b.name?.toLowerCase().includes(search)
+      b.code.toLowerCase().includes(search) ||
+      b.name.toLowerCase().includes(search)
     );
   });
 
@@ -184,13 +146,10 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.canViewAllTrust()) {
-      const bId = this.userBranchId;
-      if (bId) {
-        this.filterBranch.set(String(bId));
-      }
-    }
     this.loadBranches();
+    if (!this.authService.hasRole(['ADMIN']) && (this.userBranchId || this.userBranchName)) {
+      this.filterBranch.set(String(this.userBranchId || this.userBranchName));
+    }
     this.fetchChildrenFromApi();
   }
 
@@ -199,12 +158,6 @@ export class TrustChildrenComponent implements OnInit {
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res?.data || []);
         this.branchesList.set(data);
-        if (!this.canViewAllTrust()) {
-          const userBranch = this.authService.currentUser()?.branch;
-          if (userBranch?.id) {
-            this.filterBranch.set(String(userBranch.id));
-          }
-        }
       },
       error: (err: any) => {
         console.error('Error loading branches:', err);
@@ -216,9 +169,8 @@ export class TrustChildrenComponent implements OnInit {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
     let branchFilter = this.filterBranch();
-    if (!this.canViewAllTrust()) {
-      branchFilter = this.userBranchId ? String(this.userBranchId) : (this.userBranchName || '');
-      this.filterBranch.set(branchFilter);
+    if (!this.authService.hasRole(['ADMIN']) && !branchFilter) {
+      branchFilter = this.userBranchName || '';
     }
     const filters = {
       trust_name: branchFilter,
@@ -294,9 +246,8 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   onClearFilters(): void {
-    if (!this.canViewAllTrust()) {
-      const bId = this.userBranchId;
-      this.filterBranch.set(bId ? String(bId) : (this.userBranchName || ''));
+    if (!this.authService.hasRole(['ADMIN']) && (this.userBranchId || this.userBranchName)) {
+      this.filterBranch.set(String(this.userBranchId || this.userBranchName));
     } else {
       this.filterBranch.set('');
     }
@@ -313,8 +264,8 @@ export class TrustChildrenComponent implements OnInit {
     this.isLoading.set(true);
     const search = this.searchQuery().trim();
     let branchFilter = this.filterBranch();
-    if (!this.canViewAllTrust()) {
-      branchFilter = this.userBranchId ? String(this.userBranchId) : (this.userBranchName || '');
+    if (!this.authService.hasRole(['ADMIN']) && !branchFilter) {
+      branchFilter = this.userBranchName || '';
     }
     const filters = {
       trust_name: branchFilter,
@@ -339,7 +290,6 @@ export class TrustChildrenComponent implements OnInit {
         const data = items.map((child: any, index: number) => {
           return {
             "S.No": index + 1,
-            "ID": child.id,
             "Child Name": child.children_name,
             "Trust Name": child.trust_branch_name,
             "License No": child.license_no,
@@ -347,11 +297,10 @@ export class TrustChildrenComponent implements OnInit {
             "Category": child.category,
             "Aadhar No": child.aadhar_no,
             "Date of Joining": child.date_of_joining,
-            "Discharge Date": child.discharge_date || '',
+            "Discharge Date": child.discharge_date || '-',
             "Status": child.is_active ? 'Active' : 'Inactive',
             "Parent Details": child.parent_details,
             "Address": child.address,
-            "Mobile Number": child.mobile_number || '',
             "Created By": child.created_by_name || '-',
             "Created At": child.created_at ? new Date(child.created_at).toLocaleString() : '-',
             "Updated By": child.updated_by_name || '-',
@@ -371,140 +320,12 @@ export class TrustChildrenComponent implements OnInit {
     });
   }
 
-  openBulkUploadModal(): void {
-    this.selectedBulkFile.set(null);
-    this.bulkUploadFileName.set('No file chosen');
-    this.bulkUploadError.set(null);
-    this.bulkUploadErrorsList.set([]);
-    this.bulkUploadSuccessMessage.set(null);
-    this.isBulkUploadModalOpen.set(true);
-  }
-
-  closeBulkUploadModal(): void {
-    if (this.isBulkUploading()) return;
-    this.isBulkUploadModalOpen.set(false);
-    this.selectedBulkFile.set(null);
-    this.bulkUploadFileName.set('No file chosen');
-    this.bulkUploadError.set(null);
-    this.bulkUploadErrorsList.set([]);
-    this.bulkUploadSuccessMessage.set(null);
-  }
-
-  onBulkFileSelected(event: any): void {
-    const file = event.target.files?.[0];
-    if (file) {
-      const name = file.name.toLowerCase();
-      if (!name.endsWith('.xlsx') && !name.endsWith('.xls') && !name.endsWith('.csv')) {
-        this.bulkUploadError.set('Please select an Excel (.xlsx, .xls) or CSV file.');
-        this.selectedBulkFile.set(null);
-        this.bulkUploadFileName.set('No file chosen');
-        return;
-      }
-      this.selectedBulkFile.set(file);
-      this.bulkUploadFileName.set(file.name);
-      this.bulkUploadError.set(null);
-      this.bulkUploadErrorsList.set([]);
-      this.bulkUploadSuccessMessage.set(null);
-    }
-  }
-
-  onDownloadSampleTemplate(): void {
-    this.service.downloadSampleTemplate().subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'Trust_Children_Sample_Template.xlsx';
-        link.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err: any) => {
-        console.error('Error downloading template from API, falling back to local generation:', err);
-        const templateHeaders = [
-          {
-            "ID": "",
-            "Child Name": "RAJESH KUMAR",
-            "Trust Name": this.userBranchName || "PAAVAI TRICHY TRUST",
-            "License No": "5342343542",
-            "Gender": "Male",
-            "Category": "SPECIAL CHILDREN",
-            "Aadhar No": "534231245342",
-            "Date of Joining": "2026-06-08",
-            "Discharge Date": "",
-            "Status": "Active",
-            "Parent Details": "Father: Kumar, Mother: Lakshmi",
-            "Address": "12, North Street, Trichy",
-            "Mobile Number": "9876543210"
-          },
-          {
-            "ID": "1",
-            "Child Name": "THIRUPPATHI SIVAN",
-            "Trust Name": this.userBranchName || "PAAVAI TRICHY TRUST",
-            "License No": "456789787",
-            "Gender": "Male",
-            "Category": "OLDAGEHOME",
-            "Aadhar No": "456786543456",
-            "Date of Joining": "2026-10-01",
-            "Discharge Date": "2026-10-30",
-            "Status": "Active",
-            "Parent Details": "Parent details info",
-            "Address": "10 Main Road, Trichy",
-            "Mobile Number": "9877654321"
-          }
-        ];
-        const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(templateHeaders);
-        const wb: XLSX.WorkBook = { Sheets: { 'Trust Children Template': ws }, SheetNames: ['Trust Children Template'] };
-        XLSX.writeFile(wb, 'Trust_Children_Sample_Template.xlsx');
-      }
-    });
-  }
-
-  onSubmitBulkUpload(): void {
-    const file = this.selectedBulkFile();
-    if (!file) {
-      this.bulkUploadError.set('Please choose an Excel (.xlsx, .xls) or CSV file to upload.');
-      return;
-    }
-
-    this.isBulkUploading.set(true);
-    this.bulkUploadError.set(null);
-    this.bulkUploadErrorsList.set([]);
-    this.bulkUploadSuccessMessage.set(null);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    if (!this.authService.hasRole(['ADMIN']) && this.userBranchId) {
-      formData.append('trust_name', String(this.userBranchId));
-    }
-
-    this.service.bulkUpload(formData).subscribe({
-      next: (res: any) => {
-        this.isBulkUploading.set(false);
-        this.bulkUploadSuccessMessage.set(res.message || 'Bulk upload processed successfully!');
-        this.fetchChildrenFromApi();
-        setTimeout(() => {
-          this.closeBulkUploadModal();
-        }, 1800);
-      },
-      error: (err: any) => {
-        this.isBulkUploading.set(false);
-        const errMsg = err.error?.message || 'Failed to process bulk upload file.';
-        this.bulkUploadError.set(errMsg);
-        if (Array.isArray(err.error?.errors)) {
-          this.bulkUploadErrorsList.set(err.error.errors);
-        } else {
-          this.bulkUploadErrorsList.set([]);
-        }
-      }
-    });
-  }
-
   onCreateNew(): void {
     this.modalMode.set('create');
     this.editingChild.set(null);
     this.onResetForm();
 
-    if (!this.canViewAllTrust() && (this.userBranchId || this.userBranchName)) {
+    if (this.userBranchId || this.userBranchName) {
       this.childForm.patchValue({ trust_name: this.userBranchId || this.userBranchName });
     }
 
@@ -614,7 +435,7 @@ export class TrustChildrenComponent implements OnInit {
   }
 
   onSubmitForm(): void {
-    if (!this.canViewAllTrust() && (this.userBranchId || this.userBranchName) && !this.childForm.value.trust_name) {
+    if ((this.userBranchId || this.userBranchName) && !this.childForm.value.trust_name) {
       this.childForm.patchValue({ trust_name: this.userBranchId || this.userBranchName });
     }
 

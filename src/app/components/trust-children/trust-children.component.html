@@ -9,17 +9,13 @@
         <div class="left-filter-group" style="flex-wrap: wrap; flex: 1;">
           
           <div class="branch-select-wrapper">
-            <select [ngModel]="filterBranch()" (ngModelChange)="filterBranch.set($event); onFilterSubmit()" [disabled]="!canViewAllTrust()">
-              @if (canViewAllTrust()) {
-                <option value="" selected>All Trust</option>
-              }
-              @for (b of availableTrustBranches(); track b.id) {
-                <option [value]="b.id">{{ b.code ? (b.code + ' - ' + b.name) : b.name }}</option>
+            <select [ngModel]="filterBranch()" (ngModelChange)="filterBranch.set($event); onFilterSubmit()">
+              <option value="" selected>All Trust</option>
+              @for (b of branchesList(); track b.id) {
+                <option [value]="b.id">{{ b.code }} - {{ b.name }}</option>
               }
             </select>
-            @if (canViewAllTrust()) {
-              <span class="material-symbols-outlined select-arrow">expand_more</span>
-            }
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
           </div>
 
           <div class="branch-select-wrapper">
@@ -73,13 +69,6 @@
             <span class="material-symbols-outlined">download</span>
             <span>Export XLSX</span>
           </button>
-
-          @if (canBulkUpload()) {
-            <button type="button" class="btn-primary-action" (click)="openBulkUploadModal()">
-              <span class="material-symbols-outlined">upload_file</span>
-              <span>Bulk Upload</span>
-            </button>
-          }
 
           <button type="button" class="btn-primary-action" (click)="onCreateNew()">
             <span class="material-symbols-outlined">add</span>
@@ -183,7 +172,7 @@
                             <span class="material-symbols-outlined">{{ item.is_active ? 'block' : 'check_circle' }}</span>
                           </button>
                         }
-                        @if (isSuperintendent() || authService.hasRole(['ADMIN', 'MANAGER', 'OT', 'ONLINE PAYMENT TEAM'])) {
+                        @if (isSuperintendent() || authService.hasRole(['ADMIN', 'MANAGER'])) {
                           <button 
                             type="button" 
                             class="btn-action-icon btn-view" 
@@ -555,110 +544,6 @@
               </div>
             </div>
           </form>
-        </div>
-      </div>
-    }
-
-    <!-- ==========================================
-         MODAL: BULK UPLOAD TRUST CHILDREN
-         ========================================== -->
-    @if (isBulkUploadModalOpen() && canBulkUpload()) {
-      <div class="modal-backdrop" (click)="!isBulkUploading() && closeBulkUploadModal()">
-        <div class="modal-card bulk-upload-card" (click)="$event.stopPropagation()">
-          
-          <!-- Local Loader Overlay -->
-          @if (isBulkUploading()) {
-            <div class="local-loader-overlay">
-              <div class="loader-spinner"></div>
-              <p>Uploading & Processing Trust Children Data...</p>
-            </div>
-          }
-
-          <!-- Header -->
-          <div class="modal-title-header">
-            <h2 style="display: flex; align-items: center; gap: 8px;">
-              <span class="material-symbols-outlined" style="color: var(--primary);">upload_file</span>
-              <span>Bulk Upload Trust Children</span>
-            </h2>
-            <button type="button" class="modal-close-btn" (click)="closeBulkUploadModal()" [disabled]="isBulkUploading()" title="Close">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          <!-- Body -->
-          <div class="bulk-modal-body">
-            <p class="bulk-instructions">
-              Upload an Excel (.xlsx, .xls) or CSV file with Trust Children data.
-              <br/>
-              <span class="help-highlight">• <strong>Existing records:</strong> include the <strong>ID</strong> column to update records.</span>
-              <br/>
-              <span class="help-highlight">• <strong>New records:</strong> leave the <strong>ID</strong> column empty (or omit it) to create new records.</span>
-            </p>
-
-            <!-- Success Message -->
-            @if (bulkUploadSuccessMessage()) {
-              <div class="alert-success-box">
-                <span class="material-symbols-outlined">check_circle</span>
-                <span>{{ bulkUploadSuccessMessage() }}</span>
-              </div>
-            }
-
-            <!-- Error Message -->
-            @if (bulkUploadError()) {
-              <div class="alert-error-box">
-                <span class="material-symbols-outlined">error</span>
-                <div style="flex: 1;">
-                  <div style="font-weight: 600;">{{ bulkUploadError() }}</div>
-                  @if (bulkUploadErrorsList().length > 0) {
-                    <ul class="error-detail-list">
-                      @for (err of bulkUploadErrorsList(); track $index) {
-                        <li>{{ err }}</li>
-                      }
-                    </ul>
-                  }
-                </div>
-              </div>
-            }
-
-            <!-- File Drop Area -->
-            <div class="bulk-file-drop-box" [class.has-file]="!!selectedBulkFile()">
-              <input type="file" (change)="onBulkFileSelected($event)" accept=".xlsx, .xls, .csv" [disabled]="isBulkUploading()" />
-              <span class="material-symbols-outlined drop-icon">cloud_upload</span>
-              <p class="drop-text">Click to browse or drag & drop spreadsheet</p>
-              <span class="drop-subtext">Supported formats: .xlsx, .xls, .csv</span>
-              @if (selectedBulkFile()) {
-                <div class="selected-file-chip">
-                  <span class="material-symbols-outlined" style="font-size: 16px;">description</span>
-                  <span>{{ bulkUploadFileName() }}</span>
-                </div>
-              }
-            </div>
-
-            <!-- Download Template Button -->
-            <div class="template-download-row">
-              <button type="button" class="btn-download-template" (click)="onDownloadSampleTemplate()" [disabled]="isBulkUploading()">
-                <span class="material-symbols-outlined">download</span>
-                <span>Download Sample Excel Template</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="bulk-modal-footer">
-            <button type="button" class="btn-cancel-modal" (click)="closeBulkUploadModal()" [disabled]="isBulkUploading()">
-              Cancel
-            </button>
-            <button type="button" class="btn-submit-upload" [disabled]="isBulkUploading() || !selectedBulkFile()" (click)="onSubmitBulkUpload()">
-              @if (isBulkUploading()) {
-                <span class="material-symbols-outlined spin-icon" style="font-size: 18px; margin-right: 4px;">progress_activity</span>
-                Processing...
-              } @else {
-                <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">upload</span>
-                Upload & Process
-              }
-            </button>
-          </div>
-
         </div>
       </div>
     }

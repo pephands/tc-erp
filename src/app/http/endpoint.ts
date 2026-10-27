@@ -68,14 +68,6 @@ export class Endpoint {
     return this.baseUrl + 'branches/trust-children/';
   }
 
-  get trustChildrenBulkUpload(): string {
-    return this.baseUrl + 'branches/trust-children/bulk-upload/';
-  }
-
-  get trustChildrenSampleTemplate(): string {
-    return this.baseUrl + 'branches/trust-children/sample-template/';
-  }
-
   get branchVehicles(): string {
     return this.baseUrl + 'branches/vehicles/';
   }

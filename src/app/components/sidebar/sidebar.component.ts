@@ -431,7 +431,7 @@ export class SidebarComponent implements OnInit {
       label: 'Branch Details',
       icon: 'location_city',
       category: 'Core',
-      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'PUBLIC_RELATIONS', 'SUPERINTENDENT', 'OT', 'ONLINE PAYMENT TEAM'],
+      allowedRoles: ['ADMIN', 'MANAGER', 'TL', 'PUBLIC_RELATIONS','SUPERINTENDENT'],
       submenus: [
         {
           id: 'branch_documents',
@@ -458,7 +458,7 @@ export class SidebarComponent implements OnInit {
           id: 'trust_children',
           label: 'Trust Children',
           icon: 'child_care',
-          allowedRoles: ['ADMIN', 'SUPERINTENDENT','OT', 'ONLINE PAYMENT TEAM'],
+          allowedRoles: ['ADMIN', 'SUPERINTENDENT'],
           route: '/trust-children',
         },
         {
