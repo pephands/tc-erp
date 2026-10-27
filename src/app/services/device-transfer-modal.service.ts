@@ -100,6 +100,19 @@ export class DeviceTransferModalService {
         } catch (_) {}
       }
     });
+
+    // 3. Focus and visibility events (user switching back to this device/window)
+    window.addEventListener('focus', () => {
+      if (this.authService.isLoggedIn() && !this.isOpen()) {
+        this.checkPendingCodeOnFocus();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.authService.isLoggedIn() && !this.isOpen()) {
+        this.checkPendingCodeOnFocus();
+      }
+    });
   }
 
   private handleTransferEvent(data: any): void {
@@ -114,7 +127,10 @@ export class DeviceTransferModalService {
       return;
     }
 
-    if (data.type === 'TRANSFER_COMPLETED') {
+    if (data.type === 'TRANSFER_REQUESTED') {
+      // Exactly when user tries to log in on the other device, fetch and display the code!
+      this.fetchOrGenerateCode();
+    } else if (data.type === 'TRANSFER_COMPLETED') {
       this.close();
       this.authService.forceSessionLogout('session_transferred');
       this.router.navigate(['/login'], {
@@ -124,19 +140,46 @@ export class DeviceTransferModalService {
     }
   }
 
+  private checkPendingCodeOnFocus(): void {
+    if (!this.authService.isLoggedIn() || this.isOpen()) return;
+    const roles = this.authService.userRoles();
+    if (roles.includes('ADMIN') || roles.includes('ADMINISTRATOR')) return;
+
+    this.authService.getActiveDeviceCode().subscribe({
+      next: (res) => {
+        if (res.has_pending_code && res.code && res.expires_in_seconds > 0) {
+          this.code.set(res.code);
+          this.startCountdown(res.expires_in_seconds);
+          this.isOpen.set(true);
+        }
+      },
+      error: (err) => {
+        if (err.status === 401 || err.status === 403) {
+          this.close();
+          this.authService.forceSessionLogout('session_transferred');
+          this.router.navigate(['/login'], {
+            queryParams: { sessionTransferred: 'true' },
+            replaceUrl: true
+          });
+        }
+      }
+    });
+  }
+
   show(code?: string | null, expiresInSeconds?: number): void {
     if (code) {
       this.code.set(code);
       this.startCountdown(expiresInSeconds || 300);
       this.isOpen.set(true);
+    } else if (this.code() && this.expiresInSeconds() > 0) {
+      this.isOpen.set(true);
     } else {
-      // Triggered only when user clicks Device Code button
+      // Check for active pending code first, or generate if none
       this.fetchOrGenerateCode();
     }
   }
 
   fetchOrGenerateCode(): void {
-    this.isOpen.set(true);
     this.isLoading.set(true);
     this.errorMessage.set(null);
     this.authService.getActiveDeviceCode().subscribe({

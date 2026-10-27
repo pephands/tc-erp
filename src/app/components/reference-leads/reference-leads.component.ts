@@ -22,7 +22,7 @@ export class ReferenceLeadsComponent implements OnInit {
   leads = signal<any[]>([]);
   isLoading = signal<boolean>(false);
 
-  // Form for New Lead (TC and TL)
+  // Form for New Lead (TC only)
   isNewLeadModalOpen = signal<boolean>(false);
   isUploadModalOpen = signal<boolean>(false);
   phoneError = signal<string>('');
