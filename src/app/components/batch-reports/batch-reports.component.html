@@ -399,10 +399,30 @@
                     }
                   </td>
                   
-                  <td><span class="tag-pill">{{ batch.record_count }}</span></td>
-                  <td><span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">{{ batch.ok_count }}</span></td>
-                  <td><span class="status-badge" style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;">{{ batch.resend_count }}</span></td>
-                  <td><span class="status-badge" style="background: #e5e7eb; color: #374151; border: 1px solid #d1d5db;">{{ batch.other_count }}</span></td>
+                  <td>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                      <span class="tag-pill">{{ batch.record_count }}</span>
+                      <small style="color: #64748b; font-weight: 600; font-size: 0.75rem;">₹{{ (batch.total_amount || 0) | number:'1.2-2' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                      <span class="status-badge" style="background: #d1fae5; color: #065f46; border: 1px solid #10b981;">{{ batch.ok_count }}</span>
+                      <small style="color: #065f46; font-weight: 600; font-size: 0.75rem;">₹{{ (batch.ok_amount || 0) | number:'1.2-2' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                      <span class="status-badge" style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;">{{ batch.resend_count }}</span>
+                      <small style="color: #d97706; font-weight: 600; font-size: 0.75rem;">₹{{ (batch.resend_amount || 0) | number:'1.2-2' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                      <span class="status-badge" style="background: #e5e7eb; color: #374151; border: 1px solid #d1d5db;">{{ batch.other_count }}</span>
+                      <small style="color: #4b5563; font-weight: 600; font-size: 0.75rem;">₹{{ (batch.other_amount || 0) | number:'1.2-2' }}</small>
+                    </div>
+                  </td>
                   
                   @if ((isAdmin() && (activeTab() === 'PENDING_BATCHES' || activeTab() === 'COMPLETED_BATCHES')) || activeTab() === 'BATCHES') {
                     <td>
@@ -441,10 +461,30 @@
                             @for (stat of batchBranchStats()[batch.id]; track stat.branch_id) {
                               <tr style="border-bottom: 1px solid #e2e8f0;">
                                 <td style="padding: 0.75rem;"><strong>{{ stat.branch_name }}</strong></td>
-                                <td style="padding: 0.75rem;"><span class="tag-pill">{{ stat.total }}</span></td>
-                                <td style="padding: 0.75rem;"><span style="color: #059669; font-weight: 600;">{{ stat.ok_count }}</span></td>
-                                <td style="padding: 0.75rem;"><span style="color: #d97706; font-weight: 600;">{{ stat.resend_count }}</span></td>
-                                <td style="padding: 0.75rem;"><span style="color: #4b5563; font-weight: 600;">{{ stat.other_count }}</span></td>
+                                <td style="padding: 0.75rem;">
+                                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <span class="tag-pill">{{ stat.total }}</span>
+                                    <small style="color: #64748b; font-weight: 600; font-size: 0.75rem;">₹{{ (stat.total_amount || 0) | number:'1.2-2' }}</small>
+                                  </div>
+                                </td>
+                                <td style="padding: 0.75rem;">
+                                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <span style="color: #059669; font-weight: 600;">{{ stat.ok_count }}</span>
+                                    <small style="color: #059669; font-weight: 600; font-size: 0.75rem;">₹{{ (stat.ok_amount || 0) | number:'1.2-2' }}</small>
+                                  </div>
+                                </td>
+                                <td style="padding: 0.75rem;">
+                                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <span style="color: #d97706; font-weight: 600;">{{ stat.resend_count }}</span>
+                                    <small style="color: #d97706; font-weight: 600; font-size: 0.75rem;">₹{{ (stat.resend_amount || 0) | number:'1.2-2' }}</small>
+                                  </div>
+                                </td>
+                                <td style="padding: 0.75rem;">
+                                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <span style="color: #4b5563; font-weight: 600;">{{ stat.other_count }}</span>
+                                    <small style="color: #4b5563; font-weight: 600; font-size: 0.75rem;">₹{{ (stat.other_amount || 0) | number:'1.2-2' }}</small>
+                                  </div>
+                                </td>
                               </tr>
                             } @empty {
                               <tr><td colspan="5" style="padding: 1rem; text-align: center; color: #64748b;">No branch records found.</td></tr>
