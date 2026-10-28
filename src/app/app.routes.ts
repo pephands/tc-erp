@@ -81,6 +81,7 @@ export const routes: Routes = [
       {
         path: 'reference-leads',
         component: ReferenceLeadsComponent,
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'TC'])],
         title: 'Reference Leads',
       },
       {
@@ -90,88 +91,88 @@ export const routes: Routes = [
       {
         path: 'branches',
         component: BranchesComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'announcements',
         component: AnnouncementManagementComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'TC', 'OT'])],
       },
       // --- Users Module Routes ---
       {
         path: 'users/admin',
         component: AdminsPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/all',
         component: AllUsersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/telecaller',
         component: TelecallersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'MANAGER', 'TL'])],
       },
       {
         path: 'users/team-leader',
         component: TeamLeadersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'MANAGER'])],
       },
       {
         path: 'users/manager',
         component: ManagersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/backend',
         component: BackendUsersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/driver',
         component: DriversPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/cook',
         component: CooksPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/assistant-cook',
         component: AssistantCooksPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/public-relations',
         component: PublicRelationsPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/counselor',
         component: CounselorsPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/superintendent',
         component: SuperintendentsPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/trust-users',
         component: TrustUsersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'SUPERINTENDENT'])],
       },
       {
         path: 'users/outreach-team/district-coordinator',
         component: DistrictCoordinatorPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/outreach-team/tuition-teacher',
         component: TuitionTeacherPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'users/outreach-team',
@@ -181,161 +182,161 @@ export const routes: Routes = [
       {
         path: 'users/settings',
         component: UserSettingsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
 
       // Legacy Route Aliases for backwards compatibility
       {
         path: 'managers',
         component: ManagersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'telecallers',
         component: TelecallersPageComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'MANAGER', 'TL'])],
       },
 
       // Operations & Features
       {
         path: 'attendance',
         component: AttendanceComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'MANAGER', 'TL', 'TC', 'SUPERINTENDENT', 'PUBLIC_RELATIONS', 'OT', 'TCT'])],
       },
       {
         path: 'approve-assign',
         component: ApproveAssignComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'tl-data-management',
         component: TlDataManagementComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['TL'])],
       },
       {
         path: 'workstation',
         component: WorkstationComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'TC'])],
       },
       {
         path: 'branch-documents',
         component: BranchDocumentsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'PUBLIC_RELATIONS', 'SUPERINTENDENT'])],
       },
       {
         path: 'branch-vehicles',
         component: BranchVehiclesComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'SUPERINTENDENT', 'MANAGER'])],
       },
       {
         path: 'branch-settings',
         component: BranchSettingsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'expense-details',
         component: ExpenseDetailsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'PUBLIC_RELATIONS', 'SUPERINTENDENT'])],
       },
       {
         path: 'expense-report',
         component: ExpenseReportComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'send-records',
         component: SendRecordsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['TC', 'TL'])],
       },
       {
         path: 'received-records',
         component: ReceivedRecordsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL'])],
       },
       {
         path: 'approved-records',
         component: ApprovedRecordsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'OT', 'ONLINE PAYMENT TEAM', 'TC'])],
       },
       {
         path: 'live-batch',
         component: LiveBatchComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'MANAGER', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'batch-reports',
         component: BatchReportsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'batch-settings',
         component: BatchSettingsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'received-status',
         component: ReceivedStatusComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL'])],
       },
       {
         path: 'online-history',
         component: OnlineHistoryComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'OT', 'ONLINE PAYMENT TEAM', 'TC'])],
       },
       {
         path: 'verified-donors',
         component: VerifiedDonorsComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'unclaimed-records',
         component: UnclaimedRecordsComponent,
-        canActivate: [deviceAuthGuard]
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'whatsapp-receipt-settings',
         component: WhatsappReceiptSettings,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'whatsapp-accounts',
         component: WhatsappAccountsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'whatsapp-campaigns',
         component: WhatsappCampaignsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'whatsapp-campaigns/:campaignId/templates',
         component: WhatsappTemplates,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'whatsapp-send',
         component: WhatsappSendComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['TL', 'TC'])],
       },
       {
         path: 'whatsapp-history',
         component: WhatsappHistoryComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'TC'])],
       },
       {
         path: 'feedbacks',
         component: FeedbacksComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['TC'])],
       },
       {
         path: 'feedback-details',
         component: FeedbackDetailsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
       },
       {
         path: 'receipts/view',
         component: ReceiptListComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'TL', 'TC', 'TCT', 'OT', 'ONLINE PAYMENT TEAM'])],
       },
       {
         path: 'receipts/trust-receipts',
@@ -355,18 +356,18 @@ export const routes: Routes = [
       {
         path: 'trust-children',
         component: TrustChildrenComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'SUPERINTENDENT'])],
       },
       {
         path: 'food-calendar',
         component: FoodBookingCalendarComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN', 'MANAGER', 'TL', 'PUBLIC_RELATIONS'])],
         title: 'Food Booking Calendar',
       },
       {
         path: 'occasions',
         component: OccasionsComponent,
-        canActivate: [deviceAuthGuard],
+        canActivate: [deviceAuthGuard, roleGuard(['ADMIN'])],
         title: 'Occasions Setup',
       },
 
