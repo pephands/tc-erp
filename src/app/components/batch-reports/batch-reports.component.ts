@@ -76,6 +76,7 @@ export class BatchReportsComponent implements OnInit {
 
   pageSize = signal<number>(10);
   totalCount = signal<number>(0);
+  totalAmount = signal<number>(0);
 
   ngOnInit(): void {
     this.isAdmin.set(this.authService.hasRole(['ADMIN', 'ADMINISTRATOR', 'OT']));
@@ -156,20 +157,25 @@ export class BatchReportsComponent implements OnInit {
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
+        let amount = 0;
 
         if (res && res.results) {
           items = res.results;
           count = res.count || items.length;
+          amount = res.total_amount !== undefined ? res.total_amount : items.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
         } else if (res && res.data) {
           items = Array.isArray(res.data) ? res.data : [res.data];
           count = items.length;
+          amount = items.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
         } else if (Array.isArray(res)) {
           items = res;
           count = items.length;
+          amount = items.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
         }
 
         this.records.set(items);
         this.totalCount.set(count);
+        this.totalAmount.set(amount);
         this.isLoading.set(false);
       },
       error: (err: any) => {
@@ -207,20 +213,25 @@ export class BatchReportsComponent implements OnInit {
       next: (res: any) => {
         let items: OnlinePaymentRecord[] = [];
         let count = 0;
+        let amount = 0;
 
         if (res && res.results) {
           items = res.results;
           count = res.count || items.length;
+          amount = res.total_amount !== undefined ? res.total_amount : items.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
         } else if (res && res.data) {
           items = Array.isArray(res.data) ? res.data : [res.data];
           count = items.length;
+          amount = items.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
         } else if (Array.isArray(res)) {
           items = res;
           count = items.length;
+          amount = items.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
         }
 
         this.records.set(items);
         this.totalCount.set(count);
+        this.totalAmount.set(amount);
         this.isLoading.set(false);
       },
       error: (err: any) => {
