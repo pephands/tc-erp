@@ -8,6 +8,7 @@ import { PaymentService } from '../../../services/payment.service';
 import { ToastService } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
 import { BranchListService } from '../../../services/branch-list.service';
+import { BatchReceiptBulkSenderService } from '../../../services/batch-receipt-bulk-sender.service';
 import { AddOnlinePaymentModalComponent } from '../../../modals/add-online-payment-modal/add-online-payment-modal.component';
 
 @Component({
@@ -22,6 +23,7 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
   toastService = inject(ToastService);
   authService = inject(AuthService);
   branchService = inject(BranchListService);
+  bulkSender = inject(BatchReceiptBulkSenderService);
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -66,9 +68,28 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
   // Action states
   sendingWhatsApp = signal<Set<number>>(new Set());
 
+  // Multi-Selection State for WhatsApp Triggering
+  selectedRecordIds = signal<Set<number>>(new Set());
+
   totalBatchCount = computed(() => {
     return this.selectedBatchDate() ? this.batchRuns().length : 0;
   });
+
+  // Eligible records on current page that can be selected (status == 'OK', hasReceiptId, WhatsApp status != Sent)
+  selectableRecordsOnPage = computed(() => {
+    return this.records().filter(
+      (r) => !r.is_whatsapp_receipt_generated && this.hasReceiptId(r)
+    );
+  });
+
+  isAllOnPageSelected = computed(() => {
+    const list = this.selectableRecordsOnPage();
+    if (list.length === 0) return false;
+    const selected = this.selectedRecordIds();
+    return list.every((r) => selected.has(r.id));
+  });
+
+  selectedCount = computed(() => this.selectedRecordIds().size);
 
   ngOnInit(): void {
     this.loadBranches();
@@ -372,6 +393,12 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
           next.delete(record.id);
           return next;
         });
+        // Remove from selection set if it was selected
+        this.selectedRecordIds.update((s) => {
+          const next = new Set(s);
+          next.delete(record.id);
+          return next;
+        });
         this.toastService.success(
           'WhatsApp Receipt Sent',
           `Receipt sent to ${record.donor_name} (${record.mobile_number}). Record updated!`
@@ -392,5 +419,102 @@ export class BatchReceiptsComponent implements OnInit, OnDestroy {
         this.toastService.error('Send Failed', msg);
       },
     });
+  }
+
+  // --------------------------------------------------------------------------
+  // Selection Handlers (for WhatsApp Pending Records)
+  // --------------------------------------------------------------------------
+  isRecordSelectable(record: any): boolean {
+    return !record.is_whatsapp_receipt_generated && this.hasReceiptId(record);
+  }
+
+  isRecordSelected(recordId: number): boolean {
+    return this.selectedRecordIds().has(recordId);
+  }
+
+  toggleRecordSelection(record: any, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!this.isRecordSelectable(record)) return;
+
+    this.selectedRecordIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(record.id)) {
+        next.delete(record.id);
+      } else {
+        next.add(record.id);
+      }
+      return next;
+    });
+  }
+
+  toggleSelectAllOnPage(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const selectable = this.selectableRecordsOnPage();
+    if (selectable.length === 0) return;
+
+    const allSelected = this.isAllOnPageSelected();
+    this.selectedRecordIds.update((set) => {
+      const next = new Set(set);
+      if (allSelected) {
+        // Deselect all selectable on this page
+        for (const r of selectable) {
+          next.delete(r.id);
+        }
+      } else {
+        // Select all selectable on this page
+        for (const r of selectable) {
+          next.add(r.id);
+        }
+      }
+      return next;
+    });
+  }
+
+  clearSelection(): void {
+    this.selectedRecordIds.set(new Set());
+  }
+
+  // --------------------------------------------------------------------------
+  // Bulk WhatsApp Triggering (Background Service with LocalStorage persistence)
+  // --------------------------------------------------------------------------
+  openBulkTriggerModal(): void {
+    const ids = Array.from(this.selectedRecordIds());
+    if (ids.length === 0) {
+      this.toastService.info(
+        'No Records Selected',
+        'Please select at least one pending record to send WhatsApp receipt.'
+      );
+      return;
+    }
+
+    // Resolve full record objects from currently loaded records
+    const recordsMap = new Map(this.records().map((r) => [r.id, r]));
+    const recordsToAdd = ids.map((id) => {
+      const found = recordsMap.get(id);
+      return (
+        found || {
+          id,
+          donor_name: `Record #${id}`,
+          amount: 0,
+        }
+      );
+    });
+
+    // Enqueue records into singleton background sender
+    this.bulkSender.enqueueRecords(recordsToAdd);
+    // Clear selection so user can select another batch or page freely
+    this.selectedRecordIds.set(new Set());
+  }
+
+  closeBulkModal(): void {
+    this.bulkSender.closeModal();
+    this.fetchRecords();
+    if (this.selectedBatchDate()) {
+      this.fetchBatchRunsForDate(this.selectedBatchDate());
+    }
   }
 }

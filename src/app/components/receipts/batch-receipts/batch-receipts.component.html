@@ -12,6 +12,47 @@
         </p>
       </div>
     </div>
+
+    <!-- Header Actions (Bulk WhatsApp Trigger button) -->
+    <div class="header-actions-group">
+      @if (bulkSender.totalCount() > 0 && (bulkSender.isMinimized() || !bulkSender.isOpen())) {
+        <button
+          type="button"
+          class="btn-active-queue-pill"
+          (click)="bulkSender.maximize()"
+          title="Open active dispatch queue"
+        >
+          <span class="pulse-dot" [class.dot-anim]="bulkSender.isTriggering() && !bulkSender.isPaused()"></span>
+          <span class="material-symbols-outlined">mark_chat_unread</span>
+          <span>Active Queue ({{ bulkSender.sentCount() }}/{{ bulkSender.totalCount() }})</span>
+        </button>
+      }
+
+      @if (selectedCount() > 0) {
+        <button
+          type="button"
+          class="btn-bulk-whatsapp"
+          (click)="openBulkTriggerModal()"
+          title="Add {{ selectedCount() }} selected records to dispatch queue"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+            <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+          </svg>
+          <span>Enqueue WhatsApp ({{ selectedCount() }})</span>
+        </button>
+        <button
+          type="button"
+          class="btn-clear-selection"
+          (click)="clearSelection()"
+          title="Deselect all records"
+        >
+          <span class="material-symbols-outlined">close</span>
+          <span>Clear Selection</span>
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Metric / Overview Cards -->
@@ -172,6 +213,16 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th style="width: 44px; text-align: center;">
+              <input
+                type="checkbox"
+                class="row-checkbox header-checkbox"
+                [checked]="isAllOnPageSelected()"
+                [disabled]="selectableRecordsOnPage().length === 0"
+                (change)="toggleSelectAllOnPage($event)"
+                title="Select all pending WhatsApp records on this page"
+              />
+            </th>
             <th style="width: 50px">S.No</th>
             <th>Batch Name</th>
             <th>Batch Date</th>
@@ -193,14 +244,14 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="16" class="loading-state">
+              <td colspan="17" class="loading-state">
                 <span class="material-symbols-outlined spin-icon">progress_activity</span>
                 <p>Loading batch receipt records...</p>
               </td>
             </tr>
           } @else if (records().length === 0) {
             <tr>
-              <td colspan="16" class="empty-state">
+              <td colspan="17" class="empty-state">
                 <span class="material-symbols-outlined empty-icon">task_alt</span>
                 <p class="empty-title">All Caught Up!</p>
                 <p class="empty-subtitle">
@@ -214,7 +265,20 @@
             </tr>
           } @else {
             @for (rec of records(); track rec.id; let i = $index) {
-              <tr>
+              <tr [class.row-selected]="isRecordSelected(rec.id)">
+                <td class="col-checkbox" style="text-align: center;">
+                  @if (isRecordSelectable(rec)) {
+                    <input
+                      type="checkbox"
+                      class="row-checkbox"
+                      [checked]="isRecordSelected(rec.id)"
+                      (change)="toggleRecordSelection(rec, $event)"
+                      title="Select this pending record"
+                    />
+                  } @else {
+                    <span class="checkbox-disabled-dash" title="Already sent or invalid receipt ID">-</span>
+                  }
+                </td>
                 <td class="col-sno">{{ (currentPage() - 1) * pageSize() + i + 1 }}</td>
                 <td class="col-batch">
                   <span class="badge-batch">
@@ -394,5 +458,307 @@
     (close)="onModalClose()"
     (submitted)="onModalSubmit()"
   ></app-add-online-payment-modal>
+}
+
+<!-- Bulk WhatsApp Trigger Modal -->
+@if (bulkSender.isOpen() && !bulkSender.isMinimized()) {
+  <div class="modal-backdrop" (click)="closeBulkModal()">
+    <div class="modal-container bulk-modal-container" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="modal-header-bar">
+        <div class="modal-title-group">
+          <div class="bulk-header-icon-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+              <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="modal-title">Bulk WhatsApp Dispatch</h3>
+            <p class="modal-sub">
+              Send PDF receipts sequentially via WhatsApp to selected pending donors. Runs in background with storage persistence.
+            </p>
+          </div>
+        </div>
+        <div class="modal-header-window-actions">
+          <button type="button" class="btn-window-icon btn-minimize-icon" (click)="bulkSender.minimize()" title="Minimize to background dock">
+            <span class="material-symbols-outlined">indeterminate_check_box</span>
+          </button>
+          <button type="button" class="btn-window-icon btn-close-icon" (click)="closeBulkModal()" title="Close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <!-- Progress Counter Cards -->
+        <div class="bulk-counters-grid">
+          <div class="bulk-counter-card card-total">
+            <span class="counter-label">Total Records</span>
+            <span class="counter-num">{{ bulkSender.totalCount() }}</span>
+          </div>
+          <div class="bulk-counter-card card-success">
+            <span class="counter-label">Sent Successfully</span>
+            <span class="counter-num">{{ bulkSender.sentCount() }}</span>
+          </div>
+          <div class="bulk-counter-card card-failed">
+            <span class="counter-label">Failed</span>
+            <span class="counter-num">{{ bulkSender.failedCount() }}</span>
+          </div>
+          <div class="bulk-counter-card card-pending">
+            <span class="counter-label">Remaining</span>
+            <span class="counter-num">{{ bulkSender.pendingCount() }}</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="bulk-progress-bar-wrap">
+          <div
+            class="bulk-progress-bar-fill"
+            [style.width.%]="bulkSender.progressPercent()"
+          ></div>
+        </div>
+
+        <!-- Selected Records List -->
+        <div class="bulk-records-section">
+          <div class="bulk-section-header">
+            <h4>Active Dispatch Queue ({{ bulkSender.totalCount() }})</h4>
+            <div class="bulk-section-header-actions">
+              @if (bulkSender.failedCount() > 0 && !bulkSender.isTriggering()) {
+                <button type="button" class="btn-retry-failed" (click)="bulkSender.retryFailedItems()">
+                  <span class="material-symbols-outlined">refresh</span>
+                  <span>Retry Failed ({{ bulkSender.failedCount() }})</span>
+                </button>
+              }
+              @if (!bulkSender.isTriggering() && bulkSender.totalCount() > 0) {
+                <button type="button" class="btn-clear-queue" (click)="bulkSender.clearQueue()" title="Clear queue">
+                  <span class="material-symbols-outlined">delete_sweep</span>
+                  <span>Clear Queue</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="bulk-items-list-container">
+            <table class="bulk-items-table">
+              <thead>
+                <tr>
+                  <th style="width: 45px">#</th>
+                  <th>Task ID</th>
+                  <th>Donor Name</th>
+                  <th>Mobile Number</th>
+                  <th>Amount</th>
+                  <th>Receipt ID</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of bulkSender.queue(); track item.id; let idx = $index) {
+                  <tr [class.item-running]="bulkSender.currentRunningId() === item.id">
+                    <td>{{ idx + 1 }}</td>
+                    <td class="font-medium">{{ item.task_id || ('#' + item.id) }}</td>
+                    <td class="font-semibold">{{ item.donor_name }}</td>
+                    <td>{{ item.mobile_number || '-' }}</td>
+                    <td class="font-bold">₹{{ item.amount | number:'1.2-2' }}</td>
+                    <td><code>{{ item.receipt_id || '-' }}</code></td>
+                    <td>
+                      @switch (item.status) {
+                        @case ('sending') {
+                          <span class="bulk-status-badge status-sending">
+                            <span class="action-spinner-small"></span>
+                            <span>Sending...</span>
+                          </span>
+                        }
+                        @case ('success') {
+                          <span class="bulk-status-badge status-success">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            <span>Sent</span>
+                          </span>
+                        }
+                        @case ('failed') {
+                          <span class="bulk-status-badge status-failed" [title]="item.error || 'Failed'">
+                            <span class="material-symbols-outlined">error</span>
+                            <span>Failed: {{ item.error || 'Error' }}</span>
+                          </span>
+                        }
+                        @default {
+                          <span class="bulk-status-badge status-queued">
+                            <span class="material-symbols-outlined">hourglass_empty</span>
+                            <span>Queued</span>
+                          </span>
+                        }
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Dispatch History (Local Storage) -->
+        @if (bulkSender.sessionLogs().length > 0) {
+          <div class="bulk-history-section">
+            <h4 class="history-title">Recent Dispatch Sessions (Saved in Browser Storage)</h4>
+            <div class="history-cards-wrap">
+              @for (log of bulkSender.sessionLogs().slice(0, 5); track log.timestamp) {
+                <div class="history-log-card">
+                  <div class="log-meta">
+                    <span class="log-date">{{ log.timestamp | date:'dd MMM yyyy, hh:mm a' }}</span>
+                    <span class="log-total">Total: {{ log.total }}</span>
+                  </div>
+                  <div class="log-chips">
+                    <span class="log-chip chip-success">Sent: {{ log.sent }}</span>
+                    @if (log.failed > 0) {
+                      <span class="log-chip chip-failed">Failed: {{ log.failed }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer-bar">
+        <div class="footer-left-info">
+          @if (bulkSender.isTriggering()) {
+            @if (bulkSender.isPaused()) {
+              <span class="paused-indicator">
+                <span class="material-symbols-outlined">pause_circle</span>
+                <span>Dispatch paused. Click Resume or Minimize to background.</span>
+              </span>
+            } @else {
+              <span class="dispatching-indicator">
+                <span class="action-spinner-small"></span>
+                <span>Sending in background ({{ bulkSender.sentCount() + bulkSender.failedCount() }}/{{ bulkSender.totalCount() }})... You can safely minimize.</span>
+              </span>
+            }
+          } @else if (bulkSender.pendingCount() === 0 && bulkSender.totalCount() > 0) {
+            <span class="completed-indicator">
+              <span class="material-symbols-outlined">task_alt</span>
+              <span>All queued records processed!</span>
+            </span>
+          }
+        </div>
+
+        <div class="footer-actions">
+          <button
+            type="button"
+            class="btn-modal-minimize"
+            (click)="bulkSender.minimize()"
+            title="Keep processing in background"
+          >
+            <span class="material-symbols-outlined">open_in_full</span>
+            <span>Minimize</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-modal-cancel"
+            (click)="closeBulkModal()"
+          >
+            Close
+          </button>
+
+          <!-- Pause / Resume button while running -->
+          @if (bulkSender.isTriggering()) {
+            <button
+              type="button"
+              class="btn-modal-pause"
+              (click)="bulkSender.togglePause()"
+              [class.btn-modal-resume]="bulkSender.isPaused()"
+              title="{{ bulkSender.isPaused() ? 'Resume sending' : 'Pause sending' }}"
+            >
+              @if (bulkSender.isPaused()) {
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Resume</span>
+              } @else {
+                <span class="material-symbols-outlined">pause</span>
+                <span>Pause</span>
+              }
+            </button>
+          } @else {
+            <!-- Start Dispatch Button -->
+            <button
+              type="button"
+              class="btn-modal-start"
+              (click)="bulkSender.startOrResumeDispatch()"
+              [disabled]="bulkSender.pendingCount() === 0"
+            >
+              <span class="material-symbols-outlined">send</span>
+              <span>Start Dispatch ({{ bulkSender.pendingCount() }})</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Minimized Floating Background Dock Pill -->
+@if (bulkSender.isMinimized() && bulkSender.totalCount() > 0) {
+  <div class="minimized-bulk-dock">
+    <div class="dock-content" (click)="bulkSender.maximize()">
+      <div class="dock-badge-pulse" [class.pulse-active]="bulkSender.isTriggering() && !bulkSender.isPaused()"></div>
+      <div class="dock-icon-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+          <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+        </svg>
+      </div>
+      <div class="dock-info">
+        <div class="dock-title-row">
+          <span class="dock-title">WhatsApp Dispatch</span>
+          <span class="dock-percent">{{ bulkSender.progressPercent() }}%</span>
+        </div>
+        <div class="dock-counts">
+          <span>Sent: <strong>{{ bulkSender.sentCount() }}</strong></span>
+          <span class="dock-sep">•</span>
+          <span>Failed: <strong>{{ bulkSender.failedCount() }}</strong></span>
+          <span class="dock-sep">•</span>
+          <span>Queue: <strong>{{ bulkSender.totalCount() }}</strong></span>
+        </div>
+        <div class="dock-progress-track">
+          <div class="dock-progress-fill" [style.width.%]="bulkSender.progressPercent()"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dock-actions">
+      @if (bulkSender.isTriggering()) {
+        <button
+          type="button"
+          class="dock-btn dock-btn-pause"
+          (click)="bulkSender.togglePause()"
+          title="{{ bulkSender.isPaused() ? 'Resume sending' : 'Pause sending' }}"
+        >
+          <span class="material-symbols-outlined">{{ bulkSender.isPaused() ? 'play_arrow' : 'pause' }}</span>
+        </button>
+      } @else if (bulkSender.pendingCount() > 0) {
+        <button
+          type="button"
+          class="dock-btn dock-btn-start"
+          (click)="bulkSender.startOrResumeDispatch()"
+          title="Start or resume sending"
+        >
+          <span class="material-symbols-outlined">send</span>
+        </button>
+      }
+
+      <button
+        type="button"
+        class="dock-btn dock-btn-expand"
+        (click)="bulkSender.maximize()"
+        title="Maximize Dispatch Modal"
+      >
+        <span class="material-symbols-outlined">open_in_full</span>
+      </button>
+    </div>
+  </div>
 }
 
