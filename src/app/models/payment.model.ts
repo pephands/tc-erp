@@ -23,6 +23,9 @@ export interface OnlinePaymentRecord {
   remarks?: string;
   task_id?: number;
   receipt_id?: string;
+  batch_name?: string;
+  batch_date?: string;
+  batch_run?: number;
   payment_proof?: string;
   payment_proof_url?: string;
   generated_receipt?: string;

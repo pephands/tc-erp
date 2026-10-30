@@ -130,7 +130,7 @@
         </div>
         <div class="rrow">
           <svg viewBox="0 0 24 24" fill="none" stroke="#7a6a68" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-          <span class="k">RECEIPT DATE</span><span class="c">:</span><span class="v">{{ record?.payment_date | date:'dd-MM-yyyy' }}</span>
+          <span class="k">RECEIPT DATE</span><span class="c">:</span><span class="v">{{ (record?.batch_date || record?.payment_date) | date:'dd-MM-yyyy' }}</span>
         </div>
       </div>
     </div>
