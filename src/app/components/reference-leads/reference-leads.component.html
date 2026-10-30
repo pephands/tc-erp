@@ -11,7 +11,7 @@
       <p class="section-subheading">Manage and monitor telecaller reference leads.</p>
     </div>
     <div class="header-right-actions">
-      <button *ngIf="role() === 'TC'" type="button" class="btn-primary" (click)="openNewLeadModal()">
+      <button *ngIf="role() === 'TC' || role() === 'TL'" type="button" class="btn-primary" (click)="openNewLeadModal()">
         <span class="material-symbols-outlined">person_add</span> Add Reference Lead
       </button>
       
@@ -54,7 +54,7 @@
           <th>S.No</th>
           <th>Branch Name</th>
           <th>Employee ID</th>
-          <th>TC Name</th>
+          <th>Employee Name</th>
           <th>Donor Name</th>
           <th>Number</th>
           <th>Alternative Number</th>
