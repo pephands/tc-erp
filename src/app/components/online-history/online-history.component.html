@@ -127,7 +127,7 @@
       <table class="payment-table">
         <thead>
           <tr>
-            <th>Approved Date</th>
+            <th>Created Date</th>
             <th>Donation Date</th>
             <th>Branch</th>
             <th>EMP Name & EMP ID</th>
@@ -161,8 +161,7 @@
           } @else {
           @for (rec of records(); track rec.id) {
           <tr>
-            <td class="col-date">{{ rec.approved_at ? (rec.approved_at | date:'yyyy-MM-dd HH:mm') : (rec.created_at |
-              date:'yyyy-MM-dd') }}</td>
+            <td class="col-date">{{ rec.created_at ? (rec.created_at | date:'yyyy-MM-dd hh:mm a') : '-' }}</td>
             <td class="col-date">{{ rec.payment_date }}</td>
             <td><strong>{{ rec.branch_name || '-' }}</strong></td>
             <td>{{ rec.telecaller_name || '-' }} <br> <small style="color: #6b7280;">({{ rec.telecaller_employee_Id ||

@@ -368,12 +368,12 @@ export class OnlineHistoryComponent implements OnInit {
         setTimeout(() => {
           try {
             const exportData = items.map(rec => {
-              const approvedDate = rec.approved_at
-                ? (this.datePipe.transform(rec.approved_at, 'yyyy-MM-dd hh:mm a') || rec.approved_at)
-                : (rec.created_at ? (this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at) : '-');
+              const createdDate = rec.created_at
+                ? (this.datePipe.transform(rec.created_at, 'yyyy-MM-dd hh:mm a') || rec.created_at)
+                : '-';
 
               return {
-                'Approved Date': approvedDate,
+                'Created Date': createdDate,
                 'Donation Date': rec.payment_date || '-',
                 'Branch': rec.branch_name || '-',
                 'EMP Name': rec.telecaller_name || '-',
@@ -398,7 +398,7 @@ export class OnlineHistoryComponent implements OnInit {
 
             const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
             ws['!cols'] = [
-              { wch: 18 }, // Approved Date
+              { wch: 22 }, // Created Date
               { wch: 14 }, // Donation Date
               { wch: 18 }, // Branch
               { wch: 22 }, // EMP Name
