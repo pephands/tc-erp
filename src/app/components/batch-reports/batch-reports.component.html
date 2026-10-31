@@ -320,6 +320,10 @@
                 <option [value]="10">10</option>
                 <option [value]="20">20</option>
                 <option [value]="50">50</option>
+                <option [value]="100">100</option>
+                <option [value]="250">250</option>
+                <option [value]="500">500</option>
+                <option [value]="1000">1000</option>
               </select>
             </span>
           </div>
@@ -350,10 +354,42 @@
   <!-- Batches Table (Completed Batches & Overall Batch Details) -->
   @if (activeTab() === 'COMPLETED_BATCHES' || activeTab() === 'OVERALL_BATCHES' || activeTab() === 'BATCHES') {
     <div class="table-card shadow-card">
+      <!-- Bulk Selection Actions Bar -->
+      @if (selectedBatchIds().length > 0) {
+        <div class="selection-actions-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; background: rgba(234, 88, 12, 0.08); border-bottom: 1px solid rgba(234, 88, 12, 0.2); border-radius: 8px 8px 0 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="color: var(--primary, #ea580c);">check_box</span>
+            <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main, #1e293b);">
+              {{ selectedBatchIds().length }} {{ selectedBatchIds().length === 1 ? 'Batch' : 'Batches' }} Selected
+            </span>
+            <button type="button" class="btn-clear-selection" (click)="clearBatchSelection()" style="background: none; border: none; color: #dc2626; font-size: 0.825rem; cursor: pointer; text-decoration: underline; padding: 2px 6px;">
+              Clear Selection
+            </button>
+          </div>
+          <div>
+            <button type="button" class="btn-action-primary" (click)="downloadSelectedBatches()" [disabled]="isDownloading() || isUploading()" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.45rem 1rem; background: var(--primary, #ea580c); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+              <span class="material-symbols-outlined" style="font-size: 1.15rem;">download</span>
+              <span>Download Selected ({{ selectedBatchIds().length }})</span>
+            </button>
+          </div>
+        </div>
+      }
+
       <div class="table-responsive">
         <table class="payment-table">
           <thead>
             <tr>
+              @if ((isAdmin() && (activeTab() === 'COMPLETED_BATCHES' || activeTab() === 'PENDING_BATCHES')) || activeTab() === 'BATCHES') {
+                <th style="width: 40px; text-align: center;">
+                  <input 
+                    type="checkbox" 
+                    class="row-checkbox header-checkbox" 
+                    [checked]="isAllBatchesSelected()" 
+                    (change)="toggleSelectAllBatches($event)"
+                    title="Select All Batches"
+                  />
+                </th>
+              }
               @if (isAdmin() && activeTab() === 'OVERALL_BATCHES') { <th></th> }
               <th>Config Name</th>
               <th>Batch Date</th>
@@ -371,7 +407,7 @@
           <tbody>
             @if (isLoading()) {
               <tr>
-                <td colspan="10" class="loading-state">
+                <td colspan="11" class="loading-state">
                   <span class="material-symbols-outlined spin-icon">progress_activity</span>
                   <p>Loading batches...</p>
                 </td>
@@ -380,9 +416,21 @@
               @for (batch of batches(); track batch.id) {
                 <!-- Main Row -->
                 <tr [class.clickable-row]="isAdmin() && activeTab() === 'OVERALL_BATCHES'" 
+                    [class.row-selected]="isBatchSelected(batch.id)"
                     (click)="isAdmin() && activeTab() === 'OVERALL_BATCHES' ? toggleBatchExpansion(batch.id) : null"
                     style="cursor: {{ (isAdmin() && activeTab() === 'OVERALL_BATCHES') ? 'pointer' : 'default' }}">
                   
+                  @if ((isAdmin() && (activeTab() === 'COMPLETED_BATCHES' || activeTab() === 'PENDING_BATCHES')) || activeTab() === 'BATCHES') {
+                    <td style="text-align: center;" (click)="$event.stopPropagation()">
+                      <input 
+                        type="checkbox" 
+                        class="row-checkbox" 
+                        [checked]="isBatchSelected(batch.id)" 
+                        (change)="toggleBatchSelection(batch.id, $event)"
+                      />
+                    </td>
+                  }
+
                   @if (isAdmin() && activeTab() === 'OVERALL_BATCHES') { 
                     <td><span class="material-symbols-outlined">{{ expandedBatchId() === batch.id ? 'expand_less' : 'expand_more' }}</span></td>
                   }
@@ -501,7 +549,7 @@
 
               } @empty {
                 <tr>
-                  <td colspan="10" class="empty-state">
+                  <td colspan="11" class="empty-state">
                     <span class="material-symbols-outlined empty-icon">rule_folder</span>
                     <p class="empty-title">No Batches Found</p>
                     <p class="empty-sub">There are no batches in this category.</p>
@@ -523,6 +571,10 @@
               <option [value]="10">10</option>
               <option [value]="20">20</option>
               <option [value]="50">50</option>
+              <option [value]="100">100</option>
+              <option [value]="250">250</option>
+              <option [value]="500">500</option>
+              <option [value]="1000">1000</option>
             </select>
           </span>
         </div>
@@ -679,6 +731,10 @@
               <option [value]="10">10</option>
               <option [value]="20">20</option>
               <option [value]="50">50</option>
+              <option [value]="100">100</option>
+              <option [value]="250">250</option>
+              <option [value]="500">500</option>
+              <option [value]="1000">1000</option>
             </select>
           </span>
         </div>
